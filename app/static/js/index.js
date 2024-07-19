@@ -131,8 +131,8 @@ function startConversation(user_id, session_id) {
     isConversationStarted = true; // Set flag to true once conversation is started
     console.log('Conversation started, conversation_id:', conversation_id);
 
-    // Gửi tin nhắn tự động
-    sendMessage('Xin chào, rất vui được hỗ trợ bạn');
+    // // Gửi tin nhắn tự động
+    addMessageToChat('bot', 'Xin chào, rất vui được hỗ trợ bạn');
 
     return conversation_id;
   })
