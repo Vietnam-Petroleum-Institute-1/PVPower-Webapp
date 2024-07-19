@@ -1,0 +1,6 @@
+flask
+requests
+datetime
+flask_cors
+psycopg2-binary
+python-dotenv
