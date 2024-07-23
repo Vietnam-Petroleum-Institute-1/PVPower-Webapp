@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import requests
 import logging
-from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, get_bot_id, bot_id_exist, write_feedback
+from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ
 import json
 from datetime import datetime, timedelta
 import re
@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
 
 CHATBOT_APIKEY = os.getenv('CHATBOT_APIKEY')
+UPLOAD_APIKEY = os.getenv('UPLOAD_APIKEY')
 
 @app.route('/')
 def home():
@@ -223,6 +224,46 @@ def decode_unicode_escapes(string):
     # This function will only decode the Unicode escape sequences, not the emojis
     unicode_escape_pattern = re.compile(r'\\u[0-9a-fA-F]{4}')
     return unicode_escape_pattern.sub(lambda m: chr(int(m.group(0)[2:], 16)), string)
+
+@app.route('/api/upload_pending_FAQ', methods=['POST'])
+def upload_pending_faq():
+    conn = connect_db()
+    data = request.json
+    question = data.get('question')
+    answer = data.get('answer')
+    domain = data.get('domain')
+    user_id = data.get('user_id')
+    upload_pending_FAQ(conn, question, answer, domain, user_id)
+
+    conn.close()
+    return jsonify({"result": "FAQ uploaded successfully"})
+    # doc_url = "http://157.66.46.53/v1/workflows/run"  # Thay URL thực tế ở đây
+    # doc_headers = {
+    #     'Content-Type': 'application/json',
+    #     'Authorization': f'Bearer {UPLOAD_APIKEY}'
+    # }
+    # doc_body = {
+    #     "inputs": {
+    #         "Question": question,
+    #         "Answer": answer,
+    #         "Domain": domain,
+    #     },
+    #     "response_mode": "blocking",
+    #     "user": user_id
+    # }
+
+    # try:
+    #     response = requests.post(doc_url, headers=doc_headers, json=doc_body)
+    #     response.raise_for_status()
+    #     doc_result = response.json()
+    #     return jsonify({"result": "Success", "data": doc_result})
+    # except requests.exceptions.RequestException as e:
+    #     app.logger.error(f"DOC API RequestException: {e}")
+    #     return jsonify({"result": f"Error calling DOC API: {e}"}), 500
+    # except Exception as e:
+    #     app.logger.error(f"Exception: {e}")
+    #     return jsonify({"result": f"An error occurred: {e}"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

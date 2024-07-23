@@ -169,3 +169,14 @@ def write_feedback(conn, user_id, session_id, message_id, feedback_type, feedbac
     conn.commit()
     cur.close()
     print(f"Feedback {message_id} inserted successfully.")
+
+def upload_pending_FAQ(conn, question, answer, domain, user_id):
+    cur = conn.cursor()
+    insert_pending_FAQ_query = """
+    INSERT INTO upload_pending_faq (question, answer, domain, user_id)
+    VALUES (%s, %s, %s, %s)
+    """
+    cur.execute(insert_pending_FAQ_query, (question, answer, domain, user_id))
+    conn.commit()
+    cur.close()
+    print(f"Pending FAQ {question} inserted successfully.")
