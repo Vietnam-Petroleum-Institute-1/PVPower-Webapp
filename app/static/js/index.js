@@ -246,13 +246,13 @@ function sendMessage(message = null) {
 
 function processBotResponse(result, messageId, messageText, user_id) {
   // Check if response ends with "Domain 1", "Domain 2", "Domain 3", or "Domain 4"
-  const domainMatch = result.match(/Domain (\d+)$/);
+  const domainMatch = result.match(/Domain (1|2|3|4)$/);
   console.log("Đây là domainMatch", domainMatch);
   if (domainMatch) {
     const domain = `Domain ${domainMatch[1]}`;
 
-    // Remove "Domain X" from result
-    const resultWithoutDomain = result.replace(/Domain \d+$/, "").trim();
+    // Remove all occurrences of "Domain X" from result
+    const resultWithoutDomain = result.replace(/Domain (1|2|3|4)/g, "").trim();
 
     // Add message to chat without the domain part
     addMessageToChat("bot", resultWithoutDomain, messageId);
@@ -264,6 +264,7 @@ function processBotResponse(result, messageId, messageText, user_id) {
     addMessageToChat("bot", result, messageId);
   }
 }
+
 
 function uploadPendingFAQ(answer, question, domain, user_id) {
   fetch("/api/upload_pending_FAQ", {
