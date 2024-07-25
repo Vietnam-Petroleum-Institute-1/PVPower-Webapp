@@ -234,9 +234,7 @@ def upload_pending_faq():
     domain = data.get('domain')
     user_id = data.get('user_id')
     upload_pending_FAQ(conn, question, answer, domain, user_id)
-
     conn.close()
-    return jsonify({"result": "FAQ uploaded successfully"})
     # doc_url = "http://157.66.46.53/v1/workflows/run"  # Thay URL thực tế ở đây
     # doc_headers = {
     #     'Content-Type': 'application/json',
@@ -264,6 +262,7 @@ def upload_pending_faq():
     #     app.logger.error(f"Exception: {e}")
     #     return jsonify({"result": f"An error occurred: {e}"}), 500
 
+    return jsonify({"result": "FAQ uploaded successfully"})
 
 if __name__ == '__main__':
     app.run(debug=True)
