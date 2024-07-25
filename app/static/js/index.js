@@ -245,20 +245,22 @@ function sendMessage(message = null) {
 }
 
 function processBotResponse(result, messageId, messageText, user_id) {
-  // Add message to chat
-
   // Check if response ends with "Domain 1", "Domain 2", "Domain 3", or "Domain 4"
-  const domainMatch = result.match(/Domain (\d+)/);
-  console.log("Đây là domainMatch", domainMatch)
+  const domainMatch = result.match(/Domain (\d+)$/);
+  console.log("Đây là domainMatch", domainMatch);
   if (domainMatch) {
     const domain = `Domain ${domainMatch[1]}`;
 
     // Remove "Domain X" from result
     const resultWithoutDomain = result.replace(/Domain \d+$/, "").trim();
 
+    // Add message to chat without the domain part
     addMessageToChat("bot", resultWithoutDomain, messageId);
-    uploadPendingFAQ(result, messageText, domain, user_id);
+    
+    // Call uploadPendingFAQ
+    uploadPendingFAQ(messageText, resultWithoutDomain, domain, user_id);
   } else {
+    // Add message to chat as is
     addMessageToChat("bot", result, messageId);
   }
 }
