@@ -258,7 +258,7 @@ function processBotResponse(result, messageId, messageText, user_id) {
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
     // Call uploadPendingFAQ
-    uploadPendingFAQ(messageText, resultWithoutDomain, domain, user_id);
+    uploadPendingFAQ(resultWithoutDomain, messageText, domain, user_id);
   } else {
     // Add message to chat as is
     addMessageToChat("bot", result, messageId);
