@@ -251,8 +251,8 @@ function processBotResponse(result, messageId, messageText, user_id) {
   if (domainMatch) {
     const domain = `Domain ${domainMatch[1]}`;
 
-    // Remove all occurrences of "Domain X" from result
-    const resultWithoutDomain = result.replace(/Domain (1|2|3|4)/g, "").trim();
+    // Remove the last occurrence of "Domain X" from result
+    const resultWithoutDomain = result.replace(/Domain (1|2|3|4)$/, "").trim();
 
     // Add message to chat without the domain part
     addMessageToChat("bot", resultWithoutDomain, messageId);
@@ -264,7 +264,6 @@ function processBotResponse(result, messageId, messageText, user_id) {
     addMessageToChat("bot", result, messageId);
   }
 }
-
 
 function uploadPendingFAQ(answer, question, domain, user_id) {
   fetch("/api/upload_pending_FAQ", {
