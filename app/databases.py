@@ -133,7 +133,7 @@ def add_conversation(conn, conversation_id, session_id, user_id):
     cur = conn.cursor()
     insert_conversation_query = """
     INSERT INTO conversations (conversation_id, session_id, user_id)
-    VALUES (%s, %s, %s, %s)
+    VALUES (%s, %s, %s)
     """
     cur.execute(insert_conversation_query, (conversation_id, session_id, user_id))
     conn.commit()
