@@ -3,16 +3,6 @@ let isWaitingForBot = false; // New flag to indicate waiting for bot response
 let conversationIdPromise = null;
 let feedbackMessageId = null;
 
-// Định nghĩa botStorage nếu chưa có
-// const botStorage = {
-//   setItem: function(key, value) {
-//     localStorage.setItem(key, value);
-//   },
-//   getItem: function(key) {
-//     return localStorage.getItem(key);
-//   }
-// };
-
 window.onload = function () {
   console.log("Window loaded");
   const urlParams = new URLSearchParams(window.location.search);
@@ -25,16 +15,12 @@ window.onload = function () {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ user_id }),
+    body: JSON.stringify({ user_id, session_id }),
   })
     .then((response) => response.json())
     .then((data) => {
       console.log("User existence check:", data);
       if (data.result) {
-        // Lưu bot_id vào botStorage
-        // if (data.bot_id) {
-        //   botStorage.setItem('bot_id', data.bot_id);
-        // }
         conversationIdPromise = checkOrCreateSession(user_id, session_id);
       } else {
         document.getElementById("chatMessages").innerHTML =

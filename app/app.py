@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import requests
 import logging
-from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ
+from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid
 import json
 from datetime import datetime, timedelta
 import re
@@ -48,9 +48,7 @@ def api_message():
     }
 
     body = {
-        "inputs": { 
-            # "transcripts": transcripts,
-        },
+        "inputs": {},
         "query": user_message,
         "response_mode": "blocking",
         "conversation_id": conversation_id if conversation_id else "",
@@ -58,31 +56,36 @@ def api_message():
     }
     print(body)
     try:
+        def extract_domain(input_string):
+            match = re.search(r'Domain \d+', input_string)
+            if match:
+                return match.group(0)
+            else:
+                return None
         response = requests.post(url, headers=headers, json=body)
         response.raise_for_status()
 
         result = response.json()
 
         print("Result:", result)
-        # result = json.loads(data['data']['outputs']['data'])
         result_answer = decode_unicode_escapes(result["answer"])
-
+        domain = extract_domain(result_answer)
         input_token = len(user_message)//4 + 1
         output_token = len(result)//4 + 1
         total_token = input_token + output_token
         timestamp = datetime.now()
         print(result["message_id"])
-        conversation(conn, result["message_id"], session_id, user_id, "gpt", user_message, input_token, result_answer, output_token, total_token, timestamp, conversation_id, "app-hmlXEGA8Ht4GG829rQOvwJqT")
+        conversation(conn, result["message_id"], session_id, user_id, "gpt", user_message, input_token, result_answer, output_token, total_token, timestamp, conversation_id, domain)
         conn.close()
         print("Done!")
         return jsonify({"result": result_answer, "message_id": result["message_id"]})
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        return jsonify({"result": f"Error: {e}"}), 500
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
     except Exception as e:
         app.logger.error(f"Exception: {e}")
-        return jsonify({"result": f"An error occurred: {e}"}), 500
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
 
 
 @app.route('/api/start_conversation', methods=['POST'])
@@ -110,15 +113,15 @@ def start_conversation():
 
         data = response.json()
         conversation_id = data['conversation_id']
-        add_conversation(conn, conversation_id, session_id, user_id, "app-hmlXEGA8Ht4GG829rQOvwJqT")
+        add_conversation(conn, conversation_id, session_id, user_id)
         conn.close()
         return jsonify({"conversation_id": conversation_id})
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        return jsonify({"result": f"Error: {e}"}), 500
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
     except Exception as e:
         app.logger.error(f"Exception: {e}")
-        return jsonify({"result": f"An error occurred: {e}"}), 500
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
 
 @app.route('/api/user', methods=['POST'])
 def api_user():
@@ -137,9 +140,12 @@ def api_user():
 def user_exist():
     conn = connect_db()
     user_id = request.json['user_id']
+    session_id = request.json['session_id']
     exists, bot_id = user_exists(conn, user_id)
     conn.close()
     if not exists:
+        return jsonify({"result": 0}), 404
+    if not session_valid(conn, user_id, session_id):
         return jsonify({"result": 0}), 404
     return jsonify({"result": 1, "bot_id": bot_id[0]})
 
@@ -235,33 +241,6 @@ def upload_pending_faq():
     user_id = data.get('user_id')
     upload_pending_FAQ(conn, question, answer, domain, user_id)
     conn.close()
-    # doc_url = "http://157.66.46.53/v1/workflows/run"  # Thay URL thực tế ở đây
-    # doc_headers = {
-    #     'Content-Type': 'application/json',
-    #     'Authorization': f'Bearer {UPLOAD_APIKEY}'
-    # }
-    # doc_body = {
-    #     "inputs": {
-    #         "Question": question,
-    #         "Answer": answer,
-    #         "Domain": domain,
-    #     },
-    #     "response_mode": "blocking",
-    #     "user": user_id
-    # }
-
-    # try:
-    #     response = requests.post(doc_url, headers=doc_headers, json=doc_body)
-    #     response.raise_for_status()
-    #     doc_result = response.json()
-    #     return jsonify({"result": "Success", "data": doc_result})
-    # except requests.exceptions.RequestException as e:
-    #     app.logger.error(f"DOC API RequestException: {e}")
-    #     return jsonify({"result": f"Error calling DOC API: {e}"}), 500
-    # except Exception as e:
-    #     app.logger.error(f"Exception: {e}")
-    #     return jsonify({"result": f"An error occurred: {e}"}), 500
-
     return jsonify({"result": "FAQ uploaded successfully"})
 
 if __name__ == '__main__':
