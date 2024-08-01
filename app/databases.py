@@ -60,17 +60,25 @@ def session_exists(conn, user_id, session_id):
     cur.close()
     return exists
 
-def conversation(conn, message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, conversation_id, bot_id):
+def session_valid(conn, user_id, session_id):
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM sessions WHERE user_id = %s AND session_id = %s AND end_time > NOW()", (user_id, session_id))
+    exists = cur.fetchone() is not None
+    cur.close()
+    return exists
+
+
+def conversation(conn, message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, conversation_id, domain):
     if not session_exists(conn, user_id, session_id):
         print(f"Session {session_id} does not exist.")
         return
     cur = conn.cursor()
-    print("all variables:", message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, bot_id, conversation_id)
+    print("all variables:", message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, conversation_id, domain)
     insert_conversation_query = """
-    INSERT INTO conversation_logs (message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, bot_id, conversation_id)
+    INSERT INTO conversation_logs (message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, conversation_id, domain)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
-    cur.execute(insert_conversation_query, (message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, bot_id, conversation_id))
+    cur.execute(insert_conversation_query, (message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, conversation_id, domain))
     print("Pass!")
     conn.commit()
     cur.close()
@@ -118,16 +126,16 @@ def get_transcripts(conn, user_id, session_id):
     cur.close()
     return transcripts
 
-def add_conversation(conn, conversation_id, session_id, user_id, bot_id):
+def add_conversation(conn, conversation_id, session_id, user_id):
     if not session_exists(conn, user_id, session_id):
         print(f"Session {session_id} does not exist.")
         return
     cur = conn.cursor()
     insert_conversation_query = """
-    INSERT INTO conversations (conversation_id, session_id, user_id, bot_id)
+    INSERT INTO conversations (conversation_id, session_id, user_id)
     VALUES (%s, %s, %s, %s)
     """
-    cur.execute(insert_conversation_query, (conversation_id, session_id, user_id, bot_id))
+    cur.execute(insert_conversation_query, (conversation_id, session_id, user_id))
     conn.commit()
     cur.close()
     print(f"Conversation {conversation_id} inserted successfully.")
