@@ -142,11 +142,11 @@ def user_exist():
     user_id = request.json['user_id']
     session_id = request.json['session_id']
     exists, bot_id = user_exists(conn, user_id)
-    conn.close()
     if not exists:
         return jsonify({"result": 0}), 404
     if not session_valid(conn, user_id, session_id):
         return jsonify({"result": 0}), 404
+    conn.close()
     return jsonify({"result": 1, "bot_id": bot_id[0]})
 
 @app.route('/api/chat_status', methods=['GET'])
