@@ -188,3 +188,14 @@ def upload_pending_FAQ(conn, question, answer, domain, user_id):
     conn.commit()
     cur.close()
     print(f"Pending FAQ {question} inserted successfully.")
+
+def error_logs(conn, user_id, session_id, conversation_id, input_message, error_message, error_code):
+    cur = conn.cursor()
+    insert_error_logs = """
+    INSERT INTO error_logs (user_id, session_id, conversation_id, input_message, error_message, error_code)
+    VALUES (%s, %s, %s, %s, %s, %s)
+    """
+    cur.execute(insert_error_logs, (user_id, session_id, conversation_id, input_message, error_message, error_code)) 
+    conn.commit()
+    cur.close()
+    print(f"Error log inserted successfully.")

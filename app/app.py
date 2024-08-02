@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import requests
 import logging
-from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid
+from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid, error_logs
 import json
 from datetime import datetime, timedelta
 import re
@@ -35,6 +35,7 @@ def api_message():
     end_session(conn, user_id, session_id)
 
     if not user_message:
+        error_logs(user_id, session_id, conversation_id, user_message, "No message provided", "400")
         return jsonify({"result": "No message provided"}), 400
     
     transcripts = get_transcripts(conn, user_id, session_id)
@@ -82,9 +83,11 @@ def api_message():
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
+        error_logs(user_id, session_id, conversation_id, user_message, e, "500")
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
     except Exception as e:
         app.logger.error(f"Exception: {e}")
+        error_logs(user_id, session_id, conversation_id, user_message, e, "500")
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
 
 
@@ -118,10 +121,11 @@ def start_conversation():
         return jsonify({"conversation_id": conversation_id})
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
+        error_logs(user_id, session_id, conversation_id, "", e, "501")
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 501
     except Exception as e:
         app.logger.error(f"Exception: {e}")
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 501
 
 @app.route('/api/user', methods=['POST'])
 def api_user():
