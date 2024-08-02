@@ -6,27 +6,6 @@
   <title>Embedded Chat with Chatbot</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <script>
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.onkeydown = function(e) {
-      if (e.keyCode == 123) { // F12
-        return false;
-      }
-      if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { // Ctrl+Shift+I
-        return false;
-      }
-      if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { // Ctrl+Shift+J
-        return false;
-      }
-      if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { // Ctrl+U
-        return false;
-      }
-      if (e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) { // Ctrl+S
-        e.preventDefault();
-        return false;
-      }
-    }
-  </script>
 </head>
 <body>
   <div class="chat-container" id="chatContainer">
