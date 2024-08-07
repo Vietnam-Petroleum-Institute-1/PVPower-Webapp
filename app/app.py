@@ -83,11 +83,11 @@ def api_message():
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        error_logs(user_id, session_id, conversation_id, user_message, e, "500")
+        error_logs(conn, user_id, session_id, conversation_id, user_message, e, "500")
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
     except Exception as e:
         app.logger.error(f"Exception: {e}")
-        error_logs(user_id, session_id, conversation_id, user_message, e, "500")
+        error_logs(conn, user_id, session_id, conversation_id, user_message, e, "500")
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
 
 
@@ -121,10 +121,11 @@ def start_conversation():
         return jsonify({"conversation_id": conversation_id})
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        error_logs(user_id, session_id, conversation_id, "", e, "501")
+        error_logs(conn, user_id, session_id, conversation_id, "", e, "501")
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 501
     except Exception as e:
         app.logger.error(f"Exception: {e}")
+        error_logs(conn, user_id, session_id, conversation_id, "", e, "501")
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 501
 
 @app.route('/api/user', methods=['POST'])
