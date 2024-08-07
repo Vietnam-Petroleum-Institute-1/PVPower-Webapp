@@ -210,7 +210,7 @@ function sendMessage(message = null) {
     userInput.value = "";
   }
   isWaitingForBot = true; // Set flag to true while waiting for bot response
-
+  addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
   addWaitingBubble(); // Add waiting bubble
 
   fetch(
