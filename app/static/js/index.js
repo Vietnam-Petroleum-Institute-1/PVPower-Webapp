@@ -214,7 +214,9 @@ function sendMessage(message = null) {
 
   // Set a timeout to show the "waiting" message if the response takes too long
   const delayMessageTimeout = setTimeout(() => {
+    removeWaitingBubble();
     addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
+    addWaitingBubble()
   }, 4000);
 
   fetch(
