@@ -210,8 +210,12 @@ function sendMessage(message = null) {
     userInput.value = "";
   }
   isWaitingForBot = true; // Set flag to true while waiting for bot response
-  addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
   addWaitingBubble(); // Add waiting bubble
+
+  // Set a timeout to show the "waiting" message if the response takes too long
+  const delayMessageTimeout = setTimeout(() => {
+    addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
+  }, 4000);
 
   fetch(
     `/api/message?text=${encodeURIComponent(
@@ -222,20 +226,21 @@ function sendMessage(message = null) {
   )
     .then((response) => response.json())
     .then((data) => {
+      clearTimeout(delayMessageTimeout); // Clear the timeout as the response has arrived
       console.log("Message sent:", data);
       removeWaitingBubble(); // Remove waiting bubble
-      if (!message) {
-        processBotResponse(data.result, data.message_id, messageText, user_id); // Gọi hàm xử lý kết quả từ bot, truyền thêm messageText là question
-      }
+      processBotResponse(data.result, data.message_id, messageText, user_id); // Process the bot's response
       isWaitingForBot = false; // Set flag to false after receiving response
     })
     .catch((error) => {
+      clearTimeout(delayMessageTimeout); // Clear the timeout in case of error
       console.error("Error:", error);
       removeWaitingBubble(); // Remove waiting bubble
       addMessageToChat("bot", "Sorry, something went wrong.");
       isWaitingForBot = false; // Set flag to false after error
     });
 }
+
 
 function processBotResponse(result, messageId, messageText, user_id) {
   // Check if response ends with "Domain 1", "Domain 2", "Domain 3", or "Domain 4"

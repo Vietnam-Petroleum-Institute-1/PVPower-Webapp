@@ -62,7 +62,7 @@ def api_message():
             if match:
                 return match.group(0)
             else:
-                return None
+                return "FAQ"
         response = requests.post(url, headers=headers, json=body)
         response.raise_for_status()
 
