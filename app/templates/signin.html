@@ -16,18 +16,18 @@
                 <form class="sign-in" id="signinForm" method="POST" action="{{ url_for('signin') }}">
                     <div class="sign-in__field">
                         <i class="sign-in__icon fas fa-user"></i>
-                        <input type="text" class="sign-in__input" placeholder="User name / Email" id="username">
+                        <input type="text" class="sign-in__input" placeholder="User name / Email" id="username" name="username" required>
                     </div>
                     <div class="sign-in__field">
                         <i class="sign-in__icon fas fa-lock"></i>
-                        <input type="password" class="sign-in__input" placeholder="Password" id="password">
+                        <input type="password" class="sign-in__input" placeholder="Password" id="password" name="password" required>
                     </div>
                     <button class="button sign-in__submit" type="submit">
                         <span class="button__text">Sign In Now</span>
                         <i class="button__icon fas fa-chevron-right"></i>
                     </button>
-                    <div id="error-message" class="error-message"></div>
                 </form>
+                
                 <!-- <div class="social-sign-in">
                     <h3>Sign in via</h3>
                     <div class="social-icons">

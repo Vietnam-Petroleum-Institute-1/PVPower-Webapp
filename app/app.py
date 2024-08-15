@@ -69,6 +69,7 @@ def signin():
         username = request.form.get('username')
         password = request.form.get('password')
 
+
         logging.debug(f"Received POST request for signin with username: {username}")
 
         if not username or not password:
