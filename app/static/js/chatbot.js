@@ -382,7 +382,9 @@ function showWaitingBubble() {
   const dot1 = document.createElement("span");
   dot1.classList.add("dot");
   const dot2 = document.createElement("span");
+  dot2.classList.add("dot");
   const dot3 = document.createElement("span");
+  dot3.classList.add("dot");
   messageContent.appendChild(dot1);
   messageContent.appendChild(dot2);
   messageContent.appendChild(dot3);
