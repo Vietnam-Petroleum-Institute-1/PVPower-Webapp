@@ -33,6 +33,8 @@ def authenticate_user(username, password):
         if '\\' in username:
             domain, username = username.split('\\', 1)
 
+        logging.debug(f"Authenticating user: {username}")
+
         server = Server(LDAP_SERVER, get_info=ALL)
         conn = Connection(server, user=LDAP_USER, password=LDAP_PASSWORD, auto_bind=True)
         
@@ -41,46 +43,49 @@ def authenticate_user(username, password):
         conn.search(search_base=BASE_DN, search_filter=search_filter, search_scope=SUBTREE, attributes=['distinguishedName'])
         
         if not conn.entries:
+            logging.debug("User DN not found.")
             return False, 'Người dùng không tồn tại.'
 
         user_dn = conn.entries[0].distinguishedName.value
         
         # Thử xác thực người dùng với DN và mật khẩu
         user_conn = Connection(server, user=user_dn, password=password, auto_bind=True)
+        logging.debug(f"User {username} authenticated successfully.")
         return True, 'Đăng nhập thành công!'
     except Exception as e:
+        logging.error(f"Lỗi LDAP: {str(e)}")
         return False, f'Lỗi LDAP: {str(e)}'
 
 @app.route('/')
 def home():
-    # Lấy user_id và session_id từ query params
     user_id = request.args.get('user_id')
     session_id = request.args.get('session_id')
-    
-    # Render template trang chủ với user_id và session_id
+    logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
     return render_template('index.html', user_id=user_id, session_id=session_id)
 
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
 
-        print(f"Received username: {username}")
-        print(f"Received password: {password}")
+        logging.debug(f"Received POST request for signin with username: {username}")
 
+        if not username or not password:
+            logging.warning("Username or password missing.")
+            return render_template('signin.html', error="Username or password is missing.")
+        
         success, message = authenticate_user(username, password)
         
         if success:
-            print(f"User {username} authenticated successfully.")
             session_id = f"session-{uuid.uuid4()}"
-            print(f"Redirecting to home with session_id: {session_id}")
+            logging.debug(f"Redirecting to home with session_id: {session_id}")
             return redirect(url_for('home', user_id=username, session_id=session_id))
         else:
-            print(f"Authentication failed: {message}")
+            logging.warning(f"Authentication failed: {message}")
             return render_template('signin.html', error=message)
     
-    print("No idea")
+    logging.debug("Rendering signin page.")
     return render_template('signin.html')
 
 
