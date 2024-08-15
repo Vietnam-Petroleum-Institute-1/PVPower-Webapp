@@ -65,20 +65,25 @@ def signin():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-                # Xử lý xác thực người dùng tại đây
+        
+        # Xử lý xác thực người dùng tại đây
         success, message = authenticate_user(username, password)
         
         if success:
+            print(f"User {username} authenticated successfully.")
             # Tạo session_id ngẫu nhiên 36 ký tự
             session_id = f"session-{uuid.uuid4()}"
+            print(f"Redirecting to home with session_id: {session_id}")
             
             # Chuyển hướng tới trang chủ kèm theo user_id và session_id
             return redirect(url_for('home', user_id=username, session_id=session_id))
         else:
+            print(f"Authentication failed: {message}")
             # Nếu xác thực thất bại, quay lại trang đăng nhập với thông báo lỗi
             return render_template('signin.html', error=message)
     
-    return render_template('signin.html', error=message)
+    return render_template('signin.html')
+
 
 @app.route('/api/message', methods=['GET'])
 def api_message():

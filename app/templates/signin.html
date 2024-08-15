@@ -13,7 +13,7 @@
         <div class="screen">
             <div class="screen__content">
                 <img src="{{ url_for('static', filename='images/Logo_Petrovietnam.svg.png') }}" alt="Logo">
-                <form class="sign-in" id="signinForm">
+                <form class="sign-in" id="signinForm" method="POST" action="{{ url_for('signin') }}">
                     <div class="sign-in__field">
                         <i class="sign-in__icon fas fa-user"></i>
                         <input type="text" class="sign-in__input" placeholder="User name / Email" id="username">
