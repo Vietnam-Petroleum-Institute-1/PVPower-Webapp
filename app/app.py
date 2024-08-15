@@ -3,7 +3,8 @@ import requests
 import logging
 from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid, error_logs
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 import re
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -102,8 +103,13 @@ def signin():
             
             # Set cookie for session_id and user_id
             response = make_response(redirect(url_for('home')))
-            response.set_cookie('session_id', session_id)
-            response.set_cookie('user_id', username)
+            # Đặt thời gian hết hạn cụ thể, ví dụ 10 phút kể từ bây giờ
+            vn_now = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
+            expires = vn_now + timedelta(minutes=1)
+            
+            # Đặt cookie với thời gian hết hạn cụ thể
+            response.set_cookie('session_id', session_id, expires=expires)
+            response.set_cookie('user_id', username, expires=expires)
 
             return response
         else:
