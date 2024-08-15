@@ -4,18 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Link to Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
-    <div class="signin-container">
-        <h2>Sign In</h2>
-        <form action="/signin" method="POST" onsubmit="return validateSignInForm()">
-            <input type="text" id="username" name="username" placeholder="Username" required>
-            <input type="password" id="password" name="password" placeholder="Password" required>
-            <input type="submit" value="Sign In">
-        </form>
-        <div id="error" class="error"></div>
+    <div class="container">
+        <div class="screen">
+            <div class="screen__content">
+                <form class="sign-in">
+                    <div class="sign-in__field">
+                        <i class="sign-in__icon fas fa-user"></i>
+                        <input type="text" class="sign-in__input" placeholder="User name / Email">
+                    </div>
+                    <div class="sign-in__field">
+                        <i class="sign-in__icon fas fa-lock"></i>
+                        <input type="password" class="sign-in__input" placeholder="Password">
+                    </div>
+                    <button class="button sign-in__submit">
+                        <span class="button__text">Sign In Now</span>
+                        <i class="button__icon fas fa-chevron-right"></i>
+                    </button>                
+                </form>
+                <!-- <div class="social-sign-in">
+                    <h3>Sign in via</h3>
+                    <div class="social-icons">
+                        <a href="#" class="social-sign-in__icon fab fa-instagram"></a>
+                        <a href="#" class="social-sign-in__icon fab fa-facebook"></a>
+                        <a href="#" class="social-sign-in__icon fab fa-twitter"></a>
+                    </div>
+                </div> -->
+            </div>
+            <div class="screen__background">
+                <span class="screen__background__shape screen__background__shape4"></span>
+                <span class="screen__background__shape screen__background__shape3"></span>        
+                <span class="screen__background__shape screen__background__shape2"></span>
+                <span class="screen__background__shape screen__background__shape1"></span>
+            </div>      
+        </div>
     </div>
-    <script src="{{ url_for('static', filename='js/signin.js') }}"></script>
 </body>
 </html>
