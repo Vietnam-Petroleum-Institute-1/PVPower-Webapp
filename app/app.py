@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
 import requests
 import logging
 from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid, error_logs
@@ -58,8 +58,13 @@ def authenticate_user(username, password):
 
 @app.route('/')
 def home():
-    user_id = request.args.get('user_id')
-    session_id = request.args.get('session_id')
+    session_id = request.cookies.get('session_id')
+    user_id = request.cookies.get('user_id')
+
+    if not session_id:
+        logging.debug("No session_id found, redirecting to signin.")
+        return redirect(url_for('signin'))
+
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
     return render_template('index.html', user_id=user_id, session_id=session_id)
 
@@ -82,7 +87,13 @@ def signin():
         if success:
             session_id = f"session-{uuid.uuid4()}"
             logging.debug(f"Redirecting to home with session_id: {session_id}")
-            return redirect(url_for('home', user_id=username, session_id=session_id))
+            
+            # Set cookie for session_id and user_id
+            response = make_response(redirect(url_for('home')))
+            response.set_cookie('session_id', session_id)
+            response.set_cookie('user_id', username)
+
+            return response
         else:
             logging.warning(f"Authentication failed: {message}")
             return render_template('signin.html', error=message)

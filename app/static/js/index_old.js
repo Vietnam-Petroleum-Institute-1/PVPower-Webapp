@@ -5,52 +5,36 @@ let feedbackMessageId = null;
 
 window.onload = function () {
   console.log("Window loaded");
-
-  const user_id = getCookie("user_id");
-  const session_id = getCookie("session_id");
+  const urlParams = new URLSearchParams(window.location.search);
+  const user_id = urlParams.get("user_id");
+  const session_id = urlParams.get("session_id");
   console.log("User ID:", user_id, "Session ID:", session_id);
 
-  if (user_id && session_id) {
-    fetch("/api/user_exist", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ user_id }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("User existence check:", data);
-        if (data.result) {
-          conversationIdPromise = checkOrCreateSession(user_id, session_id);
-        } else {
-          document.getElementById("chatMessages").innerHTML =
-            '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-          const chatInput = document.querySelector(".chat-input");
-          if (chatInput) {
-            chatInput.style.display = "none";
-          }
+  fetch("/api/user_exist", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ user_id}),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("User existence check:", data);
+      if (data.result) {
+        conversationIdPromise = checkOrCreateSession(user_id, session_id);
+      } else {
+        document.getElementById("chatMessages").innerHTML =
+          '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
+        const chatInput = document.querySelector(".chat-input");
+        if (chatInput) {
+          chatInput.style.display = "none";
         }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  } else {
-    document.getElementById("chatMessages").innerHTML =
-      '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-    const chatInput = document.querySelector(".chat-input");
-    if (chatInput) {
-      chatInput.style.display = "none";
-    }
-  }
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 };
-
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-}
 
 function checkOrCreateSession(user_id, session_id) {
   console.log("Checking or creating session");
@@ -67,7 +51,7 @@ function checkOrCreateSession(user_id, session_id) {
       console.log("Session existence check:", data);
       if (data.result === 1) {
         document.getElementById("chatContainer").style.display = "flex";
-        return getConversation(user_id, session_id);
+        return getConversation(user_id, session_id); // Return the promise from getConversation
       } else if (data.result === 0) {
         const start_time = new Date().toISOString();
         const end_time = new Date(Date.now() + 60 * 60 * 1000).toISOString();
@@ -104,7 +88,7 @@ function createSession(user_id, session_id, start_time, end_time) {
     .then((data) => {
       console.log("Session creation result:", data);
       document.getElementById("chatContainer").style.display = "flex";
-      return startConversation(user_id, session_id);
+      return startConversation(user_id, session_id); // Return the promise from startConversation
     })
     .catch((error) => {
       console.error("Error in createSession:", error);
@@ -138,9 +122,10 @@ function startConversation(user_id, session_id) {
         sendButton.disabled = false;
       }
 
-      isConversationStarted = true;
+      isConversationStarted = true; // Set flag to true once conversation is started
       console.log("Conversation started, conversation_id:", conversation_id);
 
+      // // Gửi tin nhắn tự động
       addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn");
 
       return conversation_id;
@@ -178,7 +163,7 @@ function getConversation(user_id, session_id) {
         sendButton.disabled = false;
       }
 
-      isConversationStarted = true;
+      isConversationStarted = true; // Set flag to true once conversation ID is obtained
       return data.result;
     })
     .catch((error) => {
@@ -209,9 +194,9 @@ function sendMessage(message = null) {
   if (messageText === "") {
     return;
   }
-  
-  const user_id = getCookie("user_id");
-  const session_id = getCookie("session_id");
+  const urlParams = new URLSearchParams(window.location.search);
+  const user_id = urlParams.get("user_id");
+  const session_id = urlParams.get("session_id");
   const conversation_id = sessionStorage.getItem("conversation_id");
 
   if (!conversation_id) {
@@ -224,9 +209,10 @@ function sendMessage(message = null) {
   if (!message) {
     userInput.value = "";
   }
-  isWaitingForBot = true;
-  addWaitingBubble();
+  isWaitingForBot = true; // Set flag to true while waiting for bot response
+  addWaitingBubble(); // Add waiting bubble
 
+  // Set a timeout to show the "waiting" message if the response takes too long
   const delayMessageTimeout = setTimeout(() => {
     removeWaitingBubble();
     addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
@@ -242,33 +228,39 @@ function sendMessage(message = null) {
   )
     .then((response) => response.json())
     .then((data) => {
-      clearTimeout(delayMessageTimeout);
+      clearTimeout(delayMessageTimeout); // Clear the timeout as the response has arrived
       console.log("Message sent:", data);
-      removeWaitingBubble();
-      processBotResponse(data.result, data.message_id, messageText, user_id);
-      isWaitingForBot = false;
+      removeWaitingBubble(); // Remove waiting bubble
+      processBotResponse(data.result, data.message_id, messageText, user_id); // Process the bot's response
+      isWaitingForBot = false; // Set flag to false after receiving response
     })
     .catch((error) => {
-      clearTimeout(delayMessageTimeout);
+      clearTimeout(delayMessageTimeout); // Clear the timeout in case of error
       console.error("Error:", error);
-      removeWaitingBubble();
+      removeWaitingBubble(); // Remove waiting bubble
       addMessageToChat("bot", "Sorry, something went wrong.");
-      isWaitingForBot = false;
+      isWaitingForBot = false; // Set flag to false after error
     });
 }
 
+
 function processBotResponse(result, messageId, messageText, user_id) {
+  // Check if response ends with "Domain 1", "Domain 2", "Domain 3", or "Domain 4"
   const domainMatch = result.match(/Domain (1|2|3|4)$/);
   console.log("Đây là domainMatch", domainMatch);
   if (domainMatch) {
     const domain = `Domain ${domainMatch[1]}`;
 
+    // Remove the last occurrence of "Domain X" from result
     const resultWithoutDomain = result.replace(/Domain (1|2|3|4)$/, "").trim();
 
+    // Add message to chat without the domain part
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
+    // Call uploadPendingFAQ
     uploadPendingFAQ(resultWithoutDomain, messageText, domain, user_id);
   } else {
+    // Add message to chat as is
     addMessageToChat("bot", result, messageId);
   }
 }
@@ -281,9 +273,9 @@ function uploadPendingFAQ(answer, question, domain, user_id) {
     },
     body: JSON.stringify({
       question: question,
-      answer: answer,
+      answer: answer, // Assuming answer is the same as question for simplicity
       domain: domain,
-      user_id: user_id,
+      user_id: user_id, // Adjust as needed
     }),
   })
     .then((response) => response.json())
@@ -336,7 +328,7 @@ function addMessageToChat(sender, message, messageId) {
 }
 
 function addWaitingBubble() {
-  removeWaitingBubble();
+  removeWaitingBubble(); // Remove any existing waiting bubble before adding a new one
   const chatMessages = document.getElementById("chatMessages");
 
   const waitingBubble = document.createElement("div");
@@ -345,6 +337,7 @@ function addWaitingBubble() {
   const messageContent = document.createElement("div");
   messageContent.classList.add("message-content");
 
+  // Thêm các dấu chấm với hiệu ứng nhấp nháy
   const dot1 = document.createElement("span");
   dot1.classList.add("dot");
   const dot2 = document.createElement("span");
@@ -371,7 +364,7 @@ function removeWaitingBubble() {
 }
 
 function showWaitingBubble() {
-  removeWaitingBubble();
+  removeWaitingBubble(); // Ensure any existing waiting bubble is removed before showing a new one
   const chatMessages = document.getElementById("chatMessages");
   const waitingBubble = document.createElement("div");
   waitingBubble.classList.add("message", "bot", "waiting-bubble");
@@ -382,7 +375,9 @@ function showWaitingBubble() {
   const dot1 = document.createElement("span");
   dot1.classList.add("dot");
   const dot2 = document.createElement("span");
+  dot2.classList.add("dot");
   const dot3 = document.createElement("span");
+  dot3.classList.add("dot");
   messageContent.appendChild(dot1);
   messageContent.appendChild(dot2);
   messageContent.appendChild(dot3);
@@ -394,12 +389,13 @@ function showWaitingBubble() {
 }
 
 function hideWaitingBubble() {
-  removeWaitingBubble();
+  removeWaitingBubble(); // Ensure the waiting bubble is removed when hiding
 }
 
 function submitFeedback(feedbackType, messageId, feedbackText, messageElement) {
-  const user_id = getCookie("user_id");
-  const session_id = getCookie("session_id");
+  const urlParams = new URLSearchParams(window.location.search);
+  const user_id = urlParams.get("user_id");
+  const session_id = urlParams.get("session_id");
 
   fetch("/api/feedback", {
     method: "POST",
@@ -435,6 +431,7 @@ function sendFeedback(feedbackType, messageId, messageElement) {
   const likeButton = feedbackButtons.querySelector(".like-button");
   const dislikeButton = feedbackButtons.querySelector(".dislike-button");
 
+  // Disable buttons after feedback
   likeButton.disabled = true;
   dislikeButton.disabled = true;
 
