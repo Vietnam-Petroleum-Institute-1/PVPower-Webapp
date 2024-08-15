@@ -63,22 +63,24 @@ def home():
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form['username']
+        password = request.form['password']
 
-        if not username or not password:
-            print("Username or password is missing.")
-            return render_template('signin.html', error="Username or password is missing.")
-        
-        # Xử lý xác thực người dùng tại đây
+        print(f"Received username: {username}")
+        print(f"Received password: {password}")
+
         success, message = authenticate_user(username, password)
         
         if success:
+            print(f"User {username} authenticated successfully.")
             session_id = f"session-{uuid.uuid4()}"
+            print(f"Redirecting to home with session_id: {session_id}")
             return redirect(url_for('home', user_id=username, session_id=session_id))
         else:
+            print(f"Authentication failed: {message}")
             return render_template('signin.html', error=message)
     
+    print("No idea")
     return render_template('signin.html')
 
 
