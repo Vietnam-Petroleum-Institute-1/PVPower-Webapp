@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 import requests
 import logging
 from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid, error_logs
@@ -8,6 +8,9 @@ import re
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
+from ldap3 import Server, Connection, ALL, SUBTREE
+import uuid
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}) 
@@ -19,6 +22,34 @@ load_dotenv()
 
 CHATBOT_APIKEY = os.getenv('CHATBOT_APIKEY')
 UPLOAD_APIKEY = os.getenv('UPLOAD_APIKEY')
+LDAP_SERVER = os.getenv('LDAP_SERVER')
+LDAP_USER = os.getenv('LDAP_USER')
+LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
+BASE_DN = os.getenv('BASE_DN')
+
+def authenticate_user(username, password):
+    try:
+        # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
+        if '\\' in username:
+            domain, username = username.split('\\', 1)
+
+        server = Server(LDAP_SERVER, get_info=ALL)
+        conn = Connection(server, user=LDAP_USER, password=LDAP_PASSWORD, auto_bind=True)
+        
+        # Tìm kiếm DN của người dùng trong tất cả các OUs
+        search_filter = f"(sAMAccountName={username})"
+        conn.search(search_base=BASE_DN, search_filter=search_filter, search_scope=SUBTREE, attributes=['distinguishedName'])
+        
+        if not conn.entries:
+            return False, 'Người dùng không tồn tại.'
+
+        user_dn = conn.entries[0].distinguishedName.value
+        
+        # Thử xác thực người dùng với DN và mật khẩu
+        user_conn = Connection(server, user=user_dn, password=password, auto_bind=True)
+        return True, 'Đăng nhập thành công!'
+    except Exception as e:
+        return False, f'Lỗi LDAP: {str(e)}'
 
 @app.route('/')
 def home():
@@ -29,11 +60,19 @@ def signin():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        # Xử lý xác thực người dùng tại đây
-        if username == 'admin' and password == 'password':
-            return 'Sign-in successful!'
+                # Xử lý xác thực người dùng tại đây
+        success, message = authenticate_user(username, password)
+        
+        if success:
+            # Tạo session_id ngẫu nhiên 36 ký tự
+            session_id = f"session-{uuid.uuid4()}"
+            
+            # Chuyển hướng tới trang chủ kèm theo user_id và session_id
+            return redirect(url_for('home', user_id=username, session_id=session_id))
         else:
-            return 'Invalid credentials, please try again.'
+            # Nếu xác thực thất bại, quay lại trang đăng nhập với thông báo lỗi
+            return render_template('signin.html', error=message)
+    
     return render_template('signin.html')
 
 @app.route('/api/message', methods=['GET'])
