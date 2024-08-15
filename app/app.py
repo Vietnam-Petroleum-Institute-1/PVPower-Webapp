@@ -24,6 +24,18 @@ UPLOAD_APIKEY = os.getenv('UPLOAD_APIKEY')
 def home():
     return render_template('index.html')
 
+@app.route('/signin', methods=['GET', 'POST'])
+def signin():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        # Xử lý xác thực người dùng tại đây
+        if username == 'admin' and password == 'password':
+            return 'Sign-in successful!'
+        else:
+            return 'Invalid credentials, please try again.'
+    return render_template('signin.html')
+
 @app.route('/api/message', methods=['GET'])
 def api_message():
     conn = connect_db()
