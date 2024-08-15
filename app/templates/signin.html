@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/signin.css') }}">
     <!-- Link to Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -12,19 +12,20 @@
     <div class="container">
         <div class="screen">
             <div class="screen__content">
-                <form class="sign-in">
+                <form class="sign-in" id="signinForm">
                     <div class="sign-in__field">
                         <i class="sign-in__icon fas fa-user"></i>
-                        <input type="text" class="sign-in__input" placeholder="User name / Email">
+                        <input type="text" class="sign-in__input" placeholder="User name / Email" id="username">
                     </div>
                     <div class="sign-in__field">
                         <i class="sign-in__icon fas fa-lock"></i>
-                        <input type="password" class="sign-in__input" placeholder="Password">
+                        <input type="password" class="sign-in__input" placeholder="Password" id="password">
                     </div>
-                    <button class="button sign-in__submit">
+                    <button class="button sign-in__submit" type="submit">
                         <span class="button__text">Sign In Now</span>
                         <i class="button__icon fas fa-chevron-right"></i>
-                    </button>                
+                    </button>
+                    <div id="error-message" class="error-message"></div>
                 </form>
                 <!-- <div class="social-sign-in">
                     <h3>Sign in via</h3>
@@ -43,5 +44,6 @@
             </div>      
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/signin.js') }}"></script>
 </body>
 </html>
