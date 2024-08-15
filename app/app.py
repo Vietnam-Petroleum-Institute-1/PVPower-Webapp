@@ -73,12 +73,12 @@ def signin():
             session_id = f"session-{uuid.uuid4()}"
             
             # Chuyển hướng tới trang chủ kèm theo user_id và session_id
-            return render_template('index.html', user_id=username, session_id=session_id)
+            return redirect(url_for('home', user_id=username, session_id=session_id))
         else:
             # Nếu xác thực thất bại, quay lại trang đăng nhập với thông báo lỗi
             return render_template('signin.html', error=message)
     
-    return render_template('signin.html')
+    return render_template('signin.html', error=message)
 
 @app.route('/api/message', methods=['GET'])
 def api_message():
