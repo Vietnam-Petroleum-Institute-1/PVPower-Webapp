@@ -53,7 +53,12 @@ def authenticate_user(username, password):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # Lấy user_id và session_id từ query params
+    user_id = request.args.get('user_id')
+    session_id = request.args.get('session_id')
+    
+    # Render template trang chủ với user_id và session_id
+    return render_template('index.html', user_id=user_id, session_id=session_id)
 
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
