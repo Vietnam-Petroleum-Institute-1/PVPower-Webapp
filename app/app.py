@@ -66,10 +66,10 @@ def home():
         return redirect(url_for('signin'))
 
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
-    return render_template('index.html', user_id=user_id, session_id=session_id)
+    return render_template('index.html')
 
 @app.route('/chatbot')
-def home():
+def chatbot():
     session_id = request.cookies.get('session_id')
     user_id = request.cookies.get('user_id')
 
@@ -78,7 +78,7 @@ def home():
         return redirect(url_for('signin'))
 
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
-    return render_template('index.html', user_id=user_id, session_id=session_id)
+    return render_template('chatbot.html')
 
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
