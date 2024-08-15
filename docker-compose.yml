@@ -1,4 +1,4 @@
-version: '3.11'
+version: '3.9'
 
 services:
   web:
@@ -10,7 +10,7 @@ services:
       - .:/app
     environment:
       FLASK_ENV: production
-      DATABASE_URL: postgres://phuongpd:vdkvn22.05@db:5432/pvpower
+      DATABASE_URL: postgres://phuongpd:vdkvn22.05@157.66.46.53:5432/pvpower
     depends_on:
       - db
 

@@ -1,13 +1,19 @@
 import psycopg2
 from psycopg2 import sql
 from datetime import datetime, timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+HOST = os.getenv('DB_HOST')
 
 def connect_db():
     return psycopg2.connect(
         dbname="pvpower",
         user="phuongpd",
         password="vdkvn22.05",
-        host="db",
+        host=HOST,
         port="5432"
     )
 
