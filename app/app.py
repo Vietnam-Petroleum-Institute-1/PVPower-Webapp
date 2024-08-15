@@ -85,7 +85,7 @@ def signin():
         success = True
         message = "Thành Công!"
         if success:
-            session_id = f"session-{uuid.uuid4()}"
+            session_id = f"{uuid.uuid4()}"
             logging.debug(f"Redirecting to home with session_id: {session_id}")
             
             # Set cookie for session_id and user_id
