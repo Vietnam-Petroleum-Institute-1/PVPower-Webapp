@@ -68,6 +68,18 @@ def home():
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
     return render_template('index.html', user_id=user_id, session_id=session_id)
 
+@app.route('/chatbot')
+def home():
+    session_id = request.cookies.get('session_id')
+    user_id = request.cookies.get('user_id')
+
+    if not session_id:
+        logging.debug("No session_id found, redirecting to signin.")
+        return redirect(url_for('signin'))
+
+    logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
+    return render_template('index.html', user_id=user_id, session_id=session_id)
+
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
     if request.method == 'POST':
