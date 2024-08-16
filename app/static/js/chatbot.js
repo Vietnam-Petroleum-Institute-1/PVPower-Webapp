@@ -59,42 +59,18 @@ function loadTranscripts(user_id, session_id) {
     .then((response) => response.json())
     .then((data) => {
       console.log("Transcripts data received:", data);
-
-      let transcripts = data.transcripts;
-
-      if (typeof transcripts === "string") {
-        try {
-          transcripts = JSON.parse(transcripts);
-        } catch (e) {
-          console.error("Error parsing transcripts:", e);
-          return;
+      const transcripts = JSON.parse(data.transcripts);
+      
+      // Duyệt qua từng phần tử của transcripts
+      for (let i = 0; i < transcripts.length; i++) {
+        const transcriptArray = transcripts[i];
+        
+        // Duyệt qua từng tin nhắn trong transcriptArray
+        for (let j = 0; j < transcriptArray.length; j++) {
+          const transcript = transcriptArray[j];
+          const role = transcript.role.toLowerCase(); // Chuyển đổi role thành 'user' hoặc 'bot'
+          addMessageToChat(role, transcript.text, transcript.messageId); // Sử dụng messageId để lưu trữ message_id
         }
-      }
-
-      if (Array.isArray(transcripts) && Array.isArray(transcripts[0])) {
-        transcripts = transcripts[0];
-      }
-
-      if (Array.isArray(transcripts)) {
-        transcripts.forEach(transcript => {
-          if (Array.isArray(transcript)) {
-            transcript.forEach(innerTranscript => {
-              if (innerTranscript && innerTranscript.role) {
-                const role = innerTranscript.role.toLowerCase();
-                addMessageToChat(role, innerTranscript.text, innerTranscript.message_id || null);
-              } else {
-                console.warn("Transcript item missing role:", innerTranscript);
-              }
-            });
-          } else if (transcript && transcript.role) {
-            const role = transcript.role.toLowerCase();
-            addMessageToChat(role, transcript.text, transcript.message_id || null);
-          } else {
-            console.warn("Transcript item missing role:", transcript);
-          }
-        });
-      } else {
-        console.error("Transcripts data is not in the expected format.");
       }
     })
     .catch((error) => {
@@ -353,6 +329,7 @@ function uploadPendingFAQ(answer, question, domain, user_id) {
     });
 }
 
+// Hàm để thêm tin nhắn vào giao diện
 function addMessageToChat(sender, message, messageId) {
   const chatMessages = document.getElementById("chatMessages");
 
@@ -496,10 +473,16 @@ function submitFeedback(feedbackType, messageId, feedbackText, messageElement) {
 }
 
 function sendFeedback(feedbackType, messageId, messageElement) {
+  if (!messageId) {
+    console.error("Error: messageId is null or undefined");
+    return;
+  }
+
   const feedbackButtons = messageElement.querySelector(".feedback-buttons");
   const likeButton = feedbackButtons.querySelector(".like-button");
   const dislikeButton = feedbackButtons.querySelector(".dislike-button");
 
+  // Disable buttons after feedback
   likeButton.disabled = true;
   dislikeButton.disabled = true;
 
@@ -510,6 +493,7 @@ function sendFeedback(feedbackType, messageId, messageElement) {
     submitFeedback(feedbackType, messageId, "", messageElement);
   }
 }
+
 
 function showModal() {
   document.getElementById("feedbackModal").style.display = "block";
