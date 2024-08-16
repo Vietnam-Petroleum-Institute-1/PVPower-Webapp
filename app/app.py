@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
 
 CHATBOT_APIKEY = os.getenv('CHATBOT_APIKEY')
+CHATBOT_URL = os.getenv('CHATBOT_URL')
 UPLOAD_APIKEY = os.getenv('UPLOAD_APIKEY')
 LDAP_SERVER = os.getenv('LDAP_SERVER')
 LDAP_USER = os.getenv('LDAP_USER')
@@ -33,6 +34,9 @@ def authenticate_user(username, password):
         # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
         if '\\' in username:
             domain, username = username.split('\\', 1)
+        
+        if '@' in username:
+            domain, username = username.split('@', 1)
 
         logging.debug(f"Authenticating user: {username}")
 
@@ -94,9 +98,9 @@ def signin():
             logging.warning("Username or password missing.")
             return render_template('signin.html', error="Username or password is missing.")
         
-        # success, message = authenticate_user(username, password)
-        success = True
-        message = "Thành Công!"
+        success, message = authenticate_user(username, password)
+        # success = True
+        # message = "Thành Công!"
         if success:
             session_id = f"{uuid.uuid4()}"
             logging.debug(f"Redirecting to home with session_id: {session_id}")
@@ -141,7 +145,7 @@ def api_message():
     transcripts = json.dumps(transcripts)
     print(conversation_id, transcripts, user_message, user_id, session_id)
 
-    url = 'http://157.66.46.53/v1/chat-messages'
+    url = f'{CHATBOT_URL}/chat-messages'
     headers = {
         'Authorization': f'Bearer {CHATBOT_APIKEY}',
         'Content-Type': 'application/json'
@@ -201,7 +205,7 @@ def start_conversation():
     user_id = request.json['user_id']
     session_id = request.json['session_id']
 
-    url = 'http://157.66.46.53/v1/chat-messages'
+    url = f'{CHATBOT_URL}/chat-messages'
     headers = {
         'Authorization': f'Bearer {CHATBOT_APIKEY}',
         'Content-Type': 'application/json'
