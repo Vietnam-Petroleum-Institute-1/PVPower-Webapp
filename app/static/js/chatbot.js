@@ -60,23 +60,18 @@ function loadTranscripts(user_id, session_id) {
     .then((data) => {
       console.log("Transcripts data received:", data);
       const transcripts = JSON.parse(data.transcripts);
-      
-      // Duyệt qua từng phần tử của transcripts
-      for (let i = 0; i < transcripts.length; i++) {
-        const transcriptArray = transcripts[i];
-        
-        // Duyệt qua từng tin nhắn trong transcriptArray
-        for (let j = 0; j < transcriptArray.length; j++) {
-          const transcript = transcriptArray[j];
-          
+
+      // Duyệt qua từng tin nhắn trong transcripts
+      transcripts.forEach((transcriptArray) => {
+        transcriptArray.forEach((transcript) => {
           if (transcript.role) {
             const role = transcript.role.toLowerCase(); // Chuyển đổi role thành 'user' hoặc 'bot'
             addMessageToChat(role, transcript.text, transcript.messageId); // Sử dụng messageId để lưu trữ message_id
           } else {
             console.warn("Transcript item missing role:", transcript);
           }
-        }
-      }
+        });
+      });
     })
     .catch((error) => {
       console.error("Error loading transcripts:", error);
