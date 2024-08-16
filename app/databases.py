@@ -30,16 +30,16 @@ def user_exists(conn, user_id):
     return exists, None
 
 
-def insert_user(conn, user_id, name, bot_id):
+def insert_user(conn, user_id, name):
     if user_exists(conn, user_id):
         print(f"User {user_id} already exists.")
         return
     cur = conn.cursor()
     insert_user_query = """
-    INSERT INTO users (user_id, name, bot_id)
+    INSERT INTO users (user_id, name)
     VALUES (%s, %s, %s)
     """
-    cur.execute(insert_user_query, (user_id, name, bot_id))
+    cur.execute(insert_user_query, (user_id, name))
     conn.commit()
     cur.close()
     print(f"User {user_id} inserted successfully.")
