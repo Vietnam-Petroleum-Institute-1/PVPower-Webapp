@@ -62,7 +62,6 @@ function loadTranscripts(user_id, session_id) {
 
       let transcripts = data.transcripts;
 
-      // Kiểm tra nếu transcripts là một chuỗi JSON
       if (typeof transcripts === "string") {
         try {
           transcripts = JSON.parse(transcripts);
@@ -72,27 +71,24 @@ function loadTranscripts(user_id, session_id) {
         }
       }
 
-      // Kiểm tra nếu transcripts là một mảng chứa các mảng con
       if (Array.isArray(transcripts) && Array.isArray(transcripts[0])) {
-        transcripts = transcripts[0]; // Lấy mảng đầu tiên
+        transcripts = transcripts[0];
       }
 
-      // Kiểm tra lần cuối nếu transcripts là một mảng
       if (Array.isArray(transcripts)) {
         transcripts.forEach(transcript => {
           if (Array.isArray(transcript)) {
-            // Xử lý mảng con nếu có
             transcript.forEach(innerTranscript => {
               if (innerTranscript && innerTranscript.role) {
-                const role = innerTranscript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
-                addMessageToChat(role, innerTranscript.text, null);
+                const role = innerTranscript.role.toLowerCase();
+                addMessageToChat(role, innerTranscript.text, innerTranscript.message_id || null);
               } else {
                 console.warn("Transcript item missing role:", innerTranscript);
               }
             });
           } else if (transcript && transcript.role) {
-            const role = transcript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
-            addMessageToChat(role, transcript.text, null);
+            const role = transcript.role.toLowerCase();
+            addMessageToChat(role, transcript.text, transcript.message_id || null);
           } else {
             console.warn("Transcript item missing role:", transcript);
           }
@@ -491,6 +487,11 @@ function submitFeedback(feedbackType, messageId, feedbackText, messageElement) {
     })
     .catch((error) => {
       console.error("Error sending feedback:", error);
+      if (error.message.includes("Unexpected token")) {
+        console.error("Likely received HTML instead of JSON. Server error.");
+      } else {
+        console.error("Unknown error occurred while sending feedback.");
+      }
     });
 }
 
