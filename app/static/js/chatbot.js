@@ -326,7 +326,7 @@ function processBotResponse(result, messageId, messageText, user_id) {
   if (domainMatch) {
     const domain = `False Group ${domainMatch[1]}`;
 
-    const resultWithoutDomain = result.replace(/Group (1|2|3|4) Doc$/, "").trim();
+    const resultWithoutDomain = result.replace(/False Group (1|2|3|4) Doc$/, "").trim();
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
@@ -571,5 +571,4 @@ function submitDislikeFeedback() {
     `.message[data-message-id="${feedbackMessageId}"]`
   );
   submitFeedback("dislike", feedbackMessageId, feedbackText, messageElement);
-  closeModal();
-}
+  closeModal
