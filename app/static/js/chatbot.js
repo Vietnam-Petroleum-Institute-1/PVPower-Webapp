@@ -321,18 +321,28 @@ function sendMessage(message = null) {
 }
 
 function processBotResponse(result, messageId, messageText, user_id) {
-  const domainMatch = result.match(/Domain (1|2|3|4)$/);
+  const domainMatch = result.match(/Group (1|2|3|4)$/);
   console.log("Đây là domainMatch", domainMatch);
   if (domainMatch) {
-    const domain = `Domain ${domainMatch[1]}`;
+    const domain = `False Group ${domainMatch[1]}`;
 
-    const resultWithoutDomain = result.replace(/Domain (1|2|3|4)$/, "").trim();
+    const resultWithoutDomain = result.replace(/False Group (1|2|3|4)$/, "").trim();
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
     uploadPendingFAQ(resultWithoutDomain, messageText, domain, user_id);
-  } else {
-    addMessageToChat("bot", result, messageId);
+  } else if (result.match(/False/)) {
+    const domain = `False`;
+
+    const resultWithoutDomain = result.replace(/False/, "").trim();
+
+    addMessageToChat("bot", resultWithoutDomain, messageId);
+    
+    uploadPendingFAQ(resultWithoutDomain, messageText, domain, user_id);
+  }else{
+    const resultWithoutDomain = result.replace(/True/, "").trim();
+
+    addMessageToChat("bot", resultWithoutDomain, messageId);
   }
 }
 
