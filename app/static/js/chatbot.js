@@ -59,11 +59,22 @@ function loadTranscripts(user_id, session_id) {
     .then((response) => response.json())
     .then((data) => {
       console.log("Transcripts data received:", data);
-      const transcripts = data.transcripts; // Nếu data đã là object thì không cần parse nữa
 
+      // Dữ liệu transcripts nhận được là một chuỗi JSON lồng nhiều lần
+      let transcripts = data.transcripts;
+
+      // Thử giải mã dữ liệu nhiều lần cho đến khi đạt được mảng
+      try {
+        transcripts = JSON.parse(transcripts); // Giải mã lần 1
+        transcripts = JSON.parse(transcripts); // Giải mã lần 2 nếu cần thiết
+        transcripts = transcripts[0]; // Nếu transcripts là một mảng chứa mảng
+      } catch (e) {
+        console.error("Error parsing transcripts:", e);
+      }
+
+      // Sau khi giải mã, sử dụng forEach để lặp qua các phần tử trong mảng
       transcripts.forEach(transcript => {
-        console.log("Transcript item:", transcript); // Thêm logging để kiểm tra từng item
-        if (transcript.role) { // Kiểm tra nếu role tồn tại
+        if (transcript && transcript.role) {
           const role = transcript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
           addMessageToChat(role, transcript.text, null);
         } else {
@@ -75,6 +86,7 @@ function loadTranscripts(user_id, session_id) {
       console.error("Error loading transcripts:", error);
     });
 }
+
 
 
 
