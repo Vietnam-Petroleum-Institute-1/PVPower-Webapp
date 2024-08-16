@@ -60,41 +60,51 @@ function loadTranscripts(user_id, session_id) {
     .then((data) => {
       console.log("Transcripts data received:", data);
 
-      // Xử lý dữ liệu transcripts trực tiếp mà không cần JSON.parse
       let transcripts = data.transcripts;
 
-      // Nếu transcripts là một mảng chứa một mảng khác, chúng ta cần xử lý phần tử bên trong
+      // Kiểm tra nếu transcripts là một chuỗi JSON
+      if (typeof transcripts === "string") {
+        try {
+          transcripts = JSON.parse(transcripts);
+        } catch (e) {
+          console.error("Error parsing transcripts:", e);
+          return;
+        }
+      }
+
+      // Kiểm tra nếu transcripts là một mảng chứa các mảng con
       if (Array.isArray(transcripts) && Array.isArray(transcripts[0])) {
         transcripts = transcripts[0]; // Lấy mảng đầu tiên
       }
 
-      // Sử dụng forEach để lặp qua các phần tử trong mảng
-      transcripts.forEach(transcript => {
-        if (Array.isArray(transcript)) {
-          // Nếu transcript là một mảng con, lặp qua các phần tử bên trong
-          transcript.forEach(innerTranscript => {
-            if (innerTranscript && innerTranscript.role) {
-              const role = innerTranscript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
-              addMessageToChat(role, innerTranscript.text, null);
-            } else {
-              console.warn("Transcript item missing role:", innerTranscript);
-            }
-          });
-        } else if (transcript && transcript.role) {
-          const role = transcript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
-          addMessageToChat(role, transcript.text, null);
-        } else {
-          console.warn("Transcript item missing role:", transcript);
-        }
-      });
+      // Kiểm tra lần cuối nếu transcripts là một mảng
+      if (Array.isArray(transcripts)) {
+        transcripts.forEach(transcript => {
+          if (Array.isArray(transcript)) {
+            // Xử lý mảng con nếu có
+            transcript.forEach(innerTranscript => {
+              if (innerTranscript && innerTranscript.role) {
+                const role = innerTranscript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
+                addMessageToChat(role, innerTranscript.text, null);
+              } else {
+                console.warn("Transcript item missing role:", innerTranscript);
+              }
+            });
+          } else if (transcript && transcript.role) {
+            const role = transcript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
+            addMessageToChat(role, transcript.text, null);
+          } else {
+            console.warn("Transcript item missing role:", transcript);
+          }
+        });
+      } else {
+        console.error("Transcripts data is not in the expected format.");
+      }
     })
     .catch((error) => {
       console.error("Error loading transcripts:", error);
     });
 }
-
-
-
 
 
 function getCookie(name) {
