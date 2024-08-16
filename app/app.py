@@ -170,7 +170,7 @@ def api_message():
         input_token = len(user_message)//4 + 1
         output_token = len(result)//4 + 1
         total_token = input_token + output_token
-        timestamp = datetime.now()
+        timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
         print(result["message_id"])
         conversation(conn, result["message_id"], session_id, user_id, "gpt", user_message, input_token, result_answer, output_token, total_token, timestamp, conversation_id, domain)
         conn.close()
