@@ -58,6 +58,7 @@ function loadTranscripts(user_id, session_id) {
   })
     .then((response) => response.json())
     .then((data) => {
+      console.log("Transcripts data received:", data);  // Thêm logging để kiểm tra dữ liệu
       const transcripts = JSON.parse(data.transcripts);
       transcripts.forEach(transcript => {
         const role = transcript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
@@ -68,6 +69,7 @@ function loadTranscripts(user_id, session_id) {
       console.error("Error loading transcripts:", error);
     });
 }
+
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
