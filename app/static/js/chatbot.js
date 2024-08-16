@@ -211,7 +211,7 @@ function startConversation(user_id, session_id) {
     .catch((error) => {
       console.error("Error in startConversation:", error);
       document.getElementById("chatMessages").innerHTML +=
-        '<div class="message bot"><div class="message-content">Sorry, something went wrong while starting the conversation.</div></div>';
+        '<div class="message bot"><div class="message-content">Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này.</div></div>';
       throw error;
     })
     .finally(() => {
@@ -315,7 +315,7 @@ function sendMessage(message = null) {
       clearTimeout(delayMessageTimeout);
       console.error("Error:", error);
       removeWaitingBubble();
-      addMessageToChat("bot", "Sorry, something went wrong.");
+      addMessageToChat("bot", "Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này.");
       isWaitingForBot = false;
     });
 }
@@ -326,7 +326,7 @@ function processBotResponse(result, messageId, messageText, user_id) {
   if (domainMatch) {
     const domain = `False Group ${domainMatch[1]}`;
 
-    const resultWithoutDomain = result.replace(/False Group (1|2|3|4)$/, "").trim();
+    const resultWithoutDomain = result.replace(/False Group (1|2|3|4)$ FAQ v2/, "").trim();
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
