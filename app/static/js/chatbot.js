@@ -62,6 +62,7 @@ function loadTranscripts(user_id, session_id) {
 
       let transcripts = data.transcripts;
 
+      // Nếu transcripts là một chuỗi, parse nó thành object
       if (typeof transcripts === "string") {
         try {
           transcripts = JSON.parse(transcripts);
@@ -71,24 +72,26 @@ function loadTranscripts(user_id, session_id) {
         }
       }
 
+      // Kiểm tra nếu transcripts là một mảng và chứa các mảng bên trong
       if (Array.isArray(transcripts) && Array.isArray(transcripts[0])) {
         transcripts = transcripts[0];
       }
 
+      // Kiểm tra nếu transcripts là một mảng
       if (Array.isArray(transcripts)) {
         transcripts.forEach(transcript => {
           if (Array.isArray(transcript)) {
             transcript.forEach(innerTranscript => {
               if (innerTranscript && innerTranscript.role) {
                 const role = innerTranscript.role.toLowerCase();
-                addMessageToChat(role, innerTranscript.text, innerTranscript.message_id || null);
+                addMessageToChat(role, innerTranscript.text, innerTranscript.messageId || null);
               } else {
                 console.warn("Transcript item missing role:", innerTranscript);
               }
             });
           } else if (transcript && transcript.role) {
             const role = transcript.role.toLowerCase();
-            addMessageToChat(role, transcript.text, transcript.message_id || null);
+            addMessageToChat(role, transcript.text, transcript.messageId || null);
           } else {
             console.warn("Transcript item missing role:", transcript);
           }
@@ -101,6 +104,7 @@ function loadTranscripts(user_id, session_id) {
       console.error("Error loading transcripts:", error);
     });
 }
+
 
 
 
