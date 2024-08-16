@@ -154,11 +154,15 @@ def api_message():
     print(body)
     try:
         def extract_domain(input_string):
-            match = re.search(r'Domain \d+', input_string)
+            match = re.search(r'False', input_string)
             if match:
-                return match.group(0)
+                matchGroup = re.search(r'False Group \d+', input_string)
+                if matchGroup:
+                    return matchGroup.group(0)
+                else:
+                    return match.group(0)
             else:
-                return "FAQ"
+                return "True"
         response = requests.post(url, headers=headers, json=body)
         response.raise_for_status()
 
