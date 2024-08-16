@@ -23,6 +23,7 @@ window.onload = function () {
         console.log("User existence check:", data);
         if (data.result) {
           conversationIdPromise = checkOrCreateSession(user_id, session_id);
+          loadTranscripts(user_id, session_id); // Load transcripts nếu có session_id
         } else {
           document.getElementById("chatMessages").innerHTML =
             '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
@@ -44,6 +45,29 @@ window.onload = function () {
     }
   }
 };
+
+function loadTranscripts(user_id, session_id) {
+  console.log("Loading transcripts");
+
+  fetch("/api/get_transcripts", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ user_id, session_id }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const transcripts = JSON.parse(data.transcripts);
+      transcripts.forEach(transcript => {
+        const role = transcript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
+        addMessageToChat(role, transcript.text, null);
+      });
+    })
+    .catch((error) => {
+      console.error("Error loading transcripts:", error);
+    });
+}
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;

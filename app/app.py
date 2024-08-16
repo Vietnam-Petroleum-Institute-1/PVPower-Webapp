@@ -326,6 +326,15 @@ def api_feedback():
     conn.close()
     return jsonify({"result": "Feedback added successfully"})
 
+@app.route('/api/get_transcripts', methods=['POST'])
+def api_transcripts():
+    conn = connect_db()
+    data = request.json
+    user_id = data.get('user_id')
+    session_id = data.get('session_id')
+    transcripts = get_transcripts(conn, user_id, session_id)
+    return jsonify({"transcripts": json.dumps(transcripts)})
+
 def decode_unicode_escapes(string):
     # This function will only decode the Unicode escape sequences, not the emojis
     unicode_escape_pattern = re.compile(r'\\u[0-9a-fA-F]{4}')
