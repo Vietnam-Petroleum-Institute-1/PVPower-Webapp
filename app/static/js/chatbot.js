@@ -60,27 +60,42 @@ function loadTranscripts(user_id, session_id) {
     .then((data) => {
       console.log("Transcripts data received:", data);
 
-      // Phân tích cú pháp lần đầu để lấy chuỗi JSON thực
-      let transcripts;
-      try {
-        transcripts = JSON.parse(data.transcripts);
-      } catch (e) {
-        console.error("Error parsing transcripts:", e);
-        return;
+      let transcripts = data.transcripts;
+
+      if (typeof transcripts === "string") {
+        try {
+          transcripts = JSON.parse(transcripts);
+        } catch (e) {
+          console.error("Error parsing transcripts:", e);
+          return;
+        }
       }
 
-      // Duyệt qua từng tin nhắn trong transcripts
-      transcripts.forEach((transcriptArray) => {
-        transcriptArray.forEach((transcript) => {
-          console.log("Transcript item:", transcript); // Log toàn bộ object
-          if (transcript.role) {
-            const role = transcript.role.toLowerCase(); // Chuyển đổi role thành 'user' hoặc 'bot'
-            addMessageToChat(role, transcript.text, transcript.messageId); // Sử dụng messageId để lưu trữ message_id
+      if (Array.isArray(transcripts) && Array.isArray(transcripts[0])) {
+        transcripts = transcripts[0];
+      }
+
+      if (Array.isArray(transcripts)) {
+        transcripts.forEach(transcript => {
+          if (Array.isArray(transcript)) {
+            transcript.forEach(innerTranscript => {
+              if (innerTranscript && innerTranscript.role) {
+                const role = innerTranscript.role.toLowerCase();
+                addMessageToChat(role, innerTranscript.text, innerTranscript.message_id || null);
+              } else {
+                console.warn("Transcript item missing role:", innerTranscript);
+              }
+            });
+          } else if (transcript && transcript.role) {
+            const role = transcript.role.toLowerCase();
+            addMessageToChat(role, transcript.text, transcript.message_id || null);
           } else {
             console.warn("Transcript item missing role:", transcript);
           }
         });
-      });
+      } else {
+        console.error("Transcripts data is not in the expected format.");
+      }
     })
     .catch((error) => {
       console.error("Error loading transcripts:", error);
