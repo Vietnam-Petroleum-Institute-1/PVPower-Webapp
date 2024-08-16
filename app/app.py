@@ -156,7 +156,7 @@ def api_message():
         def extract_domain(input_string):
             match = re.search(r'False', input_string)
             if match:
-                matchGroup = re.search(r'False Group \d+', input_string)
+                matchGroup = re.search(r'False Group \d+ Doc', input_string)
                 if matchGroup:
                     return matchGroup.group(0)
                 else:
