@@ -333,6 +333,8 @@ def api_transcripts():
     user_id = data.get('user_id')
     session_id = data.get('session_id')
     transcripts = get_transcripts(conn, user_id, session_id)
+    # Thêm logging để kiểm tra dữ liệu trả về
+    app.logger.debug(f"Transcripts for user_id={user_id}, session_id={session_id}: {transcripts}")
     return jsonify({"transcripts": json.dumps(transcripts)})
 
 def decode_unicode_escapes(string):
