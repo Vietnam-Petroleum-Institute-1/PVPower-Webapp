@@ -60,21 +60,27 @@ function loadTranscripts(user_id, session_id) {
     .then((data) => {
       console.log("Transcripts data received:", data);
 
-      // Dữ liệu transcripts nhận được là một chuỗi JSON lồng nhiều lần
+      // Xử lý dữ liệu transcripts trực tiếp mà không cần JSON.parse
       let transcripts = data.transcripts;
 
-      // Thử giải mã dữ liệu nhiều lần cho đến khi đạt được mảng
-      try {
-        transcripts = JSON.parse(transcripts); // Giải mã lần 1
-        transcripts = JSON.parse(transcripts); // Giải mã lần 2 nếu cần thiết
-        transcripts = transcripts[0]; // Nếu transcripts là một mảng chứa mảng
-      } catch (e) {
-        console.error("Error parsing transcripts:", e);
+      // Nếu transcripts là một mảng chứa một mảng khác, chúng ta cần xử lý phần tử bên trong
+      if (Array.isArray(transcripts) && Array.isArray(transcripts[0])) {
+        transcripts = transcripts[0]; // Lấy mảng đầu tiên
       }
 
-      // Sau khi giải mã, sử dụng forEach để lặp qua các phần tử trong mảng
+      // Sử dụng forEach để lặp qua các phần tử trong mảng
       transcripts.forEach(transcript => {
-        if (transcript && transcript.role) {
+        if (Array.isArray(transcript)) {
+          // Nếu transcript là một mảng con, lặp qua các phần tử bên trong
+          transcript.forEach(innerTranscript => {
+            if (innerTranscript && innerTranscript.role) {
+              const role = innerTranscript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
+              addMessageToChat(role, innerTranscript.text, null);
+            } else {
+              console.warn("Transcript item missing role:", innerTranscript);
+            }
+          });
+        } else if (transcript && transcript.role) {
           const role = transcript.role.toLowerCase(); // Chuyển đổi role thành user hoặc bot
           addMessageToChat(role, transcript.text, null);
         } else {
@@ -86,6 +92,7 @@ function loadTranscripts(user_id, session_id) {
       console.error("Error loading transcripts:", error);
     });
 }
+
 
 
 
