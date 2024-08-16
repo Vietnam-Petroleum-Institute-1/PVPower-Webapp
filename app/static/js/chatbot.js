@@ -326,7 +326,7 @@ function processBotResponse(result, messageId, messageText, user_id) {
   if (domainMatch) {
     const domain = `False Group ${domainMatch[1]}`;
 
-    const resultWithoutDomain = result.replace(/False Group (1|2|3|4)$/, "").trim();
+    const resultWithoutDomain = result.replace(/False Group (1|2|3|4)$ FAQ v2/, "").trim();
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
