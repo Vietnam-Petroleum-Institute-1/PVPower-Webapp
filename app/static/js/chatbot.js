@@ -59,11 +59,20 @@ function loadTranscripts(user_id, session_id) {
     .then((response) => response.json())
     .then((data) => {
       console.log("Transcripts data received:", data);
-      const transcripts = JSON.parse(data.transcripts);
+
+      // Phân tích cú pháp lần đầu để lấy chuỗi JSON thực
+      let transcripts;
+      try {
+        transcripts = JSON.parse(data.transcripts);
+      } catch (e) {
+        console.error("Error parsing transcripts:", e);
+        return;
+      }
 
       // Duyệt qua từng tin nhắn trong transcripts
       transcripts.forEach((transcriptArray) => {
         transcriptArray.forEach((transcript) => {
+          console.log("Transcript item:", transcript); // Log toàn bộ object
           if (transcript.role) {
             const role = transcript.role.toLowerCase(); // Chuyển đổi role thành 'user' hoặc 'bot'
             addMessageToChat(role, transcript.text, transcript.messageId); // Sử dụng messageId để lưu trữ message_id
@@ -77,6 +86,7 @@ function loadTranscripts(user_id, session_id) {
       console.error("Error loading transcripts:", error);
     });
 }
+
 
 
 function getCookie(name) {
