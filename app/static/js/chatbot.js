@@ -203,8 +203,8 @@ function startConversation(user_id, session_id) {
 
       isConversationStarted = true;
       console.log("Conversation started, conversation_id:", conversation_id);
-
-      addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn");
+      const messageId = generateMessageId();
+      addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn", messageId);
 
       return conversation_id;
     })
@@ -259,6 +259,21 @@ function handleKeyPress(event) {
   }
 }
 
+function generateMessageId() {
+  // Lấy timestamp hiện tại
+  const timestamp = Date.now().toString(36);
+
+  // Tạo chuỗi ký tự ngẫu nhiên để bổ sung đủ 36 ký tự
+  const randomChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let randomString = '';
+  for (let i = 0; i < 36 - timestamp.length; i++) {
+    randomString += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
+  }
+
+  // Kết hợp timestamp và chuỗi ngẫu nhiên
+  return timestamp + randomString;
+}
+
 function sendMessage(message = null) {
   if (!isConversationStarted || isWaitingForBot) {
     console.log(
@@ -292,7 +307,8 @@ function sendMessage(message = null) {
 
   const delayMessageTimeout = setTimeout(() => {
     removeWaitingBubble();
-    addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
+    const messageId = generateMessageId();
+    addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.", messageId);
     addWaitingBubble()
   }, 4000);
 
