@@ -454,8 +454,27 @@ function showModal() {
 
 function closeModal() {
   document.getElementById("feedbackModal").style.display = "none";
-  feedbackMessageId = null;
+  
+  // Kích hoạt lại các nút like và dislike khi modal bị đóng
+  if (feedbackMessageId) {
+    const messageElement = document.querySelector(
+      `.message[data-message-id="${feedbackMessageId}"]`
+    );
+    if (messageElement) {
+      const feedbackButtons = messageElement.querySelector(".feedback-buttons");
+      const likeButton = feedbackButtons.querySelector(".like-button");
+      const dislikeButton = feedbackButtons.querySelector(".dislike-button");
+
+      likeButton.disabled = false;
+      dislikeButton.disabled = false;
+
+      dislikeButton.classList.remove("selected"); // Bỏ trạng thái đã chọn
+    }
+  }
+
+  feedbackMessageId = null; // Reset lại feedbackMessageId
 }
+
 
 function submitDislikeFeedback() {
   const feedbackText = document.getElementById("feedbackText").value;
