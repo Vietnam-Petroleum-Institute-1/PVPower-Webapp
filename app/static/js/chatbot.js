@@ -321,12 +321,12 @@ function sendMessage(message = null) {
 }
 
 function processBotResponse(result, messageId, messageText, user_id) {
-  const domainMatch = result.match(/Group (1|2|3|4)$/);
+  const domainMatch = result.match(/Group (1|2|3|4) Doc$/);
   console.log("Đây là domainMatch", domainMatch);
   if (domainMatch) {
     const domain = `False Group ${domainMatch[1]}`;
 
-    const resultWithoutDomain = result.replace(/False Group (1|2|3|4) Doc$/, "").trim();
+    const resultWithoutDomain = result.replace(/Group (1|2|3|4) Doc$/, "").trim();
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
@@ -339,12 +339,13 @@ function processBotResponse(result, messageId, messageText, user_id) {
     addMessageToChat("bot", resultWithoutDomain, messageId);
     
     uploadPendingFAQ(resultWithoutDomain, messageText, domain, user_id);
-  }else{
+  } else {
     const resultWithoutDomain = result.replace(/True/, "").trim();
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
   }
 }
+
 
 function uploadPendingFAQ(answer, question, domain, user_id) {
   fetch("/api/upload_pending_FAQ", {
