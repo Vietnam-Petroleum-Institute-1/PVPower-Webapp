@@ -98,7 +98,7 @@ def signin():
             logging.warning("Username or password missing.")
             return render_template('signin.html', error="Username or password is missing.")
         
-        if CHATBOT_URL == "157.66.46.53":
+        if CHATBOT_URL == "http://157.66.46.53/v1":
             success = True
             message = "Thành Công!"
         else:
