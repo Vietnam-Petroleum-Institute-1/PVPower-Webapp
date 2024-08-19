@@ -22,6 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 load_dotenv()
 
 CHATBOT_APIKEY = os.getenv('CHATBOT_APIKEY')
+CHATBOT_URL = os.getenv('CHATBOT_URL')
 UPLOAD_APIKEY = os.getenv('UPLOAD_APIKEY')
 LDAP_SERVER = os.getenv('LDAP_SERVER')
 LDAP_USER = os.getenv('LDAP_USER')
@@ -33,6 +34,9 @@ def authenticate_user(username, password):
         # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
         if '\\' in username:
             domain, username = username.split('\\', 1)
+        
+        if '@' in username:
+            domain, username = username.split('@', 1)
 
         logging.debug(f"Authenticating user: {username}")
 
@@ -94,9 +98,12 @@ def signin():
             logging.warning("Username or password missing.")
             return render_template('signin.html', error="Username or password is missing.")
         
-        # success, message = authenticate_user(username, password)
-        success = True
-        message = "Thành Công!"
+        if CHATBOT_URL == "157.66.46.53":
+            success = True
+            message = "Thành Công!"
+        else:
+            success, message = authenticate_user(username, password)
+        
         if success:
             session_id = f"{uuid.uuid4()}"
             logging.debug(f"Redirecting to home with session_id: {session_id}")
@@ -109,6 +116,9 @@ def signin():
             # Đặt cookie với thời gian hết hạn cụ thể
             response.set_cookie('session_id', session_id, expires=expires)
             response.set_cookie('user_id', username, expires=expires)
+            conn = connect_db()
+            if not user_exists(conn, username):
+                insert_user(conn, username, username)
 
             return response
         else:
@@ -138,7 +148,7 @@ def api_message():
     transcripts = json.dumps(transcripts)
     print(conversation_id, transcripts, user_message, user_id, session_id)
 
-    url = 'http://157.66.46.53/v1/chat-messages'
+    url = f'{CHATBOT_URL}/chat-messages'
     headers = {
         'Authorization': f'Bearer {CHATBOT_APIKEY}',
         'Content-Type': 'application/json'
@@ -198,7 +208,7 @@ def start_conversation():
     user_id = request.json['user_id']
     session_id = request.json['session_id']
 
-    url = 'http://157.66.46.53/v1/chat-messages'
+    url = f'{CHATBOT_URL}/chat-messages'
     headers = {
         'Authorization': f'Bearer {CHATBOT_APIKEY}',
         'Content-Type': 'application/json'
@@ -233,12 +243,12 @@ def start_conversation():
 def api_user():
     conn = connect_db()
     user_id = request.json['user_id']
-    name = request.json['name']
-    bot_id = request.json['bot_id']
+    # name = request.json['name']
+    # bot_id = request.json['bot_id']
     if not user_exists(conn, user_id):
-        if not bot_id_exist(conn, bot_id):
-            return jsonify({"result": "Bot ID does not exist"}), 404
-        insert_user(conn, user_id, name, bot_id)
+        # if not bot_id_exist(conn, bot_id):
+        #     return jsonify({"result": "Bot ID does not exist"}), 404
+        insert_user(conn, user_id, user_id)
     conn.close()
     return jsonify({"result": "User added successfully"})
 
