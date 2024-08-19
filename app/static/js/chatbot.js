@@ -571,5 +571,4 @@ function submitDislikeFeedback() {
     `.message[data-message-id="${feedbackMessageId}"]`
   );
   submitFeedback("dislike", feedbackMessageId, feedbackText, messageElement);
-  closeModal();
-}
+  closeModal
