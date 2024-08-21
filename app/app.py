@@ -29,7 +29,7 @@ LDAP_USER = os.getenv('LDAP_USER')
 LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
 BASE_DN = os.getenv('BASE_DN')
 
-def insert_user(conn, user_id, name):
+def insert_users(conn, user_id, name):
     if user_exists(conn, user_id):
         print(f"User {user_id} already exists.")
         return
@@ -73,7 +73,7 @@ def authenticate_user(username, password):
             logging.error("Failed to connect to the database.")
         logging.debug(f"Creating new user if not exist: {username}")
         try:
-            insert_user(conn_db, username, username)
+            insert_users(conn_db, username, username)
         except Exception as e:
             logging.error(f"Error inserting user: {str(e)}")
 
