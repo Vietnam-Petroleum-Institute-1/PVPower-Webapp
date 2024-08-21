@@ -245,11 +245,7 @@ def start_conversation():
 def api_user():
     conn = connect_db()
     user_id = request.json['user_id']
-    # name = request.json['name']
-    # bot_id = request.json['bot_id']
     if not user_exists(conn, user_id):
-        # if not bot_id_exist(conn, bot_id):
-        #     return jsonify({"result": "Bot ID does not exist"}), 404
         insert_user(conn, user_id, user_id)
     conn.close()
     return jsonify({"result": "User added successfully"})
