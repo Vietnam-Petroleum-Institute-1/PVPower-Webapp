@@ -17,6 +17,8 @@ COPY . .
 ENV FLASK_APP=app/app.py
 ENV FLASK_ENV=production
 
+RUN apt-get update && apt-get install -y postgresql-client
+
 # Mở cổng mà Flask sẽ chạy
 EXPOSE 5000
 
