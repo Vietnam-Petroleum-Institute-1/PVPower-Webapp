@@ -4,7 +4,6 @@ services:
     command: flask run --host=0.0.0.0
     ports:
       - "9081:5000"
-      - "443:5000"
     volumes:
       - .:/app
     environment:
