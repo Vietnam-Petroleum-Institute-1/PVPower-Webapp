@@ -21,19 +21,16 @@ def connect_db():
 def user_exists(conn, user_id):
     cur = conn.cursor()
     cur.execute("SELECT 1 FROM users WHERE user_id = %s", (user_id,))
-    exists = cur.fetchone() is not None
-    # if exists:
-    #     # get bot_id from user_id
-    #     cur.execute("SELECT bot_id FROM users WHERE user_id = %s", (user_id,))
-    #     bot_id = cur.fetchone()
-    #     return exists, bot_id        
+    exists = cur.fetchone() is not None     
     cur.close()
-    # return exists
-    return exists, None
+    logging.debug(f"Check user_exists for create new: {exists}")
+    return exists
+
+    # return exists, None
 
 
 def insert_user(conn, user_id, name):
-    logging.debug(f"Attempting to insert user: {user_id}")
+    logging.debug(f"Attempting to insert user in database: {user_id}")
     if user_exists(conn, user_id):
         logging.debug(f"User {user_id} already exists.")
         return
