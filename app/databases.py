@@ -37,7 +37,7 @@ def insert_user(conn, user_id, name):
     cur = conn.cursor()
     insert_user_query = """
     INSERT INTO users (user_id, name)
-    VALUES (%s, %s, %s)
+    VALUES (%s, %s)
     """
     cur.execute(insert_user_query, (user_id, name))
     conn.commit()
