@@ -1,5 +1,5 @@
 services:
-  web-1:
+  web:
     build: .
     command: flask run --host=0.0.0.0
     ports:
