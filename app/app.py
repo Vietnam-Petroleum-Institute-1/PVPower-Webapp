@@ -105,6 +105,11 @@ def signin():
             success, message = authenticate_user(username, password)
         
         if success:
+            conn = connect_db()
+            if not user_exists(conn, username):
+                # if not bot_id_exist(conn, bot_id):
+                #     return jsonify({"result": "Bot ID does not exist"}), 404
+                insert_user(conn, username, username)
             session_id = f"{uuid.uuid4()}"
             logging.debug(f"Redirecting to home with session_id: {session_id}")
             

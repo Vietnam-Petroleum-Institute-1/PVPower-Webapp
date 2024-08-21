@@ -21,12 +21,13 @@ def user_exists(conn, user_id):
     cur = conn.cursor()
     cur.execute("SELECT 1 FROM users WHERE user_id = %s", (user_id,))
     exists = cur.fetchone() is not None
-    if exists:
-        # get bot_id from user_id
-        cur.execute("SELECT bot_id FROM users WHERE user_id = %s", (user_id,))
-        bot_id = cur.fetchone()
-        return exists, bot_id        
+    # if exists:
+    #     # get bot_id from user_id
+    #     cur.execute("SELECT bot_id FROM users WHERE user_id = %s", (user_id,))
+    #     bot_id = cur.fetchone()
+    #     return exists, bot_id        
     cur.close()
+    # return exists
     return exists, None
 
 
