@@ -53,8 +53,15 @@ def authenticate_user(username, password):
 
         conn_db = connect_db()
         # if not user_exists(conn_db, username):
+        if conn_db:
+            logging.debug("Connected to the database successfully.")
+        else:
+            logging.error("Failed to connect to the database.")
         logging.debug(f"Creating new user if not exist: {username}")
-        insert_user(conn_db, username, username)
+        try:
+            insert_user(conn_db, username, username)
+        except Exception as e:
+            logging.error(f"Error inserting user: {str(e)}")
 
         user_dn = conn.entries[0].distinguishedName.value
         
