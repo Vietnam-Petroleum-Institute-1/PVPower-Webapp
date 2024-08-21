@@ -5,12 +5,13 @@ services:
     build: .
     command: flask run --host=0.0.0.0
     ports:
-      - "5000:5000"
+      - "80:5000"
+      - "443:5000"
     volumes:
       - .:/app
     environment:
       FLASK_ENV: production
-      DATABASE_URL: postgres://phuongpd:vdkvn22.05@157.66.46.53:5432/pvpower
+      DATABASE_URL: postgres://phuongpd:vdkvn22.05@192.168.17.50:5432/pvpower
     depends_on:
       - db
 
