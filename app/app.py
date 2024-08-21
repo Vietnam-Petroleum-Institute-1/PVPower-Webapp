@@ -29,6 +29,20 @@ LDAP_USER = os.getenv('LDAP_USER')
 LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
 BASE_DN = os.getenv('BASE_DN')
 
+def insert_user(conn, user_id, name):
+    if user_exists(conn, user_id):
+        print(f"User {user_id} already exists.")
+        return
+    cur = conn.cursor()
+    insert_user_query = """
+    INSERT INTO users (user_id, name)
+    VALUES (%s, %s, %s)
+    """
+    cur.execute(insert_user_query, (user_id, name))
+    conn.commit()
+    cur.close()
+    print(f"User {user_id} inserted successfully.")
+
 def authenticate_user(username, password):
     try:
         # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
