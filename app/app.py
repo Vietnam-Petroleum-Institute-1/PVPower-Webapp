@@ -263,7 +263,7 @@ def api_user():
 def user_exist():
     conn = connect_db()
     user_id = request.json['user_id']
-    exists, bot_id = user_exists(conn, user_id)
+    exists = user_exists(conn, user_id)
     if not exists:
         return jsonify({"result": 0}), 404
     conn.close()
