@@ -10,14 +10,15 @@ COPY requirements.txt .
 # Cài đặt các thư viện cần thiết
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Cài đặt PostgreSQL client 13
+RUN apt-get update && apt-get install -y postgresql-client-13
+
 # Sao chép mã nguồn ứng dụng vào container
 COPY . .
 
 # Thiết lập biến môi trường để Flask biết rằng ứng dụng đang chạy trên production
 ENV FLASK_APP=app/app.py
 ENV FLASK_ENV=production
-
-RUN apt-get update && apt-get install -y postgresql-client
 
 # Mở cổng mà Flask sẽ chạy
 EXPOSE 5000
