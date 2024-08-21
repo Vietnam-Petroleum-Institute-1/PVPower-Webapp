@@ -51,6 +51,11 @@ def authenticate_user(username, password):
             logging.debug("User DN not found.")
             return False, 'Người dùng không tồn tại.'
 
+        conn_db = connect_db()
+        if not user_exists(conn_db, username):
+            logging.debug(f"Creating new user: {username}")
+            insert_user(conn_db, username, username)
+
         user_dn = conn.entries[0].distinguishedName.value
         
         # Thử xác thực người dùng với DN và mật khẩu
@@ -105,10 +110,6 @@ def signin():
             success, message = authenticate_user(username, password)
         
         if success:
-            conn = connect_db()
-            if not user_exists(conn, username):
-                logging.debug(f"Creating new user: {username}")
-                insert_user(conn, username, username)
             session_id = f"{uuid.uuid4()}"
             logging.debug(f"Redirecting to home with session_id: {session_id}")
             
