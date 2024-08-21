@@ -262,7 +262,7 @@ def user_exist():
     if not exists:
         return jsonify({"result": 0}), 404
     conn.close()
-    return jsonify({"result": 1, "bot_id": ""})
+    return jsonify({"result": 1})
 
 @app.route('/api/chat_status', methods=['GET'])
 def api_chat_status():
