@@ -52,9 +52,9 @@ def authenticate_user(username, password):
             return False, 'Người dùng không tồn tại.'
 
         conn_db = connect_db()
-        if not user_exists(conn_db, username):
-            logging.debug(f"Creating new user: {username}")
-            insert_user(conn_db, username, username)
+        # if not user_exists(conn_db, username):
+        logging.debug(f"Creating new user if not exist: {username}")
+        insert_user(conn_db, username, username)
 
         user_dn = conn.entries[0].distinguishedName.value
         
@@ -121,9 +121,6 @@ def signin():
             # Đặt cookie với thời gian hết hạn cụ thể
             response.set_cookie('session_id', session_id, expires=expires)
             response.set_cookie('user_id', username, expires=expires)
-            conn = connect_db()
-            if not user_exists(conn, username):
-                insert_user(conn, username, username)
 
             return response
         else:
