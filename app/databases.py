@@ -3,6 +3,7 @@ from psycopg2 import sql
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
 
@@ -32,8 +33,9 @@ def user_exists(conn, user_id):
 
 
 def insert_user(conn, user_id, name):
+    logging.debug(f"Attempting to insert user: {user_id}")
     if user_exists(conn, user_id):
-        print(f"User {user_id} already exists.")
+        logging.debug(f"User {user_id} already exists.")
         return
     cur = conn.cursor()
     insert_user_query = """
@@ -43,7 +45,7 @@ def insert_user(conn, user_id, name):
     cur.execute(insert_user_query, (user_id, name))
     conn.commit()
     cur.close()
-    print(f"User {user_id} inserted successfully.")
+    logging.debug(f"User {user_id} inserted successfully.")
 
 def session(conn, user_id, session_id, start_time, end_time):
     if not user_exists(conn, user_id):
