@@ -33,10 +33,10 @@ def authenticate_user(username, password):
     try:
         # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
         if '\\' in username:
-            domain, username = username.split('\\', 1)
+            username, domain = username.split('\\', 1)
         
         if '@' in username:
-            domain, username = username.split('@', 1)
+            username, domain = username.split('@', 1)
 
         logging.debug(f"Authenticating user: {username}")
 
