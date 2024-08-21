@@ -1,5 +1,5 @@
 services:
-  web:
+  web-1:
     build: .
     command: flask run --host=0.0.0.0
     ports:
@@ -10,9 +10,9 @@ services:
       FLASK_ENV: production
       DATABASE_URL: postgres://phuongpd:vdkvn22.05@192.168.17.50:5432/pvpower
     depends_on:
-      - db
+      - db-1
 
-  db:
+  db-1:
     image: postgres:13
     environment:
       POSTGRES_DB: pvpower
