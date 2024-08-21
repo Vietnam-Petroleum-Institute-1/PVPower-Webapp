@@ -111,9 +111,12 @@ def signin():
                 logging.error("Failed to connect to the database.")
             logging.debug(f"Creating new user if not exist: {username}")
             try:
+                logging.debug(f"Attempting to insert user: {username}")
                 insert_user(conn_db, username, username)
+                logging.debug(f"User {username} inserted successfully.")
             except Exception as e:
-                logging.error(f"Error inserting user: {str(e)}")
+                logging.error(f"Error occurred in insert_user: {str(e)}")
+
         
         if success:
             session_id = f"{uuid.uuid4()}"
