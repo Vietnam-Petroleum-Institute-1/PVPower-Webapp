@@ -29,20 +29,6 @@ LDAP_USER = os.getenv('LDAP_USER')
 LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
 BASE_DN = os.getenv('BASE_DN')
 
-def insert_users(conn, user_id, name):
-    if user_exists(conn, user_id):
-        print(f"User {user_id} already exists.")
-        return
-    cur = conn.cursor()
-    insert_user_query = """
-    INSERT INTO users (user_id, name)
-    VALUES (%s, %s, %s)
-    """
-    cur.execute(insert_user_query, (user_id, name))
-    conn.commit()
-    cur.close()
-    print(f"User {user_id} inserted successfully.")
-
 def authenticate_user(username, password):
     try:
         # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
@@ -64,18 +50,6 @@ def authenticate_user(username, password):
         if not conn.entries:
             logging.debug("User DN not found.")
             return False, 'Người dùng không tồn tại.'
-
-        conn_db = connect_db()
-        # if not user_exists(conn_db, username):
-        if conn_db:
-            logging.debug("Connected to the database successfully.")
-        else:
-            logging.error("Failed to connect to the database.")
-        logging.debug(f"Creating new user if not exist: {username}")
-        try:
-            insert_users(conn_db, username, username)
-        except Exception as e:
-            logging.error(f"Error inserting user: {str(e)}")
 
         user_dn = conn.entries[0].distinguishedName.value
         
@@ -129,6 +103,17 @@ def signin():
             message = "Thành Công!"
         else:
             success, message = authenticate_user(username, password)
+            conn_db = connect_db()
+            # if not user_exists(conn_db, username):
+            if conn_db:
+                logging.debug("Connected to the database successfully.")
+            else:
+                logging.error("Failed to connect to the database.")
+            logging.debug(f"Creating new user if not exist: {username}")
+            try:
+                insert_user(conn_db, username, username)
+            except Exception as e:
+                logging.error(f"Error inserting user: {str(e)}")
         
         if success:
             session_id = f"{uuid.uuid4()}"
