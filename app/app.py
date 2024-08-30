@@ -33,10 +33,10 @@ def authenticate_user(username, password):
     try:
         # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
         if '\\' in username:
-            domain, username = username.split('\\', 1)
+            username, domain = username.split('\\', 1)
         
         if '@' in username:
-            domain, username = username.split('@', 1)
+            username, domain = username.split('@', 1)
 
         logging.debug(f"Authenticating user: {username}")
 
@@ -103,6 +103,20 @@ def signin():
             message = "Thành Công!"
         else:
             success, message = authenticate_user(username, password)
+            conn_db = connect_db()
+            # if not user_exists(conn_db, username):
+            if conn_db:
+                logging.debug("Connected to the database successfully.")
+            else:
+                logging.error("Failed to connect to the database.")
+            logging.debug(f"Creating new user if not exist: {username}")
+            try:
+                logging.debug(f"Attempting to insert user: {username}")
+                insert_user(conn_db, username, username)
+                logging.debug(f"User {username} inserted successfully.")
+            except Exception as e:
+                logging.error(f"Error occurred in insert_user: {str(e)}")
+
         
         if success:
             session_id = f"{uuid.uuid4()}"
@@ -116,9 +130,6 @@ def signin():
             # Đặt cookie với thời gian hết hạn cụ thể
             response.set_cookie('session_id', session_id, expires=expires)
             response.set_cookie('user_id', username, expires=expires)
-            conn = connect_db()
-            if not user_exists(conn, username):
-                insert_user(conn, username, username)
 
             return response
         else:
@@ -243,11 +254,7 @@ def start_conversation():
 def api_user():
     conn = connect_db()
     user_id = request.json['user_id']
-    # name = request.json['name']
-    # bot_id = request.json['bot_id']
     if not user_exists(conn, user_id):
-        # if not bot_id_exist(conn, bot_id):
-        #     return jsonify({"result": "Bot ID does not exist"}), 404
         insert_user(conn, user_id, user_id)
     conn.close()
     return jsonify({"result": "User added successfully"})
@@ -256,11 +263,11 @@ def api_user():
 def user_exist():
     conn = connect_db()
     user_id = request.json['user_id']
-    exists, bot_id = user_exists(conn, user_id)
+    exists = user_exists(conn, user_id)
     if not exists:
         return jsonify({"result": 0}), 404
     conn.close()
-    return jsonify({"result": 1, "bot_id": bot_id[0]})
+    return jsonify({"result": 1})
 
 @app.route('/api/chat_status', methods=['GET'])
 def api_chat_status():
