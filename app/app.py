@@ -380,18 +380,19 @@ def upload_pending_faq():
 def embed():
     user_id = request.args.get('user_id')
     session_id = request.args.get('session_id')
-    
+
     if not user_id or not session_id:
         return redirect(url_for('signin'))
 
     # Tạo đối tượng response trước
     response = make_response(render_template('chatbot.html'))
 
-    # Đặt cookies từ phía server với domain chính xác và path
-    response.set_cookie('session_id', session_id, max_age=3600, domain='157.66.46.53', path='/')
-    response.set_cookie('user_id', user_id, max_age=3600, domain='157.66.46.53', path='/')
+    # Đặt cookies mà không chỉ định domain
+    response.set_cookie('session_id', session_id, max_age=3600, path='/')
+    response.set_cookie('user_id', user_id, max_age=3600, path='/')
 
     return response
+
 
 if __name__ == '__main__':
     app.run(debug=True)
