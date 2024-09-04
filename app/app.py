@@ -387,12 +387,14 @@ def embed():
     session_id = f"{uuid.uuid4()}"
     app.logger.debug(f"Generated session_id: {session_id} for user_id: {user_id}")
 
-    response = make_response(render_template('chatbot.html'))
+
     # Bỏ cả samesite và secure nếu cần thử nghiệm
     response.set_cookie('session_id', session_id, max_age=3600)
     response.set_cookie('user_id', user_id, max_age=3600)
 
     app.logger.debug(f"Cookies set for session_id: {session_id}, user_id: {user_id}")
+    
+    response = make_response(render_template('chatbot.html'))
     return response
 
 
