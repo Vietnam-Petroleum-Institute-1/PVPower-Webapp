@@ -382,23 +382,16 @@ def embed():
     session_id = request.args.get('session_id')
     
     if not user_id or not session_id:
-        app.logger.debug("No user_id or session_id found, redirecting to signin.")
         return redirect(url_for('signin'))
-
-    app.logger.debug(f"Generated session_id: {session_id} for user_id: {user_id}")
 
     # Tạo đối tượng response trước
     response = make_response(render_template('chatbot.html'))
 
-    # Đặt cookie cho session_id và user_id
-    response.set_cookie('session_id', session_id, max_age=3600, samesite='None', secure=False)
-    response.set_cookie('user_id', user_id, max_age=3600, samesite='None', secure=False)
+    # Đặt cookies mà không có SameSite hoặc Secure
+    response.set_cookie('session_id', session_id, max_age=3600)
+    response.set_cookie('user_id', user_id, max_age=3600)
 
-    app.logger.debug(f"Cookies set for session_id: {session_id}, user_id: {user_id}")
-    
     return response
-
-
 
 if __name__ == '__main__':
     app.run(debug=True)
