@@ -387,13 +387,14 @@ def embed():
     # Tạo session_id mới cho người dùng
     session_id = f"{uuid.uuid4()}"
 
-    # Đặt cookie cho session_id và user_id (nếu cần thiết)
+    # Đặt cookie cho session_id và user_id
     response = make_response(render_template('chatbot.html'))
-    response.set_cookie('session_id', session_id, max_age=3600, secure=True, samesite='None')
-    response.set_cookie('user_id', user_id, max_age=3600, secure=True, samesite='None')
-
+    # Bỏ secure=True nếu truy cập qua HTTP
+    response.set_cookie('session_id', session_id, max_age=3600, samesite='None')
+    response.set_cookie('user_id', user_id, max_age=3600, samesite='None')
 
     return response
+
 
 if __name__ == '__main__':
     app.run(debug=True)
