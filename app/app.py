@@ -379,12 +379,13 @@ def upload_pending_faq():
 @app.route('/embed')
 def embed():
     user_id = request.args.get('user_id')
+    session_id = request.args.get('session_id')
     
     if not user_id:
         app.logger.debug("No user_id found, redirecting to signin.")
         return redirect(url_for('signin'))
 
-    session_id = f"{uuid.uuid4()}"
+    # session_id = f"{uuid.uuid4()}"
     app.logger.debug(f"Generated session_id: {session_id} for user_id: {user_id}")
 
 
@@ -392,7 +393,7 @@ def embed():
     # response.set_cookie('session_id', session_id, max_age=3600)
     # response.set_cookie('user_id', user_id, max_age=3600)
 
-    app.logger.debug(f"Cookies set for session_id: {session_id}, user_id: {user_id}")
+    # app.logger.debug(f"Cookies set for session_id: {session_id}, user_id: {user_id}")
     
     response = make_response(render_template('chatbot.html'))
     return response
