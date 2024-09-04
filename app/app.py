@@ -376,5 +376,23 @@ def upload_pending_faq():
     conn.close()
     return jsonify({"result": "FAQ uploaded successfully"})
 
+@app.route('/embed')
+def embed():
+    user_id = request.args.get('user_id')
+    
+    # Nếu không có user_id, yêu cầu người dùng đăng nhập
+    if not user_id:
+        return redirect(url_for('signin'))
+
+    # Tạo session_id mới cho người dùng
+    session_id = f"{uuid.uuid4()}"
+
+    # Đặt cookie cho session_id và user_id (nếu cần thiết)
+    response = make_response(render_template('chatbot.html'))
+    response.set_cookie('session_id', session_id, max_age=3600)  # Cookie có hiệu lực trong 1 giờ
+    response.set_cookie('user_id', user_id, max_age=3600)
+
+    return response
+
 if __name__ == '__main__':
     app.run(debug=True)
