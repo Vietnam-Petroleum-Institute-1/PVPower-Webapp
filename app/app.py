@@ -389,8 +389,9 @@ def embed():
 
     # Đặt cookie cho session_id và user_id (nếu cần thiết)
     response = make_response(render_template('chatbot.html'))
-    response.set_cookie('session_id', session_id, max_age=3600)  # Cookie có hiệu lực trong 1 giờ
-    response.set_cookie('user_id', user_id, max_age=3600)
+    response.set_cookie('session_id', session_id, max_age=3600, secure=True, samesite='None')
+    response.set_cookie('user_id', user_id, max_age=3600, secure=True, samesite='None')
+
 
     return response
 
