@@ -14,7 +14,7 @@ import uuid
 
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+CORS(app)
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
