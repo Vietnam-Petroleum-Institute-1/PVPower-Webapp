@@ -14,7 +14,7 @@ import uuid
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -28,6 +28,17 @@ LDAP_SERVER = os.getenv('LDAP_SERVER')
 LDAP_USER = os.getenv('LDAP_USER')
 LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
 BASE_DN = os.getenv('BASE_DN')
+
+@app.after_request
+def add_security_headers(response):
+    # Bỏ X-Frame-Options để không hạn chế việc nhúng iframe
+    # Nếu bạn không muốn hạn chế bất cứ domain nào thì không cần thêm X-Frame-Options
+    response.headers.pop('X-Frame-Options', None)
+
+    # Cho phép tất cả các domain nhúng iframe
+    response.headers['Content-Security-Policy'] = "frame-ancestors *"
+    
+    return response
 
 def authenticate_user(username, password):
     try:
