@@ -388,8 +388,8 @@ def embed():
     response = make_response(render_template('chatbot.html'))
 
     # Đặt cookies mà không có SameSite hoặc Secure
-    response.set_cookie('session_id', session_id, max_age=3600)
-    response.set_cookie('user_id', user_id, max_age=3600)
+    response.set_cookie('session_id', session_id, max_age=3600, path='/')
+    response.set_cookie('user_id', user_id, max_age=3600, path='/')
 
     return response
 
