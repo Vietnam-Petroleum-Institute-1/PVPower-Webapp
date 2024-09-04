@@ -380,20 +380,21 @@ def upload_pending_faq():
 def embed():
     user_id = request.args.get('user_id')
     
-    # Nếu không có user_id, yêu cầu người dùng đăng nhập
     if not user_id:
+        app.logger.debug("No user_id found, redirecting to signin.")
         return redirect(url_for('signin'))
 
-    # Tạo session_id mới cho người dùng
     session_id = f"{uuid.uuid4()}"
+    app.logger.debug(f"Generated session_id: {session_id} for user_id: {user_id}")
 
-    # Đặt cookie cho session_id và user_id
     response = make_response(render_template('chatbot.html'))
-    # Bỏ secure=True nếu truy cập qua HTTP
-    response.set_cookie('session_id', session_id, max_age=3600, samesite='None')
-    response.set_cookie('user_id', user_id, max_age=3600, samesite='None')
+    # Bỏ cả samesite và secure nếu cần thử nghiệm
+    response.set_cookie('session_id', session_id, max_age=3600)
+    response.set_cookie('user_id', user_id, max_age=3600)
 
+    app.logger.debug(f"Cookies set for session_id: {session_id}, user_id: {user_id}")
     return response
+
 
 
 if __name__ == '__main__':
