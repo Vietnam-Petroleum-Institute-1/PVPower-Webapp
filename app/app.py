@@ -23,7 +23,6 @@ load_dotenv()
 
 CHATBOT_APIKEY = os.getenv('CHATBOT_APIKEY')
 CHATBOT_URL = os.getenv('CHATBOT_URL')
-UPLOAD_APIKEY = os.getenv('UPLOAD_APIKEY')
 LDAP_SERVER = os.getenv('LDAP_SERVER')
 LDAP_USER = os.getenv('LDAP_USER')
 LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
