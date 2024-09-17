@@ -70,7 +70,7 @@ def api_check_token():
         # Set cookie for session_id and user_id
         response = make_response(redirect(url_for('chatbot')))
         # Đặt thời gian hết hạn cụ thể, ví dụ 10 phút kể từ bây giờ
-        expires = datetime.now(timezone.utc) + timedelta(minutes=1)
+        expires = datetime.now(timezone.utc) + timedelta(minutes=60)
         
         # Đặt cookie với thời gian hết hạn cụ thể
         response.set_cookie('session_id', session_id, expires=expires)
@@ -194,7 +194,7 @@ def signin():
             # Set cookie for session_id and user_id
             response = make_response(redirect(url_for('home')))
             # Đặt thời gian hết hạn cụ thể, ví dụ 10 phút kể từ bây giờ
-            expires = datetime.now(timezone.utc) + timedelta(minutes=1)
+            expires = datetime.now(timezone.utc) + timedelta(minutes=60)
             
             # Đặt cookie với thời gian hết hạn cụ thể
             response.set_cookie('session_id', session_id, expires=expires)
