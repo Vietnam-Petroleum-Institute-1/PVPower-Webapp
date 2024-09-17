@@ -9,7 +9,7 @@ secret_key = "secret"  # Khóa bí mật để mã hóa
 now = datetime.utcnow()
 
 # Thời điểm hết hạn (11:00:00)
-expiration_time = datetime.combine(now.date(), datetime.min.time()) + timedelta(hours=11, minutes=30)
+expiration_time = datetime.combine(now.date(), datetime.min.time()) + timedelta(hours=18, minutes=30)
 exp_timestamp = expiration_time.timestamp()
 
 # Payload của token
