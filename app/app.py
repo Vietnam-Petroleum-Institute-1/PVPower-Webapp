@@ -15,7 +15,7 @@ import jwt  # For token handling
 
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
