@@ -79,7 +79,7 @@ def api_check_token():
         return response
     else:
         logging.warning(f"Authentication failed: Token not valid")
-        return render_template('signin.html')
+        return render_template('home.html')
     
 
 @app.after_request
