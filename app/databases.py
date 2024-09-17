@@ -73,6 +73,13 @@ def session_valid(conn, user_id, session_id):
     cur.close()
     return exists
 
+def session_continue(conn, user_id):
+    cur = conn.cursor()
+    cur.execute("SELECT session_id FROM sessions WHERE user_id = %s AND end_time > NOW() ORDER BY end_time DESC LIMIT 1", (user_id,))
+    session = cur.fetchone()
+    cur.close()
+    return session
+
 
 def conversation(conn, message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, conversation_id, domain):
     if not session_exists(conn, user_id, session_id):
