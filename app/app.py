@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
 import requests
 import logging
-from databases import connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid, error_logs
+from databases import session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid, error_logs
 import json
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -11,10 +11,11 @@ from dotenv import load_dotenv
 import os
 from ldap3 import Server, Connection, ALL, SUBTREE
 import uuid
+import jwt  # For token handling
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}) 
+CORS(app) 
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -27,6 +28,59 @@ LDAP_SERVER = os.getenv('LDAP_SERVER')
 LDAP_USER = os.getenv('LDAP_USER')
 LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
 BASE_DN = os.getenv('BASE_DN')
+SECRET_KEY = os.getenv('SECRET_KEY')
+
+def decode_token(token):
+    try:
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        user_id = decoded.get('user_id')
+        exp = decoded.get('exp')
+        if user_id and exp:
+            # Verify token has not expired
+            if datetime.utcnow().timestamp() < exp:
+                return user_id
+            else:
+                # Token has expired
+                return None
+        else:
+            # Invalid token payload
+            return None
+    except jwt.ExpiredSignatureError:
+        # Token has expired
+        return None
+    except jwt.InvalidTokenError:
+        # Invalid token
+        return None
+
+@app.route('/api/check_token', methods=['POST'])
+def api_check_token():
+    data = request.json  # Thay đổi để lấy toàn bộ dữ liệu JSON
+    token = data.get('token')
+    logging.debug(f"Token receive: {token}")
+    user_id = decode_token(token)
+    if user_id:
+        conn = connect_db()
+        session_id = session_continue(conn, user_id)
+        if not session_id:
+            session_id = f"{uuid.uuid4()}"
+        if isinstance(session_id, tuple):
+            session_id = session_id[0]
+        logging.debug(f"Redirecting to home with session_id: {session_id}")
+        
+        # Set cookie for session_id and user_id
+        response = make_response(redirect(url_for('chatbot')))
+        # Đặt thời gian hết hạn cụ thể, ví dụ 10 phút kể từ bây giờ
+        expires = datetime.now(timezone.utc) + timedelta(minutes=1)
+        
+        # Đặt cookie với thời gian hết hạn cụ thể
+        response.set_cookie('session_id', session_id, expires=expires)
+        response.set_cookie('user_id', user_id, expires=expires)
+
+        return response
+    else:
+        logging.warning(f"Authentication failed: Token not valid")
+        return render_template('signin.html')
+    
 
 @app.after_request
 def add_security_headers(response):
@@ -129,13 +183,18 @@ def signin():
 
         
         if success:
-            session_id = f"{uuid.uuid4()}"
+            conn = connect_db()
+            session_id = session_continue(conn, username)
+            if not session_id:
+                session_id = f"{uuid.uuid4()}"
+            if isinstance(session_id, tuple):
+                session_id = session_id[0]
             logging.debug(f"Redirecting to home with session_id: {session_id}")
             
             # Set cookie for session_id and user_id
             response = make_response(redirect(url_for('home')))
             # Đặt thời gian hết hạn cụ thể, ví dụ 10 phút kể từ bây giờ
-            expires = datetime.now(timezone.utc) + timedelta(minutes=60)
+            expires = datetime.now(timezone.utc) + timedelta(minutes=1)
             
             # Đặt cookie với thời gian hết hạn cụ thể
             response.set_cookie('session_id', session_id, expires=expires)
@@ -398,8 +457,8 @@ def embed():
     response = make_response(render_template('chatbot.html'))
 
     # Đặt cookies mà không chỉ định domain
-    response.set_cookie('session_id', session_id, max_age=3600, path='/')
-    response.set_cookie('user_id', user_id, max_age=3600, path='/')
+    response.set_cookie('session_id', session_id, max_age=1, path='/')
+    response.set_cookie('user_id', user_id, max_age=1, path='/')
 
     return response
 

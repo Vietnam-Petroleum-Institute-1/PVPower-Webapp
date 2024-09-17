@@ -3,48 +3,53 @@ let isWaitingForBot = false; // New flag to indicate waiting for bot response
 let conversationIdPromise = null;
 let feedbackMessageId = null;
 
+
 window.onload = function () {
   console.log("Window loaded");
+    // Nếu không có token, kiểm tra user_id và session_id từ cookie
+    const user_id = getCookie("user_id");
+    const session_id = getCookie("session_id");
 
-  const user_id = getCookie("user_id");
-  const session_id = getCookie("session_id");
-  console.log("User ID:", user_id, "Session ID:", session_id);
+    console.log("User ID:", user_id, "Session ID:", session_id);
 
-  if (user_id && session_id) {
-    fetch("/api/user_exist", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ user_id }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("User existence check:", data);
-        if (data.result) {
-          conversationIdPromise = checkOrCreateSession(user_id, session_id);
-          loadTranscripts(user_id, session_id); // Load transcripts nếu có session_id
-        } else {
-          document.getElementById("chatMessages").innerHTML =
-            '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-          const chatInput = document.querySelector(".chat-input");
-          if (chatInput) {
-            chatInput.style.display = "none";
-          }
-        }
+    if (user_id && session_id) {
+      // Nếu có user_id và session_id, tiếp tục logic bình thường
+      fetch("/api/user_exist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id }),
       })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  } else {
-    document.getElementById("chatMessages").innerHTML =
-      '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-    const chatInput = document.querySelector(".chat-input");
-    if (chatInput) {
-      chatInput.style.display = "none";
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("User existence check:", data);
+          if (data.result) {
+            conversationIdPromise = checkOrCreateSession(user_id, session_id);
+            loadTranscripts(user_id, session_id); // Load transcripts nếu có session_id
+          } else {
+            document.getElementById("chatMessages").innerHTML =
+              '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
+            const chatInput = document.querySelector(".chat-input");
+            if (chatInput) {
+              chatInput.style.display = "none";
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    } else {
+      document.getElementById("chatMessages").innerHTML =
+        '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
+      const chatInput = document.querySelector(".chat-input");
+      if (chatInput) {
+        chatInput.style.display = "none";
+      }
     }
-  }
 };
+
+
 
 function loadTranscripts(user_id, session_id) {
   console.log("Loading transcripts");
@@ -133,7 +138,7 @@ function checkOrCreateSession(user_id, session_id) {
         return getConversation(user_id, session_id);
       } else if (data.result === 0) {
         const start_time = new Date().toISOString();
-        const end_time = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        const end_time = new Date(Date.now() + 60).toISOString();
         return createSession(user_id, session_id, start_time, end_time);
       } else {
         document.getElementById("chatMessages").innerHTML =
