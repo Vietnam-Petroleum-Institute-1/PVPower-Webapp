@@ -399,7 +399,7 @@ function addMessageToChat(sender, message, messageId) {
   copyButton.onclick = () => copyToClipboard(messageContent.textContent);
 
   // Đặt nút copy theo bên trái hoặc phải dựa vào sender
-  if (sender === "user") {
+  if (sender === "bot") {
     messageElement.appendChild(copyButton); // Nút copy bên trái cho user
   } else {
     messageElement.insertBefore(copyButton, messageElement.firstChild); // Nút copy bên phải cho bot
