@@ -316,6 +316,7 @@ function sendMessage(message = null) {
       console.log("Message sent:", data);
       removeWaitingBubble();
       processBotResponse(data.result, data.message_id, messageText, user_id);
+      handleResponse(data.result);
       isWaitingForBot = false;
     })
     .catch((error) => {
@@ -351,7 +352,7 @@ function processBotResponse(result, messageId, messageText, user_id) {
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
 
-    handleResponse(resultWithoutDomain);
+    
   }
 }
 
@@ -636,6 +637,7 @@ function extractQuestionsFromResponse(response) {
 function showSuggestions(questions) {
   const suggestionsContainer = document.getElementById("suggestions-container");
   suggestionsContainer.innerHTML = ''; // Xóa các gợi ý trước đó
+  suggestionsContainer.style.display = 'flex'; // Hiển thị lại container nếu nó bị ẩn
 
   questions.forEach((question, index) => {
     const suggestionButton = document.createElement("button");
@@ -649,5 +651,14 @@ function showSuggestions(questions) {
 function sendSuggestedQuestion(question) {
   const userInput = document.getElementById("userInput");
   userInput.value = question; // Đặt câu hỏi vào ô nhập liệu
+
+  hideSuggestions(); // Ẩn ngay các bong bóng gợi ý sau khi người dùng chọn
+
   sendMessage(); // Tự động gửi câu hỏi
+}
+
+function hideSuggestions() {
+  const suggestionsContainer = document.getElementById("suggestions-container");
+  suggestionsContainer.innerHTML = ''; // Xóa toàn bộ các nút gợi ý
+  suggestionsContainer.style.display = 'none'; // Ẩn container
 }

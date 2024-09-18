@@ -302,10 +302,10 @@ body, html {
 }
 
 .suggestions-container {
-  display: flex;
+  display: flex; /* Flexbox để gợi ý xếp thành hàng ngang */
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 10px; /* Khoảng cách giữa gợi ý và thanh input */
+  margin-bottom: 10px;
 }
 
 .suggestion-bubble {
