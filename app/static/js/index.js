@@ -463,3 +463,8 @@
 //   submitFeedback("dislike", feedbackMessageId, feedbackText, messageElement);
 //   closeModal();
 // }
+
+function signOut() {
+    // Xử lý đăng xuất và redirect về trang sign in
+    window.location.href = '/signin'; // URL này cần thay thế bằng URL của trang sign in
+}
