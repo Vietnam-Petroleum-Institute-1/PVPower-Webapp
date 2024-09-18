@@ -242,61 +242,17 @@ body, html {
   background-color: #0056b3;
 }
 
-/* CSS cơ bản cho bóng chat và nội dung */
-.message {
-  position: relative; 
-  margin: 8px 0;
-  display: flex;
-  flex-direction: column; /* Các thành phần sắp xếp theo cột */
-  align-items: flex-end; /* Căn phải cho bóng của user và căn trái cho bóng của bot */
-  width: fit-content;
-  max-width: 60%;
-}
-
-.message-content {
-  padding: 10px;
-  border-radius: 20px;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  margin-bottom: 5px; /* Tạo khoảng cách giữa nội dung và nút */
-}
-
-.message.user .message-content {
-  background-color: #007bff;
-  color: white;
-  border-bottom-right-radius: 20px;
-}
-
-.message.bot .message-content {
-  background-color: #e1e1e1;
-  color: #333;
-  border-bottom-left-radius: 20px;
-}
-
-/* CSS cho các nút dưới cùng của bóng chat */
-.controls {
-  display: flex;
-  justify-content: center; /* Căn giữa các nút */
-  margin-bottom: 8px; /* Khoảng cách với bóng chat tiếp theo */
-}
-
-.copy-button, .like-button, .dislike-button {
+.copy-button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
+  margin-left: 10px;
   color: #007bff;
-  margin: 0 4px; /* Khoảng cách giữa các nút */
-  transition: color 0.2s ease-in-out;
+  transition: transform 0.2s;
 }
 
-.copy-button:hover, .like-button:hover, .dislike-button:hover {
+.copy-button:hover {
+  transform: scale(1.2);
   color: #0056b3;
 }
-
-/* Các biểu tượng và vị trí */
-.fas {
-  margin-right: 5px;
-}
-
