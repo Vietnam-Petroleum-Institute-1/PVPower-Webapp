@@ -316,6 +316,7 @@ function sendMessage(message = null) {
       console.log("Message sent:", data);
       removeWaitingBubble();
       processBotResponse(data.result, data.message_id, messageText, user_id);
+      handleResponse(data.result);
       isWaitingForBot = false;
     })
     .catch((error) => {
@@ -351,7 +352,7 @@ function processBotResponse(result, messageId, messageText, user_id) {
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
 
-    handleResponse(resultWithoutDomain);
+    
   }
 }
 
@@ -651,8 +652,8 @@ function sendSuggestedQuestion(question) {
   const userInput = document.getElementById("userInput");
   userInput.value = question; // Đặt câu hỏi vào ô nhập liệu
 
-  // Gửi câu hỏi và ẩn bong bóng gợi ý
-  hideSuggestions();
+  hideSuggestions(); // Ẩn ngay các bong bóng gợi ý sau khi người dùng chọn
+
   sendMessage(); // Tự động gửi câu hỏi
 }
 
