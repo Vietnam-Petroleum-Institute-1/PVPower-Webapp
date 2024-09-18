@@ -89,7 +89,9 @@ function loadTranscripts(user_id, session_id) {
             transcript.forEach(innerTranscript => {
               if (innerTranscript && innerTranscript.role) {
                 const role = innerTranscript.role.toLowerCase();
-                addMessageToChat(role, innerTranscript.text, innerTranscript.messageId || null);
+                if (innerTranscript.text != "") {
+                  addMessageToChat(role, innerTranscript.text, innerTranscript.messageId || null);
+                }
               } else {
                 console.warn("Transcript item missing role:", innerTranscript);
               }
