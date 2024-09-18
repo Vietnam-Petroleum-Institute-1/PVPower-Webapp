@@ -302,10 +302,12 @@ body, html {
 }
 
 .suggestions-container {
-  display: flex; /* Flexbox để gợi ý xếp thành hàng ngang */
+  display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 10px; /* Khoảng cách giữa các bong bóng gợi ý */
   margin-bottom: 10px;
+  margin-left: 20px; /* Căn lề với bóng chat của bot */
+  padding-right: 20px; /* Đảm bảo không sát lề phải */
 }
 
 .suggestion-bubble {
@@ -326,3 +328,4 @@ body, html {
 .suggestion-bubble:focus {
   outline: none;
 }
+
