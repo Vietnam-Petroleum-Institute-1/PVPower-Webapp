@@ -8,7 +8,7 @@
 }
 
 body {
-    background: linear-gradient(90deg, #7885c0, #6b82cc);        
+    background: linear-gradient(90deg, #8899e6, #5a83e4);        
 }
 
 .container {
@@ -19,11 +19,11 @@ body {
 }
 
 .screen {        
-    background: linear-gradient(90deg, #4b54bb, #767aeb);        
+    background: linear-gradient(90deg, #5471d0, #769beb);        
     position: relative;    
     height: 600px;
     width: 360px;    
-    box-shadow: 0px 0px 24px #566396;
+    box-shadow: 0px 0px 24px #6f7fc1;
 }
 
 .screen__content {
@@ -60,7 +60,7 @@ body {
 .screen__background__shape2 {
     height: 220px;
     width: 220px;
-    background: #6372ac;    
+    background: #7280ba;    
     top: -172px;
     right: 0;    
     border-radius: 32px;
@@ -69,7 +69,7 @@ body {
 .screen__background__shape3 {
     height: 540px;
     width: 190px;
-    background: linear-gradient(270deg, #545fa4, #67769e);
+    background: linear-gradient(270deg, #5469a4, #6f7ea8);
     top: -24px;
     right: 0;    
     border-radius: 32px;
@@ -147,7 +147,7 @@ body {
 .sign-in__submit:active,
 .sign-in__submit:focus,
 .sign-in__submit:hover {
-    border-color: #676e9e;
+    border-color: #5e75a8;
     outline: none;
 }
 
@@ -177,7 +177,7 @@ body {
     padding: 20px 10px;
     color: #fff;
     text-decoration: none;    
-    text-shadow: 0px 0px 8px #7582b5;
+    text-shadow: 0px 0px 8px #6b80b2;
 }
 
 .social-sign-in__icon:hover {
