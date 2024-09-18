@@ -242,58 +242,45 @@ body, html {
   background-color: #0056b3;
 }
 
-.copy-button {
+.message {
+  position: relative;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* Đảm bảo bóng chat của người dùng căn phải */
+  width: fit-content;
+  max-width: 80%;
+}
+
+.message-content {
+  background-color: #e1e1e1;
+  color: #333;
+  padding: 10px;
+  border-radius: 20px;
+  margin-bottom: 5px; /* Khoảng cách giữa nội dung tin nhắn và các nút */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Container cho các nút */
+.buttons-container {
+  display: flex;
+  justify-content: space-around; /* Căn chỉnh khoảng cách giữa các nút */
+  width: 100%;
+}
+
+.copy-button, .like-button, .dislike-button {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 14px;
+  padding: 5px 10px; /* Điều chỉnh kích thước padding cho các nút */
+}
+
+.copy-button i, .like-button i, .dislike-button i {
   color: #007bff;
-  transition: transform 0.2s;
 }
 
-.copy-button:hover {
-  transform: scale(1.2);
+.copy-button:hover i, .like-button:hover i, .dislike-button:hover i {
   color: #0056b3;
-}
-
-.message {
-  position: relative; /* Đảm bảo vị trí của các nút liên quan đến bóng chat */
-  margin: 8px 0;
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.message.user {
-  justify-content: flex-end; /* Canh về bên phải cho bóng của user */
-}
-
-.message-content {
-  max-width: 60%;
-  padding: 10px;
-  border-radius: 20px;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm đổ bóng cho bóng chat */
-}
-
-.message.user .message-content {
-  background-color: #007bff;
-  color: white;
-  border-bottom-right-radius: 20px;
-}
-
-.message.bot .message-content {
-  background-color: #e1e1e1;
-  border-bottom-left-radius: 20px;
-}
-
-/* Định vị lại nút Copy dựa trên loại người gửi */
-.message.user .copy-button {
-  margin-left: 0.5cm; /* Căn nút copy bên trái cho user với khoảng cách 0.5 cm */
-}
-
-.message.bot .copy-button {
-  margin-right: 0.5cm; /* Căn nút copy bên phải cho bot với khoảng cách 0.5 cm */
+  transform: scale(1.2); /* Hiệu ứng phóng to khi hover */
 }
