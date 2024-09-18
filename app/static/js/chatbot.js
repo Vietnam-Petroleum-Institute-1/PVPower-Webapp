@@ -211,7 +211,7 @@ function startConversation(user_id, session_id) {
       isConversationStarted = true;
       console.log("Conversation started, conversation_id:", conversation_id);
 
-      addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn", data.message_id);
+      addMessageToChat("bot", "Xin chào, tôi có thể giúp gì bạn?", data.message_id);
 
       return conversation_id;
     })
@@ -392,12 +392,6 @@ function addMessageToChat(sender, message, messageId) {
 
   messageElement.appendChild(messageContent);
 
-  // Thêm nút Copy vào mỗi tin nhắn
-  const copyButton = document.createElement("button");
-  copyButton.classList.add("copy-button");
-  copyButton.innerHTML = '<i class="fas fa-copy"></i>'; // Thêm biểu tượng copy từ FontAwesome
-  copyButton.onclick = () => copyToClipboard(messageContent.textContent);
-
   // // Đặt nút copy theo bên trái hoặc phải dựa vào sender
   // if (sender === "bot") {
   //   messageElement.appendChild(copyButton); // Nút copy bên trái cho user
@@ -419,12 +413,29 @@ function addMessageToChat(sender, message, messageId) {
     dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
     dislikeButton.onclick = () =>
       sendFeedback("dislike", messageId, messageElement);
+    
+    // Container cho nút Copy với tooltip
+    const copyButtonContainer = document.createElement("div");
+    copyButtonContainer.classList.add("copy-button-container");
 
+    // Nút Copy
+    const copyButton = document.createElement("button");
+    copyButton.classList.add("copy-button");
+    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+    copyButton.onclick = () => copyToClipboard(messageContent.textContent);
+    copyButtonContainer.appendChild(copyButton);
+
+    // Tooltip cho nút Copy
+    const copyTooltip = document.createElement("div");
+    copyTooltip.classList.add("copy-tooltip");
+    copyTooltip.textContent = "Copy";
+    copyButtonContainer.appendChild(copyTooltip);
+
+    
     feedbackButtons.appendChild(likeButton);
     feedbackButtons.appendChild(dislikeButton);
-
+    feedbackButtons.appendChild(copyButtonContainer);
     messageElement.appendChild(feedbackButtons);
-    messageElement.appendChild(copyButton);
   }
 
   chatMessages.appendChild(messageElement);

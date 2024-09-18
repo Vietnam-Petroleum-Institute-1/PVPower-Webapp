@@ -243,17 +243,61 @@ body, html {
 }
 
 /* Thêm nút copy vào feedback-buttons */
+.copy-button-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
 .copy-button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   color: #007bff;
-  transition: transform 0.2s;
-  margin: 0 8px; /* Giữ khoảng cách giữa các nút */
+  padding: 5px;
+  transition: background-color 0.3s ease;
 }
 
 .copy-button:hover {
-  transform: scale(1.2);
-  color: #0056b3;
+  background-color: #f0f0f0;
+  border-radius: 4px;
 }
+
+.copy-button i {
+  font-size: 16px;
+}
+
+.copy-tooltip {
+  visibility: hidden;
+  width: 80px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Hiển thị tooltip phía trên nút */
+  left: 50%;
+  margin-left: -40px; /* Căn giữa tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.copy-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Tam giác phía dưới */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.copy-button-container:hover .copy-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
