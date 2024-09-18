@@ -243,16 +243,7 @@ def api_message():
     }
     print(body)
     try:
-        def extract_domain(input_string):
-            match = re.search(r'False', input_string)
-            if match:
-                matchGroup = re.search(r'False Group \d+ Doc', input_string)
-                if matchGroup:
-                    return matchGroup.group(0)
-                else:
-                    return match.group(0)
-            else:
-                return "True"
+        
         response = requests.post(url, headers=headers, json=body)
         response.raise_for_status()
 
@@ -307,9 +298,22 @@ def start_conversation():
 
         data = response.json()
         conversation_id = data['conversation_id']
+
+        result = response.json()
+
+        print("Result:", result)
+        result_answer = decode_unicode_escapes(result["answer"])
+        domain = extract_domain(result_answer)
+        input_token = 0
+        output_token = len(result)//4 + 1
+        total_token = input_token + output_token
+        timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
+        timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S %z')
+
         add_conversation(conn, conversation_id, session_id, user_id)
+        conversation(conn, data["message_id"], session_id, user_id, "gpt", "", input_token, result_answer[:-len(domain)-1], output_token, total_token, timestamp, conversation_id, domain)
         conn.close()
-        return jsonify({"conversation_id": conversation_id})
+        return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"]})
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
         error_logs(conn, user_id, session_id, conversation_id, "", e, "501")
@@ -462,6 +466,16 @@ def embed():
 
     return response
 
-
+def extract_domain(input_string):
+            match = re.search(r'False', input_string)
+            if match:
+                matchGroup = re.search(r'False Group \d+ Doc', input_string)
+                if matchGroup:
+                    return matchGroup.group(0)
+                else:
+                    return match.group(0)
+            else:
+                return "True"
+            
 if __name__ == '__main__':
     app.run(debug=True)
