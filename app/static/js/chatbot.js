@@ -63,7 +63,6 @@ function loadTranscripts(user_id, session_id) {
   })
     .then((response) => response.json())
     .then((data) => {
-      addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn");
       console.log("Transcripts data received:", data);
 
       let transcripts = data.transcripts;
@@ -210,7 +209,7 @@ function startConversation(user_id, session_id) {
       isConversationStarted = true;
       console.log("Conversation started, conversation_id:", conversation_id);
 
-      addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn");
+      addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn", data.message_id);
 
       return conversation_id;
     })
