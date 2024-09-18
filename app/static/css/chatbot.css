@@ -260,23 +260,24 @@ body, html {
   position: relative; /* Đảm bảo vị trí của các nút liên quan đến bóng chat */
   margin: 8px 0;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
 }
 
-.message.user .copy-button {
-  position: absolute;
-  left: calc(100% + 0.5cm); /* Nút copy ở bên trái bóng chat của user */
-  bottom: 0;
+.message.user {
+  justify-content: flex-end; /* Canh về bên phải cho bóng của user */
 }
 
-.message.bot .copy-button {
-  position: absolute;
-  right: calc(100% + 0.5cm); /* Nút copy ở bên phải bóng chat của bot */
-  bottom: 0;
+.message-content {
+  max-width: 60%;
+  padding: 10px;
+  border-radius: 20px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm đổ bóng cho bóng chat */
 }
 
-/* Điều chỉnh lại phần message của bot và user để rõ ràng hơn */
 .message.user .message-content {
   background-color: #007bff;
   color: white;
@@ -288,3 +289,11 @@ body, html {
   border-bottom-left-radius: 20px;
 }
 
+/* Định vị lại nút Copy dựa trên loại người gửi */
+.message.user .copy-button {
+  margin-left: 0.5cm; /* Căn nút copy bên trái cho user với khoảng cách 0.5 cm */
+}
+
+.message.bot .copy-button {
+  margin-right: 0.5cm; /* Căn nút copy bên phải cho bot với khoảng cách 0.5 cm */
+}
