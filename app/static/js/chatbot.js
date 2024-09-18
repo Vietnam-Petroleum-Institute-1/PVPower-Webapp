@@ -350,6 +350,8 @@ function processBotResponse(result, messageId, messageText, user_id) {
     const resultWithoutDomain = result.replace(/True/, "").trim();
 
     addMessageToChat("bot", resultWithoutDomain, messageId);
+
+    handleResponse(resultWithoutDomain);
   }
 }
 
@@ -391,13 +393,6 @@ function addMessageToChat(sender, message, messageId) {
   messageContent.textContent = message;
 
   messageElement.appendChild(messageContent);
-
-  // // Đặt nút copy theo bên trái hoặc phải dựa vào sender
-  // if (sender === "bot") {
-  //   messageElement.appendChild(copyButton); // Nút copy bên trái cho user
-  // } else {
-  //   messageElement.insertBefore(copyButton, messageElement.firstChild); // Nút copy bên phải cho bot
-  // }
 
   if (sender === "bot" && messageId) {
     const feedbackButtons = document.createElement("div");
@@ -615,4 +610,44 @@ function submitDislikeFeedback() {
   );
   submitFeedback("dislike", feedbackMessageId, feedbackText, messageElement);
   closeModal();
+}
+
+function handleResponse(response) {
+  // Giả định response là một object có chứa mảng các câu hỏi
+  const extractedQuestions = extractQuestionsFromResponse(response);
+
+  // Nếu có câu hỏi, hiển thị chúng dưới dạng bong bóng gợi ý
+  if (extractedQuestions.length > 0) {
+    showSuggestions(extractedQuestions);
+  }
+}
+
+// Hàm trích xuất câu hỏi từ response (tuỳ thuộc vào cấu trúc của response)
+function extractQuestionsFromResponse(response) {
+  const questions = [];
+  const questionPattern = /Câu hỏi \d+:\s(.+?)(?:$|\n)/g; // Regex để tìm các câu hỏi trong response
+  let match;
+  while ((match = questionPattern.exec(response)) !== null) {
+    questions.push(match[1].trim());
+  }
+  return questions;
+}
+
+function showSuggestions(questions) {
+  const suggestionsContainer = document.getElementById("suggestions-container");
+  suggestionsContainer.innerHTML = ''; // Xóa các gợi ý trước đó
+
+  questions.forEach((question, index) => {
+    const suggestionButton = document.createElement("button");
+    suggestionButton.classList.add("suggestion-bubble");
+    suggestionButton.textContent = `Câu hỏi ${index + 1}: ${question}`;
+    suggestionButton.onclick = () => sendSuggestedQuestion(question);
+    suggestionsContainer.appendChild(suggestionButton);
+  });
+}
+
+function sendSuggestedQuestion(question) {
+  const userInput = document.getElementById("userInput");
+  userInput.value = question; // Đặt câu hỏi vào ô nhập liệu
+  sendMessage(); // Tự động gửi câu hỏi
 }
