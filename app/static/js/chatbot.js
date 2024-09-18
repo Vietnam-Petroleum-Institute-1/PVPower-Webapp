@@ -636,6 +636,7 @@ function extractQuestionsFromResponse(response) {
 function showSuggestions(questions) {
   const suggestionsContainer = document.getElementById("suggestions-container");
   suggestionsContainer.innerHTML = ''; // Xóa các gợi ý trước đó
+  suggestionsContainer.style.display = 'flex'; // Hiển thị lại container nếu nó bị ẩn
 
   questions.forEach((question, index) => {
     const suggestionButton = document.createElement("button");
@@ -649,5 +650,14 @@ function showSuggestions(questions) {
 function sendSuggestedQuestion(question) {
   const userInput = document.getElementById("userInput");
   userInput.value = question; // Đặt câu hỏi vào ô nhập liệu
+
+  // Gửi câu hỏi và ẩn bong bóng gợi ý
+  hideSuggestions();
   sendMessage(); // Tự động gửi câu hỏi
+}
+
+function hideSuggestions() {
+  const suggestionsContainer = document.getElementById("suggestions-container");
+  suggestionsContainer.innerHTML = ''; // Xóa toàn bộ các nút gợi ý
+  suggestionsContainer.style.display = 'none'; // Ẩn container
 }
