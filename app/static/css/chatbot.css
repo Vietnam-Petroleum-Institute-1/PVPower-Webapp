@@ -247,9 +247,6 @@ body, html {
   border: none;
   cursor: pointer;
   font-size: 14px;
-  position: absolute; /* Đặt nút ở vị trí tuyệt đối so với bóng chat */
-  right: 10px; /* Căn lề phải */
-  bottom: 10px; /* Căn lề dưới */
   color: #007bff;
   transition: transform 0.2s;
 }
@@ -260,10 +257,34 @@ body, html {
 }
 
 .message {
-  position: relative; /* Để đảm bảo nút "Copy" được căn theo bóng chat */
+  position: relative; /* Đảm bảo vị trí của các nút liên quan đến bóng chat */
   margin: 8px 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+
+.message.user .copy-button {
+  position: absolute;
+  left: calc(100% + 0.5cm); /* Nút copy ở bên trái bóng chat của user */
+  bottom: 0;
+}
+
+.message.bot .copy-button {
+  position: absolute;
+  right: calc(100% + 0.5cm); /* Nút copy ở bên phải bóng chat của bot */
+  bottom: 0;
+}
+
+/* Điều chỉnh lại phần message của bot và user để rõ ràng hơn */
+.message.user .message-content {
+  background-color: #007bff;
+  color: white;
+  border-bottom-right-radius: 20px;
+}
+
+.message.bot .message-content {
+  background-color: #e1e1e1;
+  border-bottom-left-radius: 20px;
 }
 
