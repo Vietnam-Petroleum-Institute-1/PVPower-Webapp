@@ -398,12 +398,12 @@ function addMessageToChat(sender, message, messageId) {
   copyButton.innerHTML = '<i class="fas fa-copy"></i>'; // Thêm biểu tượng copy từ FontAwesome
   copyButton.onclick = () => copyToClipboard(messageContent.textContent);
 
-  // Đặt nút copy theo bên trái hoặc phải dựa vào sender
-  if (sender === "bot") {
-    messageElement.appendChild(copyButton); // Nút copy bên trái cho user
-  } else {
-    messageElement.insertBefore(copyButton, messageElement.firstChild); // Nút copy bên phải cho bot
-  }
+  // // Đặt nút copy theo bên trái hoặc phải dựa vào sender
+  // if (sender === "bot") {
+  //   messageElement.appendChild(copyButton); // Nút copy bên trái cho user
+  // } else {
+  //   messageElement.insertBefore(copyButton, messageElement.firstChild); // Nút copy bên phải cho bot
+  // }
 
   if (sender === "bot" && messageId) {
     const feedbackButtons = document.createElement("div");
@@ -424,6 +424,7 @@ function addMessageToChat(sender, message, messageId) {
     feedbackButtons.appendChild(dislikeButton);
 
     messageElement.appendChild(feedbackButtons);
+    messageElement.appendChild(copyButton);
   }
 
   chatMessages.appendChild(messageElement);
