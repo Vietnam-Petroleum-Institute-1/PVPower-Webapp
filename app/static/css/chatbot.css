@@ -247,7 +247,9 @@ body, html {
   border: none;
   cursor: pointer;
   font-size: 14px;
-  margin-left: 10px;
+  position: absolute; /* Đặt nút ở vị trí tuyệt đối so với bóng chat */
+  right: 10px; /* Căn lề phải */
+  bottom: 10px; /* Căn lề dưới */
   color: #007bff;
   transition: transform 0.2s;
 }
@@ -256,3 +258,12 @@ body, html {
   transform: scale(1.2);
   color: #0056b3;
 }
+
+.message {
+  position: relative; /* Để đảm bảo nút "Copy" được căn theo bóng chat */
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
