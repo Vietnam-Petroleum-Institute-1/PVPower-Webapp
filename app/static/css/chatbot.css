@@ -241,3 +241,18 @@ body, html {
 .modal-content button:hover {
   background-color: #0056b3;
 }
+
+.copy-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+  color: #007bff;
+  transition: transform 0.2s;
+}
+
+.copy-button:hover {
+  transform: scale(1.2);
+  color: #0056b3;
+}

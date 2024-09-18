@@ -63,6 +63,7 @@ function loadTranscripts(user_id, session_id) {
   })
     .then((response) => response.json())
     .then((data) => {
+      addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn");
       console.log("Transcripts data received:", data);
 
       let transcripts = data.transcripts;
@@ -390,19 +391,26 @@ function addMessageToChat(sender, message, messageId) {
 
   messageElement.appendChild(messageContent);
 
+  // Thêm nút Copy vào mỗi tin nhắn
+  const copyButton = document.createElement("button");
+  copyButton.classList.add("copy-button");
+  copyButton.innerHTML = '<i class="fas fa-copy"></i>'; // Thêm biểu tượng copy từ FontAwesome
+  copyButton.onclick = () => copyToClipboard(messageContent.textContent);
+
+  messageElement.appendChild(copyButton); // Thêm nút Copy vào tin nhắn
+
   if (sender === "bot" && messageId) {
-    // Chỉ thêm feedback buttons nếu messageId không phải là null
     const feedbackButtons = document.createElement("div");
     feedbackButtons.classList.add("feedback-buttons");
 
     const likeButton = document.createElement("button");
     likeButton.classList.add("like-button");
-    likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>'; // Add FontAwesome icon
+    likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
     likeButton.onclick = () => sendFeedback("like", messageId, messageElement);
 
     const dislikeButton = document.createElement("button");
     dislikeButton.classList.add("dislike-button");
-    dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>'; // Add FontAwesome icon
+    dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
     dislikeButton.onclick = () =>
       sendFeedback("dislike", messageId, messageElement);
 
@@ -415,6 +423,18 @@ function addMessageToChat(sender, message, messageId) {
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+// Hàm để sao chép nội dung vào clipboard
+function copyToClipboard(text) {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
+  alert("Copied to clipboard");
+}
+
 
 
 function addWaitingBubble() {
