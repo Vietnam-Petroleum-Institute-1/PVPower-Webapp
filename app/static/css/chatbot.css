@@ -242,14 +242,15 @@ body, html {
   background-color: #0056b3;
 }
 
+/* Thêm nút copy vào feedback-buttons */
 .copy-button {
   background: none;
   border: none;
   cursor: pointer;
   font-size: 14px;
-  margin-left: 10px;
   color: #007bff;
   transition: transform 0.2s;
+  margin: 0 8px; /* Giữ khoảng cách giữa các nút */
 }
 
 .copy-button:hover {
