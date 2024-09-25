@@ -66,9 +66,9 @@ def session_exists(conn, user_id, session_id):
     cur.close()
     return exists
 
-def session_valid(conn, user_id, session_id):
+def session_valid(conn, user_id):
     cur = conn.cursor()
-    cur.execute("SELECT 1 FROM sessions WHERE user_id = %s AND session_id = %s AND end_time > NOW()", (user_id, session_id))
+    cur.execute("SELECT 1 FROM sessions WHERE user_id = %s AND end_time > NOW()", (user_id,))
     exists = cur.fetchone() is not None
     cur.close()
     return exists
