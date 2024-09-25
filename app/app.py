@@ -346,29 +346,15 @@ def user_exist():
 def api_chat_status():
     conn = connect_db()
     data = request.get_json()
-    user_id = data.get('user_id')
-    session_id = data.get('session_id')
-    print(f"user_id: {user_id}, session_id: {session_id}")
+    token = data.get('token')
+    user_id = decode_token(token)
+    app.logger.debug(f"user_id: {user_id}")
     
     if not user_exists(conn, user_id):
         return jsonify({"result": "User does not exist"}), 404
-    if not session_exists(conn, user_id, session_id):
-        return jsonify({"result": "Session does not exist"}), 404
-    
-    timestamp = get_message_lastest_timestamp(conn, user_id, session_id)
-    print(f"timestamp: {timestamp}")
-    
-    if timestamp is None or len(timestamp) == 0:
-        return jsonify({"result": "No message found"}), 404
-    
-    timestamp = timestamp[0]
-    now = datetime.now()
-    diff = now - timestamp
-    
-    if diff <= timedelta(minutes=5):
-        return jsonify({"result": 1})
-    else:
+    if not session_valid(conn, user_id):
         return jsonify({"result": 0})
+    return jsonify({"result": 1})
     
 @app.route('/api/session', methods=['POST'])
 def api_session():
