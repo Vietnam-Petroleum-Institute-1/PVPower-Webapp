@@ -8,10 +8,12 @@ secret_key = "96fc0cc6-3531-435d-9279-368691964ed3"  # Khóa bí mật để mã
 
 # Thời gian hiện tại
 now = datetime.utcnow()
-start = now.date()
-# Thời điểm hết hạn (11:00:00)
-expiration_time = datetime.combine(now.date(), datetime.min.time()) + timedelta(hours=24, minutes=40)
+now = now + timedelta(hours=7)
+
+expiration_time = now + timedelta(hours=1, minutes=0)
 exp_timestamp = expiration_time.timestamp()
+start = now.date()
+
 # Payload của token
 payload = {
     'user_id': user_id,
