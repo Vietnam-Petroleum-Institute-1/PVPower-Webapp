@@ -390,12 +390,21 @@ function addMessageToChat(sender, message, messageId) {
     messageElement.dataset.messageId = messageId; // Lưu trữ message_id
   }
 
+  // Thêm hình ảnh avatar cho bot nếu sender là bot
+  if (sender === "bot") {
+    const botAvatar = document.createElement("img");
+    botAvatar.src = "/static/images/Logo_Petrovietnam.svg.png"; // Đường dẫn đến ảnh avatar của bot
+    botAvatar.classList.add("bot-avatar");
+    messageElement.appendChild(botAvatar);
+  }
+
   const messageContent = document.createElement("div");
   messageContent.classList.add("message-content");
   messageContent.textContent = message;
 
   messageElement.appendChild(messageContent);
 
+  // Nếu tin nhắn là của bot và có messageId, thêm nút feedback
   if (sender === "bot" && messageId) {
     const feedbackButtons = document.createElement("div");
     feedbackButtons.classList.add("feedback-buttons");
@@ -438,6 +447,7 @@ function addMessageToChat(sender, message, messageId) {
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
 
 // Hàm để sao chép nội dung vào clipboard
 function copyToClipboard(text) {

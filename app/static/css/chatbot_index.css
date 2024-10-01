@@ -1,0 +1,376 @@
+/* Toàn bộ CSS */
+
+body, html { 
+  margin: 0; 
+  padding: 0; 
+  width: 100%; 
+  height: 100%; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  background-color: #f5f5f5; 
+  font-family: Arial, sans-serif; 
+}
+
+.chat-container { 
+  width: 100%; 
+  height: 100%; 
+  max-width: 100%; 
+  max-height: 100%; 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+  overflow: hidden; 
+  display: flex; 
+  flex-direction: column; 
+  background-color: #fff; 
+}
+
+.chat-header { 
+  background-color: #007bff; 
+  color: white; 
+  padding: 12px; 
+  font-size: 18px; 
+  display: flex; 
+  align-items: center; 
+}
+
+.chat-header img { 
+  height: 45px; 
+  margin-right: 15px; 
+}
+
+.chat-messages { 
+  flex: 1; 
+  padding: 16px; 
+  overflow-y: auto; 
+  display: flex; 
+  flex-direction: column; 
+}
+
+.chat-input {
+  width: 95%; /* Đặt chiều rộng là 927px */
+  height: 7%; /* Đặt chiều cao là 69px */
+  flex-shrink: 0; /* Không co lại */
+  border-radius: 34.5px; /* Bo góc */
+  background: #EAF8FF; /* Màu nền cho thanh chat */
+  display: flex; /* Sử dụng flex để căn chỉnh nội dung */
+  align-items: center; /* Căn chỉnh theo trục dọc */
+  padding: 0 10px; /* Cách lề trong thanh chat */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Thêm hiệu ứng đổ bóng nhẹ */
+  margin-bottom: 10px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-top: 5px;
+}
+
+.chat-input input {
+  flex: 1; /* Input chiếm phần lớn diện tích của thanh chat */
+  border: none;
+  outline: none;
+  background: none; /* Loại bỏ màu nền */
+  padding: 0 10px;
+  font-size: 16px;
+  color: #333; /* Màu chữ */
+}
+
+.chat-input input::placeholder {
+  color: #999; /* Màu placeholder */
+}
+
+/* .chat-input button { 
+  padding: 16px; 
+  border: none; 
+  background-color: #007bff; 
+  color: #fff; 
+  cursor: pointer; 
+  font-size: 16px; 
+} */
+
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin: 8px 0;
+}
+
+.message.user {
+  justify-content: flex-end; /* Canh lề phải cho tin nhắn của người dùng */
+}
+
+.message.bot {
+  justify-content: flex-start; /* Canh lề trái cho tin nhắn của bot */
+}
+
+.bot-avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px; /* Khoảng cách giữa avatar và nội dung tin nhắn của bot */
+  border-radius: 50%;
+}
+
+.message-content {
+  max-width: 60%;
+  padding: 10px;
+  border-radius: 20px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.message.user .message-content {
+  background-color: #EAF8FF;
+  color: black;
+  border-bottom-right-radius: 10px;
+  margin-left: 10px; /* Đảm bảo tin nhắn của user không bị dính vào cạnh bên */
+}
+
+
+.message.bot .message-content {
+  background-color: #e1e1e1;
+  border-bottom-left-radius: 10px;
+}
+
+/* Thêm hình dạng và màu sắc cho bóng thoại chờ */
+.waiting-bubble .message-content {
+  background-color: #3498db; /* Màu nền cho bóng chờ */
+  color: #fff;
+  border-bottom-left-radius: 10px;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+}
+
+/* Hiệu ứng nhấp nháy cho dấu chấm */
+@keyframes blink {
+  0% { opacity: 0.2; }
+  20% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+.dot {
+  display: inline-block;
+  margin: 0 2px;
+  animation: blink 1.4s infinite both;
+  height: 10px;
+  width: 10px;
+  background-color: white;
+  border-radius: 50%;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+/* Style for feedback buttons */
+.feedback-buttons {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.feedback-buttons button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  margin: 0 8px;
+  transition: transform 0.2s;
+}
+
+.feedback-buttons button:hover {
+  transform: scale(1.2);
+}
+
+.feedback-buttons button.selected {
+  color: green;
+}
+
+.feedback-buttons .dislike-button.selected {
+  color: red;
+}
+
+/* Modal improvements */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4); /* Nền tối mờ */
+}
+
+.modal-content {
+  background-color: #fff;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  border-radius: 10px; /* Bo tròn các góc của modal */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng để tạo chiều sâu */
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#feedbackText {
+  width: calc(100% - 20px); /* Điều chỉnh để vừa với modal hơn */
+  padding: 10px;
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px; /* Bo tròn các góc của text area */
+  font-size: 14px;
+  resize: none; /* Loại bỏ khả năng thay đổi kích thước của text area */
+}
+
+.modal-content p {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* OK button styling */
+.modal-content button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 20px;
+}
+
+.modal-content button:hover {
+  background-color: #0056b3;
+}
+
+/* Thêm nút copy vào feedback-buttons */
+.copy-button-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #007bff;
+  padding: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.copy-button:hover {
+  background-color: #f0f0f0;
+  border-radius: 4px;
+}
+
+.copy-button i {
+  font-size: 16px;
+}
+
+.copy-tooltip {
+  visibility: hidden;
+  width: 80px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Hiển thị tooltip phía trên nút */
+  left: 50%;
+  margin-left: -40px; /* Căn giữa tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.copy-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%; /* Tam giác phía dưới */
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.copy-button-container:hover .copy-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.suggestions-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Khoảng cách giữa các bong bóng gợi ý */
+  margin-bottom: 10px;
+  margin-left: 20px; /* Căn lề với bóng chat của bot */
+  padding-right: 20px; /* Đảm bảo không sát lề phải */
+}
+
+.suggestion-bubble {
+  background-color: #EAF8FF;
+  color: black;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 14px;
+}
+
+.suggestion-bubble:hover {
+  background-color: #a0dbf9;;
+}
+
+.suggestion-bubble:focus {
+  outline: none;
+}
+
+#sendButton {
+  width: 38px; /* Chiều rộng là 44px */
+  height: 38px; /* Chiều cao là 44px */
+  flex-shrink: 0; /* Không co lại */
+  background-color: transparent; /* Nền trong suốt */
+  border: none; /* Không có viền */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px; /* Khoảng cách giữa input và nút */
+}
+
+#sendButton svg {
+  width: 44px;
+  height: 44px;
+}

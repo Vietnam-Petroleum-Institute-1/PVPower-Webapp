@@ -5,13 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PVPower Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <iframe src="/chatbot"></iframe>
-    </div>
+    <!-- Header -->
+    <header class="chat-header">
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/Logo_Petrovietnam.svg.png') }}" alt="PetroVietnam Power Logo">
+        </div>
+        <h1>CHATBOT HỎI ĐÁP PVP</h1>
+        <div class="user-info">
+            <span id="user-name" class="user-name">Xin chào, </span>
+            <button class="signout-btn" onclick="signOutAndRedirect()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">
+                  <path d="M8.19 29.1667C7.51819 29.1667 6.9577 28.9421 6.50854 28.4929C6.05937 28.0438 5.8343 27.4828 5.83333 26.81V8.19001C5.83333 7.5182 6.0584 6.95772 6.50854 6.50855C6.95868 6.05938 7.51916 5.83432 8.19 5.83334H17.5277V7.29168H8.19C7.96541 7.29168 7.7593 7.38501 7.57166 7.57168C7.38402 7.75834 7.29069 7.96445 7.29166 8.19001V26.8115C7.29166 27.0351 7.38499 27.2407 7.57166 27.4283C7.75833 27.616 7.96395 27.7093 8.18854 27.7083H17.5277V29.1667H8.19ZM24.0071 22.6611L22.9833 21.6111L26.3652 18.2292H13.405V16.7708H26.3652L22.9819 13.3875L24.0056 12.3404L29.1667 17.5L24.0071 22.6611Z" fill="white"/>
+                </svg>
+            </button>            
+        </div>
+    </header>
 
-    <button class="signout-btn" onclick="signOut()">Sign Out</button>
+    <div class="chat-container">
+        <div class="chat-sidebar">
+            <div class="search-container">
+                <input type="text" class="search-bar" placeholder="Tìm kiếm nội dung" id="searchInput">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 30 30" fill="none">
+                    <path d="M26.2812 24.9998L19.4372 18.1558C21.0819 16.1814 21.902 13.6489 21.727 11.0852C21.552 8.52144 20.3954 6.12388 18.4977 4.39125C16.6 2.65861 14.1074 1.7243 11.5383 1.78267C8.96931 1.84104 6.52169 2.88761 4.70465 4.70465C2.88761 6.52169 1.84104 8.96931 1.78267 11.5383C1.7243 14.1074 2.65861 16.6 4.39125 18.4977C6.12388 20.3954 8.52144 21.552 11.0852 21.727C13.6489 21.902 16.1814 21.0819 18.1558 19.4372L24.9998 26.2812L26.2812 24.9998ZM3.625 11.7812C3.625 10.1681 4.10335 8.59117 4.99957 7.24988C5.89579 5.90859 7.16963 4.86318 8.65999 4.24586C10.1503 3.62853 11.7903 3.46701 13.3725 3.78172C14.9546 4.09643 16.4079 4.87324 17.5486 6.01391C18.6893 7.15458 19.4661 8.60788 19.7808 10.19C20.0955 11.7722 19.934 13.4121 19.3166 14.9025C18.6993 16.3929 17.6539 17.6667 16.3126 18.5629C14.9713 19.4591 13.3944 19.9375 11.7812 19.9375C9.61881 19.9351 7.54563 19.075 6.01656 17.5459C4.48748 16.0169 3.6274 13.9437 3.625 11.7812Z" fill="black"/>
+                </svg>
+            </div>
+               
+            <button class="new-chat-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 22.5C6.21 22.5 1.5 17.79 1.5 12C1.5 6.21 6.21 1.5 12 1.5C17.79 1.5 22.5 6.21 22.5 12C22.5 17.79 17.79 22.5 12 22.5ZM12 3C7.035 3 3 7.035 3 12C3 16.965 7.035 21 12 21C16.965 21 21 16.965 21 12C21 7.035 16.965 3 12 3Z" fill="white"/>
+                  <path d="M12 17.25C11.58 17.25 11.25 16.92 11.25 16.5V7.5C11.25 7.08 11.58 6.75 12 6.75C12.42 6.75 12.75 7.08 12.75 7.5V16.5C12.75 16.92 12.42 17.25 12 17.25Z" fill="white"/>
+                  <path d="M16.5 12.75H7.5C7.08 12.75 6.75 12.42 6.75 12C6.75 11.58 7.08 11.25 7.5 11.25H16.5C16.92 11.25 17.25 11.58 17.25 12C17.25 12.42 16.92 12.75 16.5 12.75Z" fill="white"/>
+                </svg>
+                Tạo đoạn chat mới
+            </button>
+            
+            <div class="chat-history" id="chatHistory">
+                <!-- Nội dung các cuộc hội thoại sẽ được thêm vào đây -->
+            </div>
+            
+            
+        </div>
+
+        <div class="chat-content">
+            <iframe src="/chatbot_index" class="chat-iframe"></iframe>
+        </div>
+    </div>
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <script>
+        function adjustChatHeight() {
+            const chatContainer = document.querySelector('.chat-container');
+            const windowHeight = window.innerHeight;
+            chatContainer.style.height = windowHeight + 'px';
+        }
+    
+        window.addEventListener('resize', adjustChatHeight);
+        window.addEventListener('load', adjustChatHeight);
+    </script>
+    <script>
+        function deleteAllCookies() {
+            const cookies = document.cookie.split("; ");
+            for (let c = 0; c < cookies.length; c++) {
+                const d = window.location.hostname.split(".");
+                while (d.length > 0) {
+                    const cookieBase = encodeURIComponent(cookies[c].split(";")[0].split("=")[0]) + 
+                        '=; expires=Thu, 01-Jan-1970 00:00:01 GMT; domain=' + d.join('.') + ' ;path=';
+                    const p = window.location.pathname.split('/');
+                    document.cookie = cookieBase + '/';
+                    while (p.length > 0) {
+                        document.cookie = cookieBase + p.join('/');
+                        p.pop();
+                    };
+                    d.shift();
+                }
+            }
+        }
+    
+        function signOutAndRedirect() {
+            deleteAllCookies(); // Xóa tất cả cookies
+            window.location.href = 'signin'; // Chuyển hướng đến trang signin.html
+        }
+    </script>
 </body>
 </html>

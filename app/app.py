@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
 import requests
 import logging
-from databases import session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_message_lastest_timestamp, get_transcripts, add_conversation, get_conversation_id, bot_id_exist, write_feedback, upload_pending_FAQ, session_valid, error_logs
+from databases import update_conversation_title, get_session_from_conversation, session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_transcripts, add_conversation, get_conversation_id, write_feedback, upload_pending_FAQ, session_valid, error_logs, get_all_conversations
 import json
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -12,7 +12,7 @@ import os
 from ldap3 import Server, Connection, ALL, SUBTREE
 import uuid
 import jwt  # For token handling
-
+from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
 CORS(app) 
@@ -148,6 +148,18 @@ def chatbot():
 
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
     return render_template('chatbot.html')
+
+@app.route('/chatbot_index')
+def chatbot_index():
+    session_id = request.cookies.get('session_id')
+    user_id = request.cookies.get('user_id')
+
+    if not session_id:
+        logging.debug("No session_id found, redirecting to signin.")
+        return redirect(url_for('signin'))
+
+    logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
+    return render_template('chatbot_index.html')
 
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
@@ -310,7 +322,7 @@ def start_conversation():
         timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
         timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S %z')
 
-        add_conversation(conn, conversation_id, session_id, user_id)
+        add_conversation(conn, conversation_id, "New message", session_id, user_id)
         conversation(conn, data["message_id"], session_id, user_id, "gpt", "", input_token, result_answer[:-len(domain)-1], output_token, total_token, timestamp, conversation_id, domain)
         conn.close()
         return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"]})
@@ -375,7 +387,7 @@ def api_session_exist():
     session_id = request.json['session_id']
     if not session_exists(conn, user_id, session_id):
         return jsonify({"result": 0}), 404
-    if not session_valid(conn, user_id, session_id):
+    if not session_valid(conn, user_id):
         return jsonify({"result": "session expired"}), 404
     conn.close()
     return jsonify({"result": 1})
@@ -462,6 +474,152 @@ def extract_domain(input_string):
                     return match.group(0)
             else:
                 return "True"
-            
+
+@app.route('/get_all_conversations', methods=['POST'])
+def all_conversations():
+    data = request.json
+    user_id = data.get('user_id')
+
+    conn = connect_db()
+    conversations = get_all_conversations(conn, user_id)
+    conn.close()
+
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+    seven_days_ago = today - timedelta(days=7)
+
+    # Nhóm các cuộc hội thoại
+    grouped_conversations = {
+        "today": [],
+        "yesterday": [],
+        "last_7_days": []
+    }
+
+
+    app.logger.debug(f"conversations: {conversations}")
+    for conversation in conversations:
+        
+        conversation_title = conversation[1] if conversation[1] else "New conversation"
+        created_at = conversation[2].date()
+
+        # Kiểm tra và chỉ đưa cuộc hội thoại vào 1 nhóm duy nhất
+        if created_at == today:
+            grouped_conversations["today"].append({
+                'conversation_id': conversation[0],
+                'conversation_title': conversation_title
+            })
+        elif created_at == yesterday:
+            grouped_conversations["yesterday"].append({
+                'conversation_id': conversation[0],
+                'conversation_title': conversation_title
+            })
+        elif created_at >= seven_days_ago and created_at < yesterday:
+            grouped_conversations["last_7_days"].append({
+                'conversation_id': conversation[0],
+                'conversation_title': conversation_title
+            })
+
+    return jsonify(grouped_conversations)
+
+@app.route('/create_new_conversation', methods=['POST'])
+def create_new_conversation():
+    user_id = request.json.get('user_id')
+
+    # Tạo session_id mới
+    session_id = str(uuid.uuid4())
+
+    # Lấy thời gian hiện tại theo UTC và cộng thêm 7 giờ
+    now_utc = datetime.utcnow()
+    now_gmt7 = now_utc + timedelta(hours=7)  # Chuyển sang GMT+7
+
+    # Lưu thời gian bắt đầu và kết thúc
+    start_time = now_gmt7.strftime("%Y-%m-%d %H:%M:%S %z")
+    end_time = (now_gmt7 + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S %z")
+
+
+    # Lưu session vào database (hoặc hệ thống lưu trữ của bạn)
+    conn = connect_db()
+    session(conn, user_id, session_id, start_time, end_time) 
+    conn.close()
+
+    # Đặt session_id vào cookie với thời gian hiệu lực 30 phút
+    response = make_response(jsonify({'message': 'New session created', 'session_id': session_id}))
+    response.set_cookie('session_id', session_id, max_age=1800)  # 1800 giây = 30 phút
+    return response
+
+@app.route('/api/get_session_id', methods=['POST'])
+def get_session_id():
+    conversation_id = request.json.get('conversation_id')
+    
+    conn = connect_db()
+    session_id = get_session_from_conversation(conn, conversation_id)
+    conn.close()
+
+    if session_id:
+        return jsonify({'session_id': session_id[0]})
+    else:
+        return jsonify({'error': 'Conversation ID not found'}), 404
+
+
+@app.route('/api/update_conversation_title', methods=['POST'])
+def update_conversation_title_api():
+    conn = connect_db()
+    data = request.json
+    user_id = data.get('user_id')
+    session_id = data.get('session_id')
+    conversation_id = data.get('conversation_id')
+
+    # Lấy transcripts
+    transcripts = get_transcripts(conn, user_id, session_id)
+    app.logger.debug(f"Original transcripts: {transcripts}")
+
+    # Parse JSON nếu transcripts là chuỗi JSON
+    if isinstance(transcripts, str):
+        try:
+            transcripts = json.loads(transcripts)
+            app.logger.debug(f"Parsed JSON transcripts: {transcripts}")
+        except json.JSONDecodeError as e:
+            app.logger.error(f"Error parsing transcripts JSON: {e}")
+            conn.close()
+            return jsonify({'result': 'Error parsing transcripts'}), 500
+
+    # Nếu transcripts là một danh sách chứa tuple, ta lấy phần tử đầu tiên (tuple)
+    if isinstance(transcripts, list) and len(transcripts) > 0:
+        transcripts_tuple = transcripts[0]
+        # app.logger.debug(f"Extracted first tuple from transcripts: {transcripts_tuple}")
+
+        # Transcripts_tuple là một tuple, lấy phần đầu tiên là danh sách các tin nhắn
+        if isinstance(transcripts_tuple, tuple) and len(transcripts_tuple) > 0:
+            messages = transcripts_tuple[0]
+            # app.logger.debug(f"Extracted messages from transcripts_tuple: {messages}")
+
+            # Lọc ra các tin nhắn của người dùng
+            user_messages = [msg for msg in messages if msg.get('role') == 'user' and msg.get('text')]
+            # app.logger.debug(f"Filtered user messages: {user_messages}")
+
+            if len(user_messages) >= 1:
+                second_user_message = user_messages[0]['text']
+                app.logger.debug(f"Second user message: {second_user_message}")
+
+                # Cập nhật tiêu đề cuộc hội thoại
+                update_conversation_title(conn, conversation_id, second_user_message)
+                conn.close()
+                return jsonify({'result': 'Title updated', 'new_title': second_user_message})
+            else:
+                app.logger.debug(f"Not enough user messages to update title")
+                conn.close()
+                return jsonify({'result': 'Not enough user messages to update title'}), 400
+        else:
+            app.logger.error(f"Unexpected structure in transcripts_tuple: {transcripts_tuple}")
+            conn.close()
+            return jsonify({'result': 'Error in transcripts structure'}), 500
+    else:
+        app.logger.error(f"Unexpected structure in transcripts: {transcripts}")
+        conn.close()
+        return jsonify({'result': 'Error in transcripts structure'}), 500
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)

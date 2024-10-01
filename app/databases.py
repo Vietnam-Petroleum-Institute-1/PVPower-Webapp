@@ -139,16 +139,16 @@ def get_transcripts(conn, user_id, session_id):
     cur.close()
     return transcripts
 
-def add_conversation(conn, conversation_id, session_id, user_id):
+def add_conversation(conn, conversation_id, conversation_title, session_id, user_id):
     if not session_exists(conn, user_id, session_id):
         print(f"Session {session_id} does not exist.")
         return
     cur = conn.cursor()
     insert_conversation_query = """
-    INSERT INTO conversations (conversation_id, session_id, user_id)
-    VALUES (%s, %s, %s)
+    INSERT INTO conversations (conversation_id, session_id, user_id, conversation_title)
+    VALUES (%s, %s, %s, %s)
     """
-    cur.execute(insert_conversation_query, (conversation_id, session_id, user_id))
+    cur.execute(insert_conversation_query, (conversation_id, session_id, user_id, conversation_title))
     conn.commit()
     cur.close()
     print(f"Conversation {conversation_id} inserted successfully.")
@@ -212,3 +212,33 @@ def error_logs(conn, user_id, session_id, conversation_id, input_message, error_
     conn.commit()
     cur.close()
     print(f"Error log inserted successfully.")
+
+def get_all_conversations(conn, user_id):
+    if not user_exists(conn, user_id):
+        print(f"User {user_id} does not exist.")
+        return []
+
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT conversation_id, conversation_title, created_at 
+        FROM conversations 
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+        """, (user_id,))
+    
+    conversations = cur.fetchall()
+    cur.close()
+    return conversations
+
+def get_session_from_conversation(conn, conversation_id):
+    cur = conn.cursor()
+    cur.execute("SELECT session_id FROM conversations WHERE conversation_id = %s", (conversation_id,))
+    session_id = cur.fetchone()
+    cur.close()
+    return session_id
+
+def update_conversation_title(conn, conversation_id, second_user_message):
+    cur = conn.cursor()
+    cur.execute("UPDATE conversations SET conversation_title = %s WHERE conversation_id = %s", (second_user_message, conversation_id))
+    conn.commit()
+    cur.close()

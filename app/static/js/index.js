@@ -1,470 +1,275 @@
-// let isConversationStarted = false;
-// let isWaitingForBot = false; // New flag to indicate waiting for bot response
-// let conversationIdPromise = null;
-// let feedbackMessageId = null;
-
-// window.onload = function () {
-//   console.log("Window loaded");
-
-//   const user_id = getCookie("user_id");
-//   const session_id = getCookie("session_id");
-//   console.log("User ID:", user_id, "Session ID:", session_id);
-
-//   if (user_id && session_id) {
-//     fetch("/api/user_exist", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify({ user_id }),
-//     })
-//       .then((response) => response.json())
-//       .then((data) => {
-//         console.log("User existence check:", data);
-//         if (data.result) {
-//           conversationIdPromise = checkOrCreateSession(user_id, session_id);
-//         } else {
-//           document.getElementById("chatMessages").innerHTML =
-//             '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-//           const chatInput = document.querySelector(".chat-input");
-//           if (chatInput) {
-//             chatInput.style.display = "none";
-//           }
-//         }
-//       })
-//       .catch((error) => {
-//         console.error("Error:", error);
-//       });
-//   } else {
-//     document.getElementById("chatMessages").innerHTML =
-//       '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-//     const chatInput = document.querySelector(".chat-input");
-//     if (chatInput) {
-//       chatInput.style.display = "none";
-//     }
-//   }
-// };
-
-// function getCookie(name) {
-//   const value = `; ${document.cookie}`;
-//   const parts = value.split(`; ${name}=`);
-//   if (parts.length === 2) return parts.pop().split(';').shift();
-//   return null;
-// }
-
-// function checkOrCreateSession(user_id, session_id) {
-//   console.log("Checking or creating session");
-//   showWaitingBubble();
-//   return fetch("/api/session_exist", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({ user_id, session_id }),
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log("Session existence check:", data);
-//       if (data.result === 1) {
-//         document.getElementById("chatContainer").style.display = "flex";
-//         return getConversation(user_id, session_id);
-//       } else if (data.result === 0) {
-//         const start_time = new Date().toISOString();
-//         const end_time = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-//         return createSession(user_id, session_id, start_time, end_time);
-//       } else {
-//         document.getElementById("chatMessages").innerHTML =
-//           '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-//         const chatInput = document.querySelector(".chat-input");
-//         if (chatInput) {
-//           chatInput.style.display = "none";
-//         }
-//       }
-//     })
-//     .catch((error) => {
-//       console.error("Error in checkOrCreateSession:", error);
-//       throw error;
-//     })
-//     .finally(() => {
-//       hideWaitingBubble();
-//     });
-// }
-
-// function createSession(user_id, session_id, start_time, end_time) {
-//   console.log("Creating session");
-//   showWaitingBubble();
-//   return fetch("/api/session", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({ user_id, session_id, start_time, end_time }),
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log("Session creation result:", data);
-//       document.getElementById("chatContainer").style.display = "flex";
-//       return startConversation(user_id, session_id);
-//     })
-//     .catch((error) => {
-//       console.error("Error in createSession:", error);
-//       throw error;
-//     })
-//     .finally(() => {
-//       hideWaitingBubble();
-//     });
-// }
-
-// function startConversation(user_id, session_id) {
-//   console.log("Starting conversation");
-//   showWaitingBubble();
-//   return fetch("/api/start_conversation", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({ user_id, session_id }),
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log("Start conversation result:", data);
-//       const conversation_id = data.conversation_id;
-//       sessionStorage.setItem("conversation_id", conversation_id);
-
-//       const userInput = document.getElementById("userInput");
-//       const sendButton = document.getElementById("sendButton");
-//       if (userInput && sendButton) {
-//         userInput.disabled = false;
-//         sendButton.disabled = false;
-//       }
-
-//       isConversationStarted = true;
-//       console.log("Conversation started, conversation_id:", conversation_id);
-
-//       addMessageToChat("bot", "Xin chào, rất vui được hỗ trợ bạn");
-
-//       return conversation_id;
-//     })
-//     .catch((error) => {
-//       console.error("Error in startConversation:", error);
-//       document.getElementById("chatMessages").innerHTML +=
-//         '<div class="message bot"><div class="message-content">Sorry, something went wrong while starting the conversation.</div></div>';
-//       throw error;
-//     })
-//     .finally(() => {
-//       hideWaitingBubble();
-//     });
-// }
-
-// function getConversation(user_id, session_id) {
-//   console.log("Getting conversation");
-//   showWaitingBubble();
-//   return fetch("/api/conversation_id", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({ user_id, session_id }),
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log("Conversation ID:", data.result);
-//       sessionStorage.setItem("conversation_id", data.result);
-
-//       const userInput = document.getElementById("userInput");
-//       const sendButton = document.getElementById("sendButton");
-//       if (userInput && sendButton) {
-//         userInput.disabled = false;
-//         sendButton.disabled = false;
-//       }
-
-//       isConversationStarted = true;
-//       return data.result;
-//     })
-//     .catch((error) => {
-//       console.error("Error in getConversation:", error);
-//       throw error;
-//     })
-//     .finally(() => {
-//       hideWaitingBubble();
-//     });
-// }
-
-// function handleKeyPress(event) {
-//   if (event.key === "Enter" && !isWaitingForBot && isConversationStarted) {
-//     sendMessage();
-//   }
-// }
-
-// function sendMessage(message = null) {
-//   if (!isConversationStarted || isWaitingForBot) {
-//     console.log(
-//       "Conversation has not started yet or still waiting for bot response."
-//     );
-//     return;
-//   }
-
-//   const userInput = document.getElementById("userInput");
-//   const messageText = message || userInput.value.trim();
-//   if (messageText === "") {
-//     return;
-//   }
-  
-//   const user_id = getCookie("user_id");
-//   const session_id = getCookie("session_id");
-//   const conversation_id = sessionStorage.getItem("conversation_id");
-
-//   if (!conversation_id) {
-//     console.error("Error: conversation_id is undefined before sending message");
-//     return;
-//   }
-
-//   addMessageToChat(message ? "bot" : "user", messageText, null);
-
-//   if (!message) {
-//     userInput.value = "";
-//   }
-//   isWaitingForBot = true;
-//   addWaitingBubble();
-
-//   const delayMessageTimeout = setTimeout(() => {
-//     removeWaitingBubble();
-//     addMessageToChat("bot", "Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
-//     addWaitingBubble()
-//   }, 4000);
-
-//   fetch(
-//     `/api/message?text=${encodeURIComponent(
-//       messageText
-//     )}&user_id=${encodeURIComponent(user_id)}&session_id=${encodeURIComponent(
-//       session_id
-//     )}&conversation_id=${encodeURIComponent(conversation_id)}`
-//   )
-//     .then((response) => response.json())
-//     .then((data) => {
-//       clearTimeout(delayMessageTimeout);
-//       console.log("Message sent:", data);
-//       removeWaitingBubble();
-//       processBotResponse(data.result, data.message_id, messageText, user_id);
-//       isWaitingForBot = false;
-//     })
-//     .catch((error) => {
-//       clearTimeout(delayMessageTimeout);
-//       console.error("Error:", error);
-//       removeWaitingBubble();
-//       addMessageToChat("bot", "Sorry, something went wrong.");
-//       isWaitingForBot = false;
-//     });
-// }
-
-// function processBotResponse(result, messageId, messageText, user_id) {
-//   const domainMatch = result.match(/Domain (1|2|3|4)$/);
-//   console.log("Đây là domainMatch", domainMatch);
-//   if (domainMatch) {
-//     const domain = `Domain ${domainMatch[1]}`;
-
-//     const resultWithoutDomain = result.replace(/Domain (1|2|3|4)$/, "").trim();
-
-//     addMessageToChat("bot", resultWithoutDomain, messageId);
-    
-//     uploadPendingFAQ(resultWithoutDomain, messageText, domain, user_id);
-//   } else {
-//     addMessageToChat("bot", result, messageId);
-//   }
-// }
-
-// function uploadPendingFAQ(answer, question, domain, user_id) {
-//   fetch("/api/upload_pending_FAQ", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({
-//       question: question,
-//       answer: answer,
-//       domain: domain,
-//       user_id: user_id,
-//     }),
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log("Success:", data);
-//     })
-//     .catch((error) => {
-//       console.error("Error:", error);
-//     });
-// }
-
-// function addMessageToChat(sender, message, messageId) {
-//   const chatMessages = document.getElementById("chatMessages");
-
-//   const messageElement = document.createElement("div");
-//   messageElement.classList.add("message", sender);
-//   if (messageId) {
-//     messageElement.dataset.messageId = messageId; // Lưu trữ message_id
-//   }
-
-//   const messageContent = document.createElement("div");
-//   messageContent.classList.add("message-content");
-//   messageContent.textContent = message;
-
-//   messageElement.appendChild(messageContent);
-
-//   if (sender === "bot") {
-//     const feedbackButtons = document.createElement("div");
-//     feedbackButtons.classList.add("feedback-buttons");
-
-//     const likeButton = document.createElement("button");
-//     likeButton.classList.add("like-button");
-//     likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>'; // Add FontAwesome icon
-//     likeButton.onclick = () => sendFeedback("like", messageId, messageElement);
-
-//     const dislikeButton = document.createElement("button");
-//     dislikeButton.classList.add("dislike-button");
-//     dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>'; // Add FontAwesome icon
-//     dislikeButton.onclick = () =>
-//       sendFeedback("dislike", messageId, messageElement);
-
-//     feedbackButtons.appendChild(likeButton);
-//     feedbackButtons.appendChild(dislikeButton);
-
-//     messageElement.appendChild(feedbackButtons);
-//   }
-
-//   chatMessages.appendChild(messageElement);
-//   chatMessages.scrollTop = chatMessages.scrollHeight;
-// }
-
-// function addWaitingBubble() {
-//   removeWaitingBubble();
-//   const chatMessages = document.getElementById("chatMessages");
-
-//   const waitingBubble = document.createElement("div");
-//   waitingBubble.classList.add("message", "bot", "waiting-bubble");
-
-//   const messageContent = document.createElement("div");
-//   messageContent.classList.add("message-content");
-
-//   const dot1 = document.createElement("span");
-//   dot1.classList.add("dot");
-//   const dot2 = document.createElement("span");
-//   dot2.classList.add("dot");
-//   const dot3 = document.createElement("span");
-//   dot3.classList.add("dot");
-
-//   messageContent.appendChild(dot1);
-//   messageContent.appendChild(dot2);
-//   messageContent.appendChild(dot3);
-
-//   waitingBubble.appendChild(messageContent);
-//   chatMessages.appendChild(waitingBubble);
-
-//   chatMessages.scrollTop = chatMessages.scrollHeight;
-// }
-
-// function removeWaitingBubble() {
-//   const chatMessages = document.getElementById("chatMessages");
-//   const waitingBubble = chatMessages.querySelector(".waiting-bubble");
-//   if (waitingBubble) {
-//     chatMessages.removeChild(waitingBubble);
-//   }
-// }
-
-// function showWaitingBubble() {
-//   removeWaitingBubble();
-//   const chatMessages = document.getElementById("chatMessages");
-//   const waitingBubble = document.createElement("div");
-//   waitingBubble.classList.add("message", "bot", "waiting-bubble");
-
-//   const messageContent = document.createElement("div");
-//   messageContent.classList.add("message-content");
-
-//   const dot1 = document.createElement("span");
-//   dot1.classList.add("dot");
-//   const dot2 = document.createElement("span");
-//   const dot3 = document.createElement("span");
-//   messageContent.appendChild(dot1);
-//   messageContent.appendChild(dot2);
-//   messageContent.appendChild(dot3);
-
-//   waitingBubble.appendChild(messageContent);
-//   chatMessages.appendChild(waitingBubble);
-
-//   chatMessages.scrollTop = chatMessages.scrollHeight;
-// }
-
-// function hideWaitingBubble() {
-//   removeWaitingBubble();
-// }
-
-// function submitFeedback(feedbackType, messageId, feedbackText, messageElement) {
-//   const user_id = getCookie("user_id");
-//   const session_id = getCookie("session_id");
-
-//   fetch("/api/feedback", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify({
-//       user_id,
-//       session_id,
-//       messageId,
-//       feedbackType,
-//       feedbackText,
-//     }),
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log("Feedback sent:", data);
-//       if (feedbackType === "dislike") {
-//         messageElement
-//           .querySelector(".dislike-button")
-//           .classList.add("selected");
-//       } else {
-//         messageElement.querySelector(".like-button").classList.add("selected");
-//       }
-//     })
-//     .catch((error) => {
-//       console.error("Error sending feedback:", error);
-//     });
-// }
-
-// function sendFeedback(feedbackType, messageId, messageElement) {
-//   const feedbackButtons = messageElement.querySelector(".feedback-buttons");
-//   const likeButton = feedbackButtons.querySelector(".like-button");
-//   const dislikeButton = feedbackButtons.querySelector(".dislike-button");
-
-//   likeButton.disabled = true;
-//   dislikeButton.disabled = true;
-
-//   if (feedbackType === "dislike") {
-//     feedbackMessageId = messageId;
-//     showModal();
-//   } else {
-//     submitFeedback(feedbackType, messageId, "", messageElement);
-//   }
-// }
-
-// function showModal() {
-//   document.getElementById("feedbackModal").style.display = "block";
-// }
-
-// function closeModal() {
-//   document.getElementById("feedbackModal").style.display = "none";
-//   feedbackMessageId = null;
-// }
-
-// function submitDislikeFeedback() {
-//   const feedbackText = document.getElementById("feedbackText").value;
-//   const messageElement = document.querySelector(
-//     `.message[data-message-id="${feedbackMessageId}"]`
-//   );
-//   submitFeedback("dislike", feedbackMessageId, feedbackText, messageElement);
-//   closeModal();
-// }
-
 function signOut() {
     // Xử lý đăng xuất và redirect về trang sign in
     window.location.href = '/signin'; // URL này cần thay thế bằng URL của trang sign in
 }
+
+function truncateText(text, maxLength) {
+    if (text.length > maxLength) {
+        return text.substring(0, maxLength) + '...';
+    }
+    return text;
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function clearActiveChatItems() {
+    // Loại bỏ class 'active' khỏi tất cả các chat-item
+    const chatItems = document.querySelectorAll('.chat-item');
+    chatItems.forEach(item => {
+        item.classList.remove('active');
+    });
+}
+
+// Gọi API để lấy danh sách cuộc hội thoại
+function loadConversations() {
+    const user_id = getCookie('user_id');
+
+    fetch('/get_all_conversations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({user_id})
+    })
+    .then(response => response.json())
+    .then(data => {
+        const chatHistory = document.getElementById('chatHistory');
+        chatHistory.innerHTML = ''; // Xóa nội dung hiện tại trước khi hiển thị mới
+
+        // Hiển thị các cuộc hội thoại hôm nay
+        if (data.today.length > 0) {
+            const todayHeader = document.createElement('div');
+            todayHeader.innerHTML = '<strong>Hôm nay</strong>';
+            todayHeader.classList.add('header-title');
+            chatHistory.appendChild(todayHeader);
+        
+            data.today.forEach(conversation => {
+                const chatItem = document.createElement('div');
+                chatItem.classList.add('chat-item');
+                chatItem.setAttribute('data-id', conversation.conversation_id);
+                const truncatedTitle = truncateText(conversation.conversation_title, 30);
+                chatItem.innerHTML = `<div>${truncatedTitle}</div>`;
+                chatItem.onclick = () => openConversation(conversation.conversation_id);
+        
+                chatHistory.appendChild(chatItem);
+            });
+        }
+        
+        // Tương tự cho Hôm qua và 7 ngày trước
+        
+
+        // Hiển thị các cuộc hội thoại hôm qua
+        if (data.yesterday.length > 0) {
+            const yesterdayHeader = document.createElement('div');
+            yesterdayHeader.innerHTML = '<strong>Hôm qua</strong>';
+            yesterdayHeader.classList.add('header-title');
+            chatHistory.appendChild(yesterdayHeader);
+
+            data.yesterday.forEach(conversation => {
+                const chatItem = document.createElement('div');
+                chatItem.classList.add('chat-item');
+                chatItem.setAttribute('data-id', conversation.conversation_id);
+                const truncatedTitle = truncateText(conversation.conversation_title, 30);
+                chatItem.innerHTML = `<div>${truncatedTitle}</div>`;
+                chatItem.onclick = () => openConversation(conversation.conversation_id);
+
+                chatHistory.appendChild(chatItem);
+            });
+        }
+
+        // Hiển thị các cuộc hội thoại trong 7 ngày trước
+        if (data.last_7_days.length > 0) {
+            const last7DaysHeader = document.createElement('div');
+            last7DaysHeader.innerHTML = '<strong>7 ngày trước</strong>';
+            last7DaysHeader.classList.add('header-title');
+            chatHistory.appendChild(last7DaysHeader);
+
+            data.last_7_days.forEach(conversation => {
+                const chatItem = document.createElement('div');
+                chatItem.classList.add('chat-item');
+                chatItem.setAttribute('data-id', conversation.conversation_id);
+                const truncatedTitle = truncateText(conversation.conversation_title, 30);
+                chatItem.innerHTML = `<div>${truncatedTitle}</div>`;
+                chatItem.onclick = () => openConversation(conversation.conversation_id);
+
+                chatHistory.appendChild(chatItem);
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error loading conversations:', error);
+    });
+}
+
+
+function openConversation(conversation_id, isReload = false) {
+    console.log('Opening conversation:', conversation_id);
+
+    // Xử lý giao diện active cho các chat-item
+    clearActiveChatItems();
+    const chatItem = document.querySelector(`.chat-item[data-id='${conversation_id}']`);
+    if (chatItem) {
+        chatItem.classList.add('active');
+    }
+
+    // Gọi API để lấy session_id từ conversation_id
+    fetch('/api/get_session_id', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conversation_id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.session_id) {
+            // Lưu session_id vào cookie
+            setCookie('session_id', data.session_id, 1);  // Session có thời gian sống 1 ngày
+
+            // Lưu conversation_id vào cookie
+            setCookie('conversation_id', conversation_id, 1);
+
+            // Sau khi session_id và conversation_id đã được thiết lập, gọi API để cập nhật tiêu đề dựa trên tin nhắn thứ 2 của người dùng
+            updateConversationTitle(conversation_id, getCookie('user_id'), data.session_id);
+
+            // Reload lại trang nếu không phải là hành động reload lại sau khi mở conversation
+            if (!isReload) {
+                location.reload();  // Reload lại trang để mở lại conversation
+            }
+        } else {
+            console.error('Error retrieving session_id:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching session_id:', error);
+    });
+}
+
+// Khi nhấn vào nút tạo cuộc trò chuyện mới
+document.querySelector('.new-chat-btn').addEventListener('click', function() {
+    const user_id = getCookie('user_id'); // Lấy user_id từ cookie
+
+    // Gọi API để tạo session_id mới và bắt đầu cuộc trò chuyện mới
+    fetch('/create_new_conversation', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.session_id) {
+            console.log('New session created:', data.session_id);
+            // Lưu session_id vào cookie với thời gian hiệu lực 30 phút
+            document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`; // 1800 giây = 30 phút
+
+            // Sau đó gọi API bắt đầu cuộc trò chuyện
+            fetch('/api/start_conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id, session_id: data.session_id })
+            })
+            .then(response => response.json())
+            .then(conversationData => {
+                if (conversationData.conversation_id) {
+                    console.log('New conversation started:', conversationData.conversation_id);
+                    // Xử lý logic sau khi tạo cuộc trò chuyện mới, ví dụ như mở cuộc trò chuyện mới
+                    openConversation(conversationData.conversation_id);
+                } else {
+                    console.error('Error starting new conversation:', conversationData.result);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        } else {
+            console.error('Error creating new session:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error creating session:', error);
+    });
+});
+
+function updateConversationTitle(conversation_id, user_id, session_id) {
+    fetch('/api/update_conversation_title', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ conversation_id, user_id, session_id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.new_title) {
+            console.log('Conversation title updated:', data.new_title);
+            // Cập nhật giao diện nếu cần
+        } else {
+            console.error('Error updating title:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+let isReloaded = false;
+
+window.onload = function() {
+    // Lấy user_id từ cookie
+    const user_id = getCookie('user_id');
+    
+    // Nếu tìm thấy user_id, cập nhật tên người dùng trên trang
+    if (user_id) {
+        const userNameElement = document.getElementById('user-name');
+        userNameElement.textContent = `Xin chào, ${user_id}`;
+    } else {
+        console.error('User ID not found in cookies');
+    }
+    loadConversations();
+    
+    // Kiểm tra nếu đã có conversation_id và session_id được lưu trong cookie
+    const savedConversationId = getCookie('conversation_id');
+    const savedSessionId = getCookie('session_id');
+
+    if (savedConversationId && savedSessionId) {
+        // Nếu đã có conversation_id và session_id, thì tự động mở lại conversation
+        openConversation(savedConversationId, true);
+    }
+};
+
+// Hàm để lọc các cuộc hội thoại dựa trên từ khóa tìm kiếm
+function searchConversations() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const chatItems = document.querySelectorAll('.chat-item');
+    
+    chatItems.forEach(chatItem => {
+        const title = chatItem.innerText.toLowerCase();
+        if (title.includes(input)) {
+            chatItem.style.display = ""; // Hiển thị nếu khớp với từ khóa tìm kiếm
+        } else {
+            chatItem.style.display = "none"; // Ẩn nếu không khớp với từ khóa tìm kiếm
+        }
+    });
+}
+
+// Thêm sự kiện input cho thanh tìm kiếm
+document.getElementById('searchInput').addEventListener('input', searchConversations);

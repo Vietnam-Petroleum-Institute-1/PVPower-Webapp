@@ -1,222 +1,232 @@
 @import url('https://fonts.googleapis.com/css?family=Raleway:400,700');
- 
+
 * {
     box-sizing: border-box;
     margin: 0;
-    padding: 0;    
+    padding: 0;
     font-family: Raleway, sans-serif;
 }
- 
-body {
-    background: linear-gradient(90deg, #88a9f0, #346bda);        
-}
- 
-.container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-}
- 
-.screen {        
-    background: linear-gradient(90deg, #4b54bb, #767aeb);        
-    position: relative;    
-    height: 600px;
-    width: 360px;    
-    box-shadow: 0px 0px 24px #566396;
-}
- 
-.screen__content {
-    z-index: 1;
-    position: relative;    
+
+html, body {
+    margin: 0;
+    padding: 0;
     height: 100%;
+    overflow: hidden;
 }
- 
-.screen__background {        
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 0;
-    -webkit-clip-path: inset(0 0 0 0);
-    clip-path: inset(0 0 0 0);    
+
+body {
+    background-color: #f1f1f1;
 }
- 
-.screen__background__shape {
-    transform: rotate(45deg);
-    position: absolute;
-}
- 
-.screen__background__shape1 {
-    height: 520px;
-    width: 520px;
-    background: #FFF;    
-    top: -50px;
-    right: 120px;    
-    border-radius: 0 72px 0 0;
-}
- 
-.screen__background__shape2 {
-    height: 220px;
-    width: 220px;
-    background: #6372ac;    
-    top: -172px;
-    right: 0;    
-    border-radius: 32px;
-}
- 
-.screen__background__shape3 {
-    height: 540px;
-    width: 190px;
-    background: linear-gradient(270deg, #545fa4, #67769e);
-    top: -24px;
-    right: 0;    
-    border-radius: 32px;
-}
- 
-.screen__background__shape4 {
-    height: 400px;
-    width: 200px;
-    background: #7b8fb9;    
-    top: 420px;
-    right: 50px;    
-    border-radius: 60px;
-}
- 
-.screen__content img {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 80px; /* Adjust this value to change the size of the logo */
-}
- 
-.sign-in {
-    width: 320px;
-    padding: 30px;
-    padding-top: 156px;
-}
- 
-.sign-in__field {
-    padding: 20px 0px;    
-    position: relative;    
-}
- 
-.sign-in__icon {
-    position: absolute;
-    top: 30px;
-    color: #7583b5;
-}
- 
-.sign-in__input {
-    border: none;
-    border-bottom: 2px solid #D1D1D4;
-    background: none;
-    padding: 10px;
-    padding-left: 24px;
-    font-weight: 700;
-    width: 75%;
-    transition: .2s;
-}
- 
-.sign-in__input:active,
-.sign-in__input:focus,
-.sign-in__input:hover {
-    outline: none;
-    border-bottom-color: #67719e;
-}
- 
-.sign-in__submit {
-    background: #fff;
-    font-size: 14px;
-    margin-top: 30px;
-    padding: 16px 20px;
-    border-radius: 26px;
-    border: 1px solid #D4D3E8;
-    text-transform: uppercase;
-    font-weight: 700;
+
+.chat-header {
     display: flex;
     align-items: center;
-    width: 100%;
-    color: #48639d;
-    box-shadow: 0px 2px 2px #566696;
-    cursor: pointer;
-    transition: .2s;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #74D3EE 0%, #3C93CB 50%, #0F80BC 100%); /* Màu gradient theo Figma */
+    color: white;
+    height: 86px; /* Chiều cao theo yêu cầu */
+    flex-shrink: 0; /* Không thu hẹp chiều rộng */
+    margin: 0 auto; /* Canh giữa trên màn hình */
 }
- 
-.sign-in__submit:active,
-.sign-in__submit:focus,
-.sign-in__submit:hover {
-    border-color: #676e9e;
-    outline: none;
+
+.logo img {
+    height: 75px;
+    width: auto;
 }
- 
-.button__icon {
-    font-size: 24px;
-    margin-left: auto;
-    color: #757fb5;
-}
- 
-.social-sign-in {    
-    position: absolute;
-    height: 140px;
-    width: 160px;
+
+h1 {
+    flex: 1;
     text-align: center;
-    bottom: 0px;
-    right: 0px;
-    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
 }
- 
-.social-icons {
+
+.user-info {
     display: flex;
     align-items: center;
-    justify-content: center;
-}
- 
-.social-sign-in__icon {
-    padding: 20px 10px;
-    color: #fff;
-    text-decoration: none;    
-    text-shadow: 0px 0px 8px #7582b5;
-}
- 
-.social-sign-in__icon:hover {
-    transform: scale(1.5);    
-}
- 
-.error-message {
-    color: red;
-    margin-top: 10px;
+    color: white;
     font-size: 14px;
-    display: none;
 }
- 
-.content {
-  text-align: center;
-  color: white;
-  padding: 20px;
+
+.user-name {
+    color: #FFF; /* Màu trắng */
+    font-family: 'Barlow', sans-serif; /* Font Barlow */
+    font-size: 16px; /* Kích thước chữ 16px */
+    font-style: normal; /* Kiểu chữ bình thường */
+    font-weight: 700; /* Trọng lượng font đậm */
+    line-height: normal; /* Độ cao dòng mặc định */
 }
- 
-iframe {
-  width: 80%;
-  height: 600px;
-  border: none;
-  border-radius: 20px 20px 20px 20px; /* Bo tròn góc dưới bên trái và phải */
+
+
+.user-avatar {
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+    margin-right: 10px;
 }
 
 .signout-btn {
-    background-color: #6b82cc;
-    color: white;
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+    background-color: transparent;
     border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
     cursor: pointer;
-    position: absolute;
-    top: 20px;
-    right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin-left: 10px; /* Khoảng cách giữa nút Sign Out và phần thông tin người dùng */
 }
 
 .signout-btn:hover {
-    background-color: #718be2;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+
+.chat-container {
+    display: flex;
+    height: 100vh; /* Chiều cao container chính chiếm 100% chiều cao của cửa sổ */
+}
+
+.chat-sidebar {
+    width: 280px;
+    background-color: #e8f0fa;
+    padding: 20px;
+    flex-shrink: 0;
+    height: 100vh; /* Chiều cao của sidebar khớp với chiều cao cửa sổ */
+    overflow-y: auto; /* Thanh cuộn sẽ xuất hiện nếu nội dung trong sidebar vượt quá chiều cao */
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-radius: 34.5px;
+    padding-bottom: 20px;
+    width: 100%; /* Tùy chỉnh theo ý muốn */
+    max-width: 400px; /* Hoặc bạn có thể đặt một giá trị cụ thể */
+}
+
+.search-bar {
+    width: 100%;
+    padding: 10px 40px 10px 20px; /* Thêm padding phải để đủ chỗ cho SVG */
+    border-radius: 34.5px;
+    border: none;
+    outline: none;
+    background-color: #FFF;
+    font-size: 14px;
+    color: #333;
+}
+.search-bar::placeholder {
+    color: #666;
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px; /* Vị trí bên phải trong ô input */
+    /* top: 50%; */
+    /* transform: translateY(-100%); Căn giữa theo chiều dọc */
+    pointer-events: none; /* Đảm bảo không tương tác với SVG khi nhập liệu */
+}
+.new-chat-btn {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #71D0EC 0%, #1482BF 100%); /* Màu nền cho nút */
+    border: none;
+    border-radius: 20px;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.new-chat-btn svg {
+    margin-right: 8px; /* Khoảng cách giữa SVG và văn bản */
+}
+
+.new-chat-btn:hover {
+    background: linear-gradient(90deg, #5BC9E9 0%, #0F7EB9 100%); /* Thay đổi màu khi hover */
+}
+
+
+.chat-list {
+    list-style-type: none;
+}
+
+.chat-item {
+    padding: 10px;
+    background-color: #fff;
+    margin-bottom: 9px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    flex-shrink: 0;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.chat-item.active {
+    background-color: #D3F0FF; /* Màu nền khi active */
+    font-weight: 700; /* Font đậm khi active */
+    color: #000000; /* Màu chữ khi active */
+}
+
+.chat-item:hover {
+    background-color: #f0f0f0; /* Thay đổi màu khi hover (không phải active) */
+}
+
+
+.chat-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    padding: 20px;
+    height: 100vh; /* Chiều cao khớp với chiều cao cửa sổ trừ header */
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto; /* Cho phép cuộn phần tin nhắn nếu quá dài */
+}
+
+/* Điều chỉnh kích thước iframe cho khung chat */
+.chat-iframe {
+    width: 100%;
+    height: 90%;
+    border: none;
+    border-radius: 10px;
+}
+
+.chat-history {
+    padding: 10px;
+}
+
+h3 {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #1F1F1F;
+}
+
+.today-section, .yesterday-section, .week-section {
+    margin-bottom: 20px;
+}
+
+.today-section h3, .yesterday-section h3, .week-section h3 {
+    color: #000; /* Màu sắc cho tiêu đề */
+}
+
+.header-title {
+    font-weight: bold;
+    padding-bottom: 10px; /* Thêm khoảng cách phía dưới */
 }
