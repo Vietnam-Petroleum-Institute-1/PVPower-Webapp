@@ -380,7 +380,6 @@ function uploadPendingFAQ(answer, question, domain, user_id) {
     });
 }
 
-// Hàm để thêm tin nhắn vào giao diện
 function addMessageToChat(sender, message, messageId) {
   const chatMessages = document.getElementById("chatMessages");
 
@@ -420,34 +419,22 @@ function addMessageToChat(sender, message, messageId) {
     dislikeButton.onclick = () =>
       sendFeedback("dislike", messageId, messageElement);
     
-    // Container cho nút Copy với tooltip
-    const copyButtonContainer = document.createElement("div");
-    copyButtonContainer.classList.add("copy-button-container");
-
-    // Nút Copy
     const copyButton = document.createElement("button");
     copyButton.classList.add("copy-button");
     copyButton.innerHTML = '<i class="fas fa-copy"></i>';
     copyButton.onclick = () => copyToClipboard(messageContent.textContent);
-    copyButtonContainer.appendChild(copyButton);
 
-    // Tooltip cho nút Copy
-    const copyTooltip = document.createElement("div");
-    copyTooltip.classList.add("copy-tooltip");
-    copyTooltip.textContent = "Copy";
-    copyButtonContainer.appendChild(copyTooltip);
-
-    
     feedbackButtons.appendChild(likeButton);
     feedbackButtons.appendChild(dislikeButton);
-    feedbackButtons.appendChild(copyButtonContainer);
+    feedbackButtons.appendChild(copyButton);
+
+    // Thêm feedback buttons vào messageElement nhưng nằm ngoài messageContent
     messageElement.appendChild(feedbackButtons);
   }
 
   chatMessages.appendChild(messageElement);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
 
 // Hàm để sao chép nội dung vào clipboard
 function copyToClipboard(text) {

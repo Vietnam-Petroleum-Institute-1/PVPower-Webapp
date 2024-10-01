@@ -67,7 +67,7 @@ function loadConversations() {
             chatHistory.appendChild(yesterdayHeader);
 
             data.yesterday.forEach(conversation => {
-                const chatItem = createChatItem(conversation, 30); // Tạo chat item
+                const chatItem = createChatItem(conversation, 20); // Tạo chat item
                 chatHistory.appendChild(chatItem);
             });
         }
@@ -80,7 +80,7 @@ function loadConversations() {
             chatHistory.appendChild(last7DaysHeader);
 
             data.last_7_days.forEach(conversation => {
-                const chatItem = createChatItem(conversation, 30); // Tạo chat item
+                const chatItem = createChatItem(conversation, 20); // Tạo chat item
                 chatHistory.appendChild(chatItem);
             });
         }
@@ -135,9 +135,10 @@ function openConversation(conversation_id, isReload = false) {
             setCookie('session_id', data.session_id, 1);  // Session có thời gian sống 1 ngày
             setCookie('conversation_id', conversation_id, 1); // Lưu conversation_id vào cookie
 
-            // Sau khi thiết lập session_id và conversation_id, có thể thêm xử lý khác nếu cần
+            // Gọi API để cập nhật tiêu đề dựa trên tin nhắn thứ 2 của người dùng
+            updateConversationTitle(conversation_id, getCookie('user_id'), data.session_id);
 
-            // Reload lại trang nếu không phải là hành động reload lại sau khi mở conversation
+            // Reload lại iframe chatbot
             const iframe = document.getElementById('chatbotIframe');
             if (iframe) {
                 iframe.src = iframe.src; // Reload lại iframe
@@ -151,9 +152,51 @@ function openConversation(conversation_id, isReload = false) {
     });
 }
 
+// Hàm cập nhật tiêu đề của cuộc hội thoại
+function updateConversationTitle(conversation_id, user_id, session_id) {
+    fetch('/api/update_conversation_title', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ conversation_id, user_id, session_id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.new_title) {
+            console.log('Conversation title updated:', data.new_title);
+            // Cập nhật giao diện nếu cần
+            const chatItem = document.querySelector(`.chat-item[data-id='${conversation_id}']`);
+            if (chatItem) {
+                chatItem.innerHTML = `<div>${truncateText(data.new_title, 20)}</div>`;
+            }
+        } else {
+            console.error('Error updating title:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error updating title:', error);
+    });
+}
+
+// Hàm kích hoạt cuộc trò chuyện đầu tiên sau khi reload
+function activateFirstChatItem() {
+    const firstChatItem = document.querySelector('.chat-item');
+    if (firstChatItem) {
+        const firstConversationId = firstChatItem.getAttribute('data-id');
+        if (firstConversationId) {
+            openConversation(firstConversationId, true); // Kích hoạt cuộc trò chuyện đầu tiên
+            firstChatItem.classList.add('active'); // Thêm class active cho item đầu tiên
+            console.log('First chat item activated with conversation_id:', firstConversationId);
+        }
+    } else {
+        console.warn('No chat items found');
+    }
+}
+
 // Khi nhấn vào nút tạo cuộc trò chuyện mới
 document.querySelector('.new-chat-btn').addEventListener('click', function() {
-    const user_id = getCookie('user_id');
+    const user_id = getCookie('user_id'); // Lấy user_id từ cookie
 
     // Gọi API để tạo session_id mới và bắt đầu cuộc trò chuyện mới
     fetch('/create_new_conversation', {
@@ -167,7 +210,8 @@ document.querySelector('.new-chat-btn').addEventListener('click', function() {
     .then(data => {
         if (data.session_id) {
             console.log('New session created:', data.session_id);
-            setCookie('session_id', data.session_id, 1); // Lưu session_id vào cookie
+            // Lưu session_id vào cookie với thời gian hiệu lực 30 phút
+            document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`; // 1800 giây = 30 phút
 
             // Sau đó gọi API bắt đầu cuộc trò chuyện
             fetch('/api/start_conversation', {
@@ -181,7 +225,12 @@ document.querySelector('.new-chat-btn').addEventListener('click', function() {
             .then(conversationData => {
                 if (conversationData.conversation_id) {
                     console.log('New conversation started:', conversationData.conversation_id);
-                    openConversation(conversationData.conversation_id);
+                    // Lưu conversation_id và session_id vào cookie
+                    setCookie('conversation_id', conversationData.conversation_id, 1);
+                    setCookie('session_id', data.session_id, 1);
+
+                    // Reload toàn bộ trang
+                    location.reload();
                 } else {
                     console.error('Error starting new conversation:', conversationData.result);
                 }
@@ -198,23 +247,46 @@ document.querySelector('.new-chat-btn').addEventListener('click', function() {
     });
 });
 
+// Hàm để lọc các cuộc hội thoại dựa trên từ khóa tìm kiếm
+function searchConversations() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const chatItems = document.querySelectorAll('.chat-item');
+    
+    chatItems.forEach(chatItem => {
+        const title = chatItem.innerText.toLowerCase();
+        if (title.includes(input)) {
+            chatItem.style.display = ""; // Hiển thị nếu khớp với từ khóa tìm kiếm
+        } else {
+            chatItem.style.display = "none"; // Ẩn nếu không khớp với từ khóa tìm kiếm
+        }
+    });
+}
+
+// Gắn sự kiện input cho thanh tìm kiếm sau khi trang đã tải
 window.onload = function() {
     // Lấy user_id từ cookie
     const user_id = getCookie('user_id');
     
+    // Nếu tìm thấy user_id, cập nhật tên người dùng trên trang
     if (user_id) {
-        loadConversations();  // Tải danh sách các cuộc hội thoại
-
-        // Tự động mở lại cuộc hội thoại nếu conversation_id và session_id được lưu trong cookie
-        const savedConversationId = getCookie('conversation_id');
-        const savedSessionId = getCookie('session_id');
-
-        if (savedConversationId && savedSessionId) {
-            setTimeout(() => {
-                openConversation(savedConversationId, true);
-            }, 100);  // Đặt thời gian delay ngắn để đảm bảo DOM đã sẵn sàng
-        }
+        const userNameElement = document.getElementById('user-name');
+        userNameElement.textContent = `Xin chào, ${user_id}`;
     } else {
         console.error('User ID not found in cookies');
     }
+
+    loadConversations();
+
+    // Sau khi load xong các cuộc hội thoại, đợi một khoảng thời gian trước khi kích hoạt item đầu tiên
+    setTimeout(() => {
+        console.log("Attempting to activate first chat item...");
+        activateFirstChatItem(); // Kích hoạt chat item đầu tiên
+    }, 200); // Thời gian chờ ngắn để đảm bảo các phần tử được render
+
+    // Gắn sự kiện tìm kiếm
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', searchConversations);
+    }
 };
+

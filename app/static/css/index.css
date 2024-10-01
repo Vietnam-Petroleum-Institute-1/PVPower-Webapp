@@ -97,7 +97,7 @@ h1 {
     background-color: #e8f0fa;
     padding: 20px;
     flex-shrink: 0;
-    height: 100vh; /* Chiều cao của sidebar khớp với chiều cao cửa sổ */
+    height: 90vh; /* Chiều cao của sidebar khớp với chiều cao cửa sổ */
     overflow-y: auto; /* Thanh cuộn sẽ xuất hiện nếu nội dung trong sidebar vượt quá chiều cao */
 }
 
@@ -227,6 +227,12 @@ h3 {
 }
 
 .header-title {
+    margin-top: 15px;
+    margin-bottom: 10px;
     font-weight: bold;
-    padding-bottom: 10px; /* Thêm khoảng cách phía dưới */
+}
+
+#chatHistory {
+    padding-bottom: 20px; /* Tăng khoảng cách phía dưới */
+    overflow-y: auto; /* Đảm bảo thanh trượt hoạt động bình thường */
 }

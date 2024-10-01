@@ -18,7 +18,6 @@ body, html {
   max-width: 100%; 
   max-height: 100%; 
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
-  border-radius: 20px; 
   overflow: hidden; 
   display: flex; 
   flex-direction: column; 
@@ -28,8 +27,9 @@ body, html {
 .chat-header { 
   background-color: #007bff; 
   color: white; 
-  padding: 12px; 
-  font-size: 18px; 
+  padding: 8px; 
+  font-size: 16px;
+  font-weight: 800; 
   display: flex; 
   align-items: center; 
 }
@@ -47,65 +47,112 @@ body, html {
   flex-direction: column; 
 }
 
-.chat-input { 
-  display: flex; 
-  border-top: 1px solid #ddd; 
+.chat-input {
+  width: 95%; /* Đặt chiều rộng là 927px */
+  height: 7%; /* Đặt chiều cao là 69px */
+  flex-shrink: 0; /* Không co lại */
+  border-radius: 34.5px; /* Bo góc */
+  background: #EAF8FF; /* Màu nền cho thanh chat */
+  display: flex; /* Sử dụng flex để căn chỉnh nội dung */
+  align-items: center; /* Căn chỉnh theo trục dọc */
+  padding: 0 10px; /* Cách lề trong thanh chat */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Thêm hiệu ứng đổ bóng nhẹ */
+  margin-bottom: 10px;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-top: 5px;
 }
 
-.chat-input input { 
-  flex: 1; 
-  padding: 16px; 
-  border: none; 
-  outline: none; 
-  font-size: 16px; 
+.chat-input input {
+  flex: 1; /* Input chiếm phần lớn diện tích của thanh chat */
+  border: none;
+  outline: none;
+  background: none; /* Loại bỏ màu nền */
+  padding: 0 10px;
+  font-size: 16px;
+  color: #333; /* Màu chữ */
 }
 
-.chat-input button { 
+.chat-input input::placeholder {
+  color: #999; /* Màu placeholder */
+}
+
+/* .chat-input button { 
   padding: 16px; 
   border: none; 
   background-color: #007bff; 
   color: #fff; 
   cursor: pointer; 
   font-size: 16px; 
-}
+} */
 
-.message { 
-  margin: 8px 0; 
-  display: flex; 
-  flex-direction: column; 
+.message {
+  display: flex;
   align-items: flex-start;
+  margin: 10px 0;
+  flex-direction: row;
+  position: relative;
 }
 
-.message.user { 
-  align-items: flex-end;
+.message.user {
+  justify-content: flex-end; /* Canh lề phải cho tin nhắn của người dùng */
 }
 
-.message-content { 
-  max-width: 60%; 
-  padding: 10px; 
-  border-radius: 20px; 
-  word-wrap: break-word; 
-  white-space: pre-wrap; 
-  position: relative; /* Thêm thuộc tính position để sử dụng cho pseudo-element */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm đổ bóng cho tất cả bóng thoại */
+.message {
+  display: flex;
+  align-items: flex-start;
+  margin: 10px 0;
 }
 
-.message.user .message-content { 
-  background-color: #007bff; 
-  color: white; 
-  border-bottom-right-radius: 20px; 
+.message.bot {
+  display: flex;
+  align-items: flex-start; /* Đảm bảo logo và bong bóng tin nhắn nằm cùng hàng */
 }
 
-.message.bot .message-content { 
-  background-color: #e1e1e1; 
-  border-bottom-left-radius: 20px; 
+.message.bot .bot-avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px; /* Thêm khoảng cách giữa logo và nội dung tin nhắn */
+}
+
+.bot-avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px; /* Khoảng cách giữa avatar và nội dung tin nhắn của bot */
+  border-radius: 50%;
+}
+
+.message-content {
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  padding: 10px;
+  max-width: 70%;
+  display: inline-block;
+  position: relative;
+}
+
+.message.user .message-content {
+  background-color: #EAF8FF;
+  color: black;
+  border-bottom-right-radius: 10px;
+  margin-left: 10px; /* Đảm bảo tin nhắn của user không bị dính vào cạnh bên */
+}
+
+
+.message.bot .message-content {
+  background-color: #f0f0f0;
+  border-radius: 15px;
+  padding: 10px;
+  margin-left: 10px;
+  max-width: 70%;
+  position: relative;
 }
 
 /* Thêm hình dạng và màu sắc cho bóng thoại chờ */
 .waiting-bubble .message-content {
   background-color: #3498db; /* Màu nền cho bóng chờ */
   color: #fff;
-  border-bottom-left-radius: 20px;
+  border-bottom-left-radius: 10px;
   font-style: italic;
   display: flex;
   align-items: center;
@@ -140,21 +187,26 @@ body, html {
   animation-delay: 0s;
 }
 
-/* Style for feedback buttons */
 .feedback-buttons {
   display: flex;
-  align-items: center;
-  margin-top: 8px;
-  justify-content: center;
+  justify-content: flex-start;
+  margin-top: 5px;
+  position: absolute;
+  bottom: -30px;  /* Điều chỉnh vị trí ra khỏi bong bóng */
+  left: 50px;     /* Điều chỉnh vị trí ngang nếu cần */
 }
 
 .feedback-buttons button {
   background: none;
   border: none;
   cursor: pointer;
+  color: #555;
   font-size: 18px;
-  margin: 0 8px;
-  transition: transform 0.2s;
+  margin-right: 5px;
+}
+
+.feedback-buttons button:last-child {
+  margin-right: 0;
 }
 
 .feedback-buttons button:hover {
@@ -245,8 +297,6 @@ body, html {
 /* Thêm nút copy vào feedback-buttons */
 .copy-button-container {
   position: relative;
-  display: inline-block;
-  cursor: pointer;
 }
 
 .copy-button {
@@ -269,20 +319,15 @@ body, html {
 }
 
 .copy-tooltip {
-  visibility: hidden;
-  width: 80px;
+  position: absolute;
+  top: -25px;
+  left: 0;
   background-color: #333;
   color: #fff;
-  text-align: center;
-  border-radius: 6px;
-  padding: 5px 0;
-  position: absolute;
-  z-index: 1;
-  bottom: 125%; /* Hiển thị tooltip phía trên nút */
-  left: 50%;
-  margin-left: -40px; /* Căn giữa tooltip */
-  opacity: 0;
-  transition: opacity 0.3s;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  display: none;
 }
 
 .copy-tooltip::after {
@@ -299,6 +344,7 @@ body, html {
 .copy-button-container:hover .copy-tooltip {
   visibility: visible;
   opacity: 1;
+  display: block;
 }
 
 .suggestions-container {
@@ -311,8 +357,8 @@ body, html {
 }
 
 .suggestion-bubble {
-  background-color: #007bff;
-  color: white;
+  background-color: #EAF8FF;
+  color: black;
   border: none;
   border-radius: 20px;
   padding: 10px 15px;
@@ -322,10 +368,27 @@ body, html {
 }
 
 .suggestion-bubble:hover {
-  background-color: #0056b3;
+  background-color: #a0dbf9;;
 }
 
 .suggestion-bubble:focus {
   outline: none;
 }
 
+#sendButton {
+  width: 38px; /* Chiều rộng là 44px */
+  height: 38px; /* Chiều cao là 44px */
+  flex-shrink: 0; /* Không co lại */
+  background-color: transparent; /* Nền trong suốt */
+  border: none; /* Không có viền */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px; /* Khoảng cách giữa input và nút */
+}
+
+#sendButton svg {
+  width: 44px;
+  height: 44px;
+}
