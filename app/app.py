@@ -15,7 +15,7 @@ import jwt  # For token handling
 from zoneinfo import ZoneInfo
 
 app = Flask(__name__)
-CORS(app) 
+CORS(app, resources={r"/*": {"origins": "*"}})  # Cho phép tất cả nguồn gốc
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -193,8 +193,8 @@ def chatbot():
                 # Set cookies cho session_id và user_id
                 expires = datetime.now(timezone.utc) + timedelta(minutes=30)
                 response = make_response(redirect(url_for('chatbot')))  # Chuyển hướng về /chatbot sau khi set cookie
-                response.set_cookie('session_id', session_id, expires=expires)
-                response.set_cookie('user_id', user_id, expires=expires)
+                response.set_cookie('session_id', session_id, expires=expires, httponly=True, samesite='None', secure=True)
+                response.set_cookie('user_id', user_id, expires=expires, httponly=True, samesite='None', secure=True)
                 return response
             else:
                 logging.debug("Invalid token. Redirecting to signin.")
