@@ -178,13 +178,17 @@ def chatbot():
         if token:
             # Nếu có token trong URL, xác thực token
             logging.debug(f"Token found in URL: {token}")
-            decoded_data = decode_token(token)  # Hàm decode_token để giải mã token
-            
-            if decoded_data:
-                user_id = decoded_data.get('user_id')
-                session_id = decoded_data.get('session_id')
+            user_id = decode_token(token)
+    
+            if user_id:
+                conn = connect_db()
+                session_id = session_continue(conn, user_id)
+                if not session_id:
+                    session_id = f"{uuid.uuid4()}"
+                if isinstance(session_id, tuple):
+                    session_id = session_id[0]
                 
-                logging.debug(f"Token valid. Decoded user_id: {user_id}, session_id: {session_id}")
+                logging.debug(f"Token valid. Decoded user_id: {user_id}")
                 
                 # Set cookies cho session_id và user_id
                 expires = datetime.now(timezone.utc) + timedelta(minutes=30)
