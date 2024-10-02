@@ -90,10 +90,10 @@ def add_security_headers(response):
     # Cho phép tất cả các domain nhúng iframe
     response.headers['Content-Security-Policy'] = "frame-ancestors *"
 
-    # Vô hiệu hóa bộ nhớ cache
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
+    # # Vô hiệu hóa bộ nhớ cache
+    # response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    # response.headers["Pragma"] = "no-cache"
+    # response.headers["Expires"] = "0"
 
     return response
 

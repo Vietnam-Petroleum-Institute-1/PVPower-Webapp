@@ -9,7 +9,7 @@ secret_key = "96fc0cc6-3531-435d-9279-368691964ed3"  # Khóa bí mật để mã
 now = datetime.utcnow()
 now = now + timedelta(hours=7)
 
-expiration_time = now + timedelta(hours=1, minutes=0)
+expiration_time = now + timedelta(hours=24, minutes=0)
 exp_timestamp = expiration_time.timestamp()
 start = now.date()
 
