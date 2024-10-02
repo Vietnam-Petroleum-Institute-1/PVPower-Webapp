@@ -14,33 +14,39 @@ document.getElementById('signinForm').addEventListener('submit', function(event)
 });
 
 const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
+const token = params.get("token");
 
-  if (token) {
-    console.log("Token found in URL:", token);
+if (token) {
+  console.log("Token found in URL:", token);
 
-    // Gọi API /api/check_token với token từ URL
-    fetch("/api/check_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token: token }),
+  // Gọi API /api/check_token với token từ URL
+  fetch("/api/check_token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token: token }),
+  })
+    .then((response) => {
+      if (response.redirected) {
+        // Nếu server trả về redirect, chuyển hướng người dùng
+        console.log("Redirecting to:", response.url);
+        window.location.href = response.url;
+      } else if (response.status === 200) {
+        // Nếu phản hồi thành công với mã trạng thái 200
+        return response.json(); // Xử lý dữ liệu nếu có phản hồi JSON
+      } else {
+        // Xử lý tất cả các mã trạng thái khác
+        console.error("Error in token verification with status:", response.status);
+        throw new Error("Token verification failed");
+      }
     })
-      .then((response) => {
-        if (response.redirected) {
-          // Nếu server trả về redirect, chuyển hướng người dùng
-          window.location.href = response.url;
-        } else if (response.ok) {
-          return response.json(); // Xử lý dữ liệu nếu có phản hồi JSON
-        } else {
-          console.error("Error in token verification");
-          throw new Error('Token verification failed');
-        }
-      })
-      .then((data) => {
-        if (data) {
-          console.log("Token verification successful:", data);
-        }
-      })
-    };
+    .then((data) => {
+      if (data) {
+        console.log("Token verification successful:", data);
+      }
+    })
+    .catch((error) => {
+      console.error("An error occurred:", error);
+    });
+}
