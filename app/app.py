@@ -54,12 +54,11 @@ def decode_token(token):
 
 @app.route('/api/check_token', methods=['POST'])
 def api_check_token():
-    data = request.json  # Lấy dữ liệu JSON từ request
+    data = request.json  # Thay đổi để lấy toàn bộ dữ liệu JSON
     token = data.get('token')
     logging.debug(f"Token received: {token}")
-    
-    # Giải mã token
     user_id = decode_token(token)
+    
     if user_id:
         conn = connect_db()
         session_id = session_continue(conn, user_id)
@@ -67,18 +66,20 @@ def api_check_token():
             session_id = f"{uuid.uuid4()}"
         if isinstance(session_id, tuple):
             session_id = session_id[0]
+        logging.debug(f"Redirecting to home with session_id: {session_id}")
         
-        logging.debug(f"Rendering chatbot with session_id: {session_id}")
+        # Set cookie for session_id and user_id
+        expires = datetime.now(timezone.utc) + timedelta(minutes=30)
         
-        # Trả về JSON với session_id và user_id để client xử lý cookie
-        return jsonify({
-            'status': 'success',
-            'session_id': session_id,
-            'user_id': user_id
-        })
+        # Redirect trực tiếp về chatbot và set cookie
+        response = redirect(url_for('chatbot'))
+        response.set_cookie('session_id', session_id, expires=expires)
+        response.set_cookie('user_id', user_id, expires=expires)
+
+        return response  # Trả về redirect luôn
     else:
-        logging.warning("Authentication failed: Token not valid")
-        return jsonify({'status': 'error', 'message': 'Invalid token'}), 401
+        logging.warning(f"Authentication failed: Token not valid")
+        return redirect(url_for('signin'))  # Nếu token không hợp lệ, chuyển về trang đăng nhập
 
     
 

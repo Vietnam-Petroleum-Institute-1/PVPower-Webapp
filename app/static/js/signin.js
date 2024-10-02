@@ -26,22 +26,12 @@ if (token) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ token: token }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status === 'success') {
-        // Thiết lập cookie cho session_id và user_id
-        document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`; // 30 phút
-        document.cookie = `user_id=${data.user_id}; path=/; max-age=1800`;
-
-        // Chuyển hướng người dùng tới trang chatbot
-        window.location.href = '/chatbot';
-      } else {
-        console.error("Token verification failed:", data.message);
-        alert("Token không hợp lệ. Vui lòng đăng nhập lại.");
-      }
-    })
-    .catch((error) => {
-      console.error("Error during token verification:", error);
-    });
+  }).then(response => {
+    if (response.redirected) {
+      // Server sẽ trả về redirect nếu token hợp lệ hoặc không hợp lệ
+      window.location.href = response.url;
+    }
+  }).catch(error => {
+    console.error("Error in token verification", error);
+  });
 }
