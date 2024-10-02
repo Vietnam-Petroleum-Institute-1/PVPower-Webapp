@@ -41,11 +41,11 @@ window.onload = function () {
           console.error('Error verifying token:', error);
           window.location.href = '/signin';
       });
+  }else{
+    user_id = getCookie("user_id");
+    session_id = getCookie("session_id");
   }
-
-  user_id = getCookie("user_id");
-  session_id = getCookie("session_id");
-
+  
   console.log("User ID:", user_id, "Session ID:", session_id);
 
   if (user_id && session_id) {
