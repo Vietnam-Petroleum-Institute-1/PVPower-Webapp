@@ -97,7 +97,7 @@ h1 {
     background-color: #e8f0fa;
     padding: 20px;
     flex-shrink: 0;
-    height: 90vh; /* Chiều cao của sidebar khớp với chiều cao cửa sổ */
+    height: 100%; /* Chiều cao của sidebar khớp với chiều cao cửa sổ */
     overflow-y: auto; /* Thanh cuộn sẽ xuất hiện nếu nội dung trong sidebar vượt quá chiều cao */
 }
 

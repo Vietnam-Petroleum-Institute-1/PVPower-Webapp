@@ -392,3 +392,14 @@ body, html {
   width: 44px;
   height: 44px;
 }
+
+textarea#userInput {
+  width: 100%; /* Chiều rộng 100% của container */
+  height: 40px; /* Chiều cao mặc định */
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  resize: none; /* Tắt chức năng thay đổi kích thước của textarea */
+  overflow-y: auto; /* Hiển thị thanh cuộn dọc nếu nội dung quá dài */
+}
