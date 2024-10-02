@@ -73,15 +73,14 @@ def api_check_token():
         
         # Redirect trực tiếp về chatbot và set cookie
         response = redirect(url_for('chatbot'))
-        response.set_cookie('session_id', session_id, expires=expires)
-        response.set_cookie('user_id', user_id, expires=expires)
+        response.set_cookie('session_id', session_id, expires=expires, path='/', samesite='Lax', secure=False) # Thêm các tùy chọn nếu cần
+        response.set_cookie('user_id', user_id, expires=expires, path='/', samesite='Lax', secure=False)
 
         return response  # Trả về redirect luôn
     else:
         logging.warning(f"Authentication failed: Token not valid")
         return redirect(url_for('signin'))  # Nếu token không hợp lệ, chuyển về trang đăng nhập
 
-    
 
 @app.after_request
 def add_security_headers(response):
