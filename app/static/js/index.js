@@ -262,6 +262,21 @@ function searchConversations() {
     });
 }
 
+// Kiểm tra sự tồn tại của cookies và redirect nếu cookies hết hạn
+function checkCookiesAndRedirect() {
+    const user_id = getCookie('user_id');
+    const session_id = getCookie('session_id');
+
+    if (!user_id || !session_id) {
+        console.log("Cookies đã hết hạn, redirecting...");
+        // Redirect về trang signin nếu cookies hết hạn
+        window.location.href = '/signin';
+    } else {
+        console.log("Cookies vẫn hợp lệ");
+    }
+}
+
+
 // Gắn sự kiện input cho thanh tìm kiếm sau khi trang đã tải
 window.onload = function() {
     // Lấy user_id từ cookie
@@ -274,6 +289,12 @@ window.onload = function() {
     } else {
         console.error('User ID not found in cookies');
     }
+
+    // Kiểm tra cookies ngay khi tải trang
+    checkCookiesAndRedirect();
+
+    // Kiểm tra cookies sau mỗi 1 phút
+    setInterval(checkCookiesAndRedirect, 60000);
 
     loadConversations();
 

@@ -84,13 +84,17 @@ def api_check_token():
 
 @app.after_request
 def add_security_headers(response):
-    # Bỏ X-Frame-Options để không hạn chế việc nhúng iframe
-    # Nếu bạn không muốn hạn chế bất cứ domain nào thì không cần thêm X-Frame-Options
+    # Bỏ 'X-Frame-Options' để không hạn chế việc nhúng iframe
     response.headers.pop('X-Frame-Options', None)
 
     # Cho phép tất cả các domain nhúng iframe
     response.headers['Content-Security-Policy'] = "frame-ancestors *"
-    
+
+    # Vô hiệu hóa bộ nhớ cache
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
     return response
 
 def authenticate_user(username, password):
