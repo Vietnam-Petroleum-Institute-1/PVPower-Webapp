@@ -12,26 +12,3 @@ document.getElementById('signinForm').addEventListener('submit', function(event)
         this.submit();  // Nếu hợp lệ, submit form và để Flask xử lý
     }
 });
-
-const params = new URLSearchParams(window.location.search);
-const token = params.get("token");
-
-if (token) {
-  console.log("Token found in URL:", token);
-
-  // Gọi API /api/check_token với token từ URL
-  fetch("/api/check_token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ token: token }),
-  }).then(response => {
-    if (response.redirected) {
-      // Server sẽ trả về redirect nếu token hợp lệ hoặc không hợp lệ
-      window.location.href = response.url;
-    }
-  }).catch(error => {
-    console.error("Error in token verification", error);
-  });
-}
