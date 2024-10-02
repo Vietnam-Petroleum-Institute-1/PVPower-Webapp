@@ -393,13 +393,21 @@ body, html {
   height: 44px;
 }
 
-textarea#userInput {
-  width: 100%; /* Chiều rộng 100% của container */
-  height: 40px; /* Chiều cao mặc định */
+.chat-input textarea {
+  flex: 1; /* Textarea chiếm phần lớn diện tích */
+  height: 40px; /* Chiều cao của textarea */
+  border: none; /* Bỏ đường viền */
+  outline: none; /* Bỏ đường viền khi focus */
+  background: none; /* Loại bỏ màu nền */
   padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  resize: none; /* Tắt chức năng thay đổi kích thước của textarea */
+  border-radius: 5px; /* Bo góc */
+  resize: none; /* Tắt chức năng thay đổi kích thước */
   overflow-y: auto; /* Hiển thị thanh cuộn dọc nếu nội dung quá dài */
+  font-size: 16px;
+  color: #333; /* Màu chữ */
+  box-sizing: border-box;
+}
+
+.chat-input textarea::placeholder {
+  color: #999; /* Màu placeholder */
 }
