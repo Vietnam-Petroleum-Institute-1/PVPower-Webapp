@@ -12,7 +12,8 @@ window.onload = function () {
   const token = params.get('token');
   
   console.log('Token from URL:', token);  // Kiểm tra xem token có lấy đúng không
-  
+  let user_id;
+  let session_id;
   if (token) {
       // Gọi API kiểm tra token
       fetch('/api/verify_token', {
@@ -28,7 +29,8 @@ window.onload = function () {
               // Set cookie user_id và session_id
               document.cookie = `user_id=${data.user_id}; path=/; max-age=1800`;  // 30 phút
               document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`;  // 30 phút
-              
+              user_id = data.user_id;
+              session_id = data.session_id
               console.log('Cookies set successfully');
           } else {
               console.error('Invalid token, redirecting to signin...');
@@ -41,8 +43,8 @@ window.onload = function () {
       });
   }
 
-  const user_id = getCookie("user_id");
-  const session_id = getCookie("session_id");
+  user_id = getCookie("user_id");
+  session_id = getCookie("session_id");
 
   console.log("User ID:", user_id, "Session ID:", session_id);
 
