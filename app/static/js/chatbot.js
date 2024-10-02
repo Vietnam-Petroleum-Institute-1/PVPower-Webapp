@@ -5,36 +5,39 @@ let feedbackMessageId = null;
 
 window.onload = function () {
   console.log("Window loaded");
-  // Nếu không có token, kiểm tra user_id và session_id từ cookie
+  // Nếu không có token, kiểm tra user_id và session_id từ cookie;
+
   // Lấy token từ URL
   const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
-
+  const token = params.get('token');
+  
+  console.log('Token from URL:', token);  // Kiểm tra xem token có lấy đúng không
+  
   if (token) {
-    // Gọi API kiểm tra token
-    fetch("/api/verify_token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token: token }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.user_id && data.session_id) {
-          // Set cookie user_id và session_id
-          document.cookie = `user_id=${data.user_id}; path=/; max-age=1800`; // 30 phút
-          document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`; // 30 phút
-
-          console.log("Cookies set successfully");
-        } else {
-          console.error("Invalid token, redirecting to signin...");
-          window.location.href = "/signin";
-        }
+      // Gọi API kiểm tra token
+      fetch('/api/verify_token', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: token }),
       })
-      .catch((error) => {
-        console.error("Error verifying token:", error);
-        window.location.href = "/signin";
+      .then(response => response.json())
+      .then(data => {
+          if (data.user_id && data.session_id) {
+              // Set cookie user_id và session_id
+              document.cookie = `user_id=${data.user_id}; path=/; max-age=1800`;  // 30 phút
+              document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`;  // 30 phút
+              
+              console.log('Cookies set successfully');
+          } else {
+              console.error('Invalid token, redirecting to signin...');
+              window.location.href = '/signin';
+          }
+      })
+      .catch(error => {
+          console.error('Error verifying token:', error);
+          window.location.href = '/signin';
       });
   }
 
