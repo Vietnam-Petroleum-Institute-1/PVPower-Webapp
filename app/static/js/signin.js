@@ -27,26 +27,21 @@ if (token) {
     },
     body: JSON.stringify({ token: token }),
   })
-    .then((response) => {
-      if (response.redirected) {
-        // Nếu server trả về redirect, chuyển hướng người dùng
-        console.log("Redirecting to:", response.url);
-        window.location.href = response.url;
-      } else if (response.status === 200) {
-        // Nếu phản hồi thành công với mã trạng thái 200
-        return response.json(); // Xử lý dữ liệu nếu có phản hồi JSON
-      } else {
-        // Xử lý tất cả các mã trạng thái khác
-        console.error("Error in token verification with status:", response.status);
-        throw new Error("Token verification failed");
-      }
-    })
+    .then((response) => response.json())
     .then((data) => {
-      if (data) {
-        console.log("Token verification successful:", data);
+      if (data.status === 'success') {
+        // Thiết lập cookie cho session_id và user_id
+        document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`; // 30 phút
+        document.cookie = `user_id=${data.user_id}; path=/; max-age=1800`;
+
+        // Chuyển hướng người dùng tới trang chatbot
+        window.location.href = '/chatbot';
+      } else {
+        console.error("Token verification failed:", data.message);
+        alert("Token không hợp lệ. Vui lòng đăng nhập lại.");
       }
     })
     .catch((error) => {
-      console.error("An error occurred:", error);
+      console.error("Error during token verification:", error);
     });
 }
