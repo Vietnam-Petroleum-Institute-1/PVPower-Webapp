@@ -168,15 +168,42 @@ def home():
 
 @app.route('/chatbot')
 def chatbot():
+    # Lấy session_id và user_id từ cookie
     session_id = request.cookies.get('session_id')
     user_id = request.cookies.get('user_id')
 
-    if not session_id:
-        logging.debug("No session_id found, redirecting to signin.")
-        return redirect(url_for('signin'))
+    # Nếu không có session_id và user_id trong cookie, kiểm tra query parameter
+    if not session_id or not user_id:
+        token = request.args.get('token')
+        if token:
+            # Nếu có token trong URL, xác thực token
+            logging.debug(f"Token found in URL: {token}")
+            decoded_data = decode_token(token)  # Hàm decode_token để giải mã token
+            
+            if decoded_data:
+                user_id = decoded_data.get('user_id')
+                session_id = decoded_data.get('session_id')
+                
+                logging.debug(f"Token valid. Decoded user_id: {user_id}, session_id: {session_id}")
+                
+                # Set cookies cho session_id và user_id
+                expires = datetime.now(timezone.utc) + timedelta(minutes=30)
+                response = make_response(redirect(url_for('chatbot')))  # Chuyển hướng về /chatbot sau khi set cookie
+                response.set_cookie('session_id', session_id, expires=expires, httponly=True)
+                response.set_cookie('user_id', user_id, expires=expires, httponly=True)
+                return response
+            else:
+                logging.debug("Invalid token. Redirecting to signin.")
+                return redirect(url_for('signin'))
+        else:
+            # Nếu không có token trong query parameter, redirect về signin
+            logging.debug("No session_id or token found. Redirecting to signin.")
+            return redirect(url_for('signin'))
 
-    logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
+    # Nếu có session_id và user_id hợp lệ
+    logging.debug(f"Rendering chatbot for user_id: {user_id}, session_id: {session_id}")
     return render_template('chatbot.html')
+
 
 @app.route('/chatbot_index')
 def chatbot_index():
