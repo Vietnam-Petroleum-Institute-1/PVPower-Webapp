@@ -82,29 +82,29 @@ def decode_token(token):
 #         return redirect(url_for('signin'))  # Nếu token không hợp lệ, chuyển về trang đăng nhập
 
 
-# @app.route('/api/verify_token', methods=['POST'])
-# def api_verify_token():
-#     data = request.json
-#     token = data.get('token')
-#     logging.debug(f"Token verification request: {token}")
+@app.route('/api/verify_token', methods=['POST'])
+def api_verify_token():
+    data = request.json
+    token = data.get('token')
+    logging.debug(f"Token verification request: {token}")
     
-#     user_id = decode_token(token)
+    user_id = decode_token(token)
     
-#     if user_id:
-#         conn = connect_db()
-#         session_id = session_continue(conn, user_id)
-#         if not session_id:
-#             session_id = f"{uuid.uuid4()}"
-#         if isinstance(session_id, tuple):
-#             session_id = session_id[0]
+    if user_id:
+        conn = connect_db()
+        session_id = session_continue(conn, user_id)
+        if not session_id:
+            session_id = f"{uuid.uuid4()}"
+        if isinstance(session_id, tuple):
+            session_id = session_id[0]
         
-#         return jsonify({
-#             'user_id': user_id,
-#             'session_id': session_id
-#         })
-#     else:
-#         logging.warning(f"Token verification failed")
-#         return jsonify({'error': 'Invalid token'}), 401
+        return jsonify({
+            'user_id': user_id,
+            'session_id': session_id
+        })
+    else:
+        logging.warning(f"Token verification failed")
+        return jsonify({'error': 'Invalid token'}), 401
 
 
 @app.after_request
