@@ -237,6 +237,7 @@ def signin():
         if CHATBOT_URL == "http://157.66.46.53/v1" or CHATBOT_URL == "http://192.168.17.50:9081/v1":
             success = True
             message = "Thành Công!"
+            conn_db = connect_db()
             if not user_exists(conn_db, username):
                 insert_user(conn_db, username, username)
         else:
