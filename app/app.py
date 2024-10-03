@@ -240,7 +240,8 @@ def signin():
         else:
             success, message = authenticate_user(username, password)
             conn_db = connect_db()
-            # if not user_exists(conn_db, username):
+            if not user_exists(conn_db, username):
+                insert_user(conn_db, username, username)
             if conn_db:
                 logging.debug("Connected to the database successfully.")
             else:
