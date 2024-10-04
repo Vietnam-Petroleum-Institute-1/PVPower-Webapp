@@ -387,7 +387,7 @@ def start_conversation():
         timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S %z')
 
         add_conversation(conn, conversation_id, "New message", session_id, user_id)
-        conversation(conn, data["message_id"], session_id, user_id, "gpt", "", input_token, result_answer, output_token, total_token, timestamp, conversation_id, domain)
+        conversation(conn, data["message_id"], session_id, user_id, "gpt", "", input_token, result_answer[:-len(domain)-1], output_token, total_token, timestamp, conversation_id, domain)
         conn.close()
         return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"]})
     except requests.exceptions.RequestException as e:
