@@ -50,14 +50,6 @@ window.onload = function () {
     console.log("User ID:", user_id, "Session ID:", session_id);
     if (user_id && session_id) {
       continueWithSession(user_id, session_id);
-    // } else {
-    //   console.log("Chui vào cái verify rồi")
-    //   document.getElementById("chatMessages").innerHTML =
-    //     '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-    //   const chatInput = document.querySelector(".chat-input");
-    //   if (chatInput) {
-    //     chatInput.style.display = "none";
-    //   }
     }
   }
 };
@@ -367,8 +359,8 @@ function sendMessage(message = null) {
   fetch(
     `/api/message?text=${encodeURIComponent(
       messageText
-    )}&user_id=${encodeURIComponent(user_id)}&session_id=${encodeURIComponent(
-      session_id
+    )}&user_id=${encodeURIComponent(getCookie("user_id"))}&session_id=${encodeURIComponent(
+      getCookie("session_id")
     )}&conversation_id=${encodeURIComponent(conversation_id)}`
   )
     .then((response) => response.json())
