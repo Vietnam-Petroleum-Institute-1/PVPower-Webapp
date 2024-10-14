@@ -51,6 +51,7 @@ window.onload = function () {
     if (user_id && session_id) {
       continueWithSession(user_id, session_id);
     } else {
+      console.log("Chui vào cái verify rồi")
       document.getElementById("chatMessages").innerHTML =
         '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
       const chatInput = document.querySelector(".chat-input");
@@ -79,6 +80,7 @@ function continueWithSession(user_id, session_id) {
       conversationIdPromise = checkOrCreateSession(user_id, session_id);
       loadTranscripts(user_id, session_id); // Load transcripts nếu có session_id
     } else {
+      console.log("Chui vào cái continue rồi")
       document.getElementById("chatMessages").innerHTML =
         '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
       const chatInput = document.querySelector(".chat-input");
@@ -194,6 +196,7 @@ function checkOrCreateSession(user_id, session_id) {
         ).toISOString();
         return createSession(user_id, session_id, start_time, end_time);
       } else {
+        console.log("Chui vào cái check rồi")
         document.getElementById("chatMessages").innerHTML =
           '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
         const chatInput = document.querySelector(".chat-input");
