@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+mainClassName = 'com.example.TokenGenerator' // Đặt tên class chính của bạn ở đây (class chứa hàm `main`)
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.auth0:java-jwt:3.18.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
+}
+
+application {
+    mainClass = 'app.TokenGenerator'
+}
+

@@ -81,7 +81,6 @@ def decode_token(token):
 #         logging.warning(f"Authentication failed: Token not valid")
 #         return redirect(url_for('signin'))  # Nếu token không hợp lệ, chuyển về trang đăng nhập
 
-
 @app.route('/api/verify_token', methods=['POST'])
 def api_verify_token():
     data = request.json
