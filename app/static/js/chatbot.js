@@ -5,15 +5,15 @@ let feedbackMessageId = null;
 
 window.onload = function () {
   console.log("Window loaded");
-  // Nếu không có token, kiểm tra user_id và session_id từ cookie;
 
   // Lấy token từ URL
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
   
-  console.log('Token from URL:', token);  // Kiểm tra xem token có lấy đúng không
+  console.log('Token from URL:', token);  
   let user_id;
   let session_id;
+
   if (token) {
       // Gọi API kiểm tra token
       fetch('/api/verify_token', {
@@ -26,14 +26,14 @@ window.onload = function () {
       .then(response => response.json())
       .then(data => {
           if (data.user_id && data.session_id) {
-              // Set cookie user_id và session_id
-              document.cookie = `user_id=${data.user_id}; path=/; max-age=1800`;  // 30 phút
-              document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`;  // 30 phút
+              // Lưu user_id và session_id vào localStorage
+              localStorage.setItem('user_id', data.user_id);
+              localStorage.setItem('session_id', data.session_id);
               user_id = data.user_id;
               session_id = data.session_id;
-              console.log('Cookies set successfully');
+              console.log('Local storage set successfully');
 
-              // Tiếp tục logic bình thường sau khi cookie đã được đặt
+              // Tiếp tục logic bình thường sau khi lưu user_id và session_id
               continueWithSession(user_id, session_id);
           } else {
               console.error('Invalid token, redirecting to signin...');
@@ -44,12 +44,18 @@ window.onload = function () {
           console.error('Error verifying token:', error);
           window.location.href = '/signin';
       });
-  // } else {
-    user_id = getCookie("user_id");
-    session_id = getCookie("session_id");
-    console.log("User ID:", user_id, "Session ID:", session_id);
+  } else {
+    // Lấy user_id và session_id từ localStorage nếu không có token
+    user_id = localStorage.getItem("user_id");
+    session_id = localStorage.getItem("session_id");
+    
+    console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
+    
     if (user_id && session_id) {
       continueWithSession(user_id, session_id);
+    } else {
+      console.error('No valid session, redirecting to signin...');
+      window.location.href = '/signin';
     }
   }
 };
@@ -243,7 +249,6 @@ function startConversation(user_id, session_id) {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log("Start conversation result:", data);
       const conversation_id = data.conversation_id;
       sessionStorage.setItem("conversation_id", conversation_id);
 
@@ -255,20 +260,12 @@ function startConversation(user_id, session_id) {
       }
 
       isConversationStarted = true;
-      console.log("Conversation started, conversation_id:", conversation_id);
-
-      addMessageToChat(
-        "bot",
-        "Xin chào, tôi có thể giúp gì bạn?",
-        data.message_id
-      );
+      addMessageToChat("bot", "Xin chào, tôi có thể giúp gì bạn?", data.message_id);
 
       return conversation_id;
     })
     .catch((error) => {
       console.error("Error in startConversation:", error);
-      document.getElementById("chatMessages").innerHTML +=
-        '<div class="message bot"><div class="message-content">Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này.</div></div>';
       throw error;
     })
     .finally(() => {
@@ -330,8 +327,8 @@ function sendMessage(message = null) {
     return;
   }
 
-  const user_id = getCookie("user_id");
-  const session_id = getCookie("session_id");
+  const user_id = localStorage.getItem("user_id");
+  const session_id = localStorage.getItem("session_id");
   const conversation_id = sessionStorage.getItem("conversation_id");
 
   if (!conversation_id) {
@@ -359,8 +356,8 @@ function sendMessage(message = null) {
   fetch(
     `/api/message?text=${encodeURIComponent(
       messageText
-    )}&user_id=${encodeURIComponent(getCookie("user_id"))}&session_id=${encodeURIComponent(
-      getCookie("session_id")
+    )}&user_id=${encodeURIComponent(user_id)}&session_id=${encodeURIComponent(
+      session_id
     )}&conversation_id=${encodeURIComponent(conversation_id)}`
   )
     .then((response) => response.json())
