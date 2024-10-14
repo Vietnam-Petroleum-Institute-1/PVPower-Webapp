@@ -50,14 +50,14 @@ window.onload = function () {
     console.log("User ID:", user_id, "Session ID:", session_id);
     if (user_id && session_id) {
       continueWithSession(user_id, session_id);
-    } else {
-      console.log("Chui vào cái verify rồi")
-      document.getElementById("chatMessages").innerHTML =
-        '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-      const chatInput = document.querySelector(".chat-input");
-      if (chatInput) {
-        chatInput.style.display = "none";
-      }
+    // } else {
+    //   console.log("Chui vào cái verify rồi")
+    //   document.getElementById("chatMessages").innerHTML =
+    //     '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
+    //   const chatInput = document.querySelector(".chat-input");
+    //   if (chatInput) {
+    //     chatInput.style.display = "none";
+    //   }
     }
   }
 };
