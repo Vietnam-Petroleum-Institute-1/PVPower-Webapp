@@ -14,10 +14,8 @@ window.onload = function () {
   let user_id;
   let session_id;
 
-  // Kiểm tra xem token có tồn tại không
   if (token) {
       // Gọi API kiểm tra token
-      console.log("Sending token to API for verification...");
       fetch('/api/verify_token', {
           method: 'POST',
           headers: {
@@ -33,7 +31,7 @@ window.onload = function () {
               localStorage.setItem('session_id', data.session_id);
               user_id = data.user_id;
               session_id = data.session_id;
-              console.log('Local storage set successfully with user_id and session_id');
+              console.log('Local storage set successfully');
 
               // Tiếp tục logic bình thường sau khi lưu user_id và session_id
               continueWithSession(user_id, session_id);
@@ -47,7 +45,6 @@ window.onload = function () {
           window.location.href = '/signin';
       });
   } else {
-    console.log("No token found in URL, checking localStorage...");
     // Lấy user_id và session_id từ localStorage nếu không có token
     user_id = localStorage.getItem("user_id");
     session_id = localStorage.getItem("session_id");
@@ -55,10 +52,9 @@ window.onload = function () {
     console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
     
     if (user_id && session_id) {
-      console.log("Found valid session in localStorage.");
       continueWithSession(user_id, session_id);
     } else {
-      console.error('No valid session found, redirecting to signin...');
+      console.error('No valid session, redirecting to signin...');
       window.location.href = '/signin';
     }
   }
