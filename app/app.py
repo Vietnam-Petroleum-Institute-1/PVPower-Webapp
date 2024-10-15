@@ -172,8 +172,8 @@ def chatbot():
     user_id = request.cookies.get('user_id')
 
     # Nếu không có session_id và user_id trong cookie, kiểm tra query parameter
+    token = request.args.get('token')
     if not session_id or not user_id:
-        token = request.args.get('token')
         if token:
             # Nếu có token trong URL, xác thực token
             logging.debug(f"Token found in URL: {token}")
@@ -191,13 +191,13 @@ def chatbot():
                 
                 # Set cookies cho session_id và user_id
                 expires = datetime.now(timezone.utc) + timedelta(minutes=30)
-                response = make_response(redirect(url_for('chatbot')))  # Chuyển hướng về /chatbot sau khi set cookie
+                response = make_response(redirect(url_for('chatbot', token=token)))  # Chuyển hướng về /chatbot và giữ lại token
                 response.set_cookie('session_id', session_id, expires=expires, httponly=True, samesite='None', secure=True)
                 response.set_cookie('user_id', user_id, expires=expires, httponly=True, samesite='None', secure=True)
                 return response
             else:
                 logging.debug("Invalid token. Redirecting to signin.")
-                return redirect(url_for('signin'))
+                return redirect(url_for('signin', token=token))  # Redirect tới signin và giữ lại token
         else:
             # Nếu không có token trong query parameter, redirect về signin
             logging.debug("No session_id or token found. Redirecting to signin.")

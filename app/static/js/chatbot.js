@@ -14,8 +14,10 @@ window.onload = function () {
   let user_id;
   let session_id;
 
+  // Kiểm tra xem token có tồn tại không
   if (token) {
       // Gọi API kiểm tra token
+      console.log("Sending token to API for verification...");
       fetch('/api/verify_token', {
           method: 'POST',
           headers: {
@@ -31,7 +33,7 @@ window.onload = function () {
               localStorage.setItem('session_id', data.session_id);
               user_id = data.user_id;
               session_id = data.session_id;
-              console.log('Local storage set successfully');
+              console.log('Local storage set successfully with user_id and session_id');
 
               // Tiếp tục logic bình thường sau khi lưu user_id và session_id
               continueWithSession(user_id, session_id);
@@ -45,29 +47,22 @@ window.onload = function () {
           window.location.href = '/signin';
       });
   } else {
-    // Gọi hàm retry để kiểm tra token nhiều lần
-    retryGetSessionFromLocalStorage(5); // Thử kiểm tra 5 lần
+    console.log("No token found in URL, checking localStorage...");
+    // Lấy user_id và session_id từ localStorage nếu không có token
+    user_id = localStorage.getItem("user_id");
+    session_id = localStorage.getItem("session_id");
+    
+    console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
+    
+    if (user_id && session_id) {
+      console.log("Found valid session in localStorage.");
+      continueWithSession(user_id, session_id);
+    } else {
+      console.error('No valid session found, redirecting to signin...');
+      window.location.href = '/signin';
+    }
   }
 };
-
-// Hàm để kiểm tra và nhận session từ localStorage với cơ chế retry
-function retryGetSessionFromLocalStorage(retries) {
-  let user_id = localStorage.getItem("user_id");
-  let session_id = localStorage.getItem("session_id");
-
-  console.log("Checking user_id and session_id...");
-  console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
-
-  if (user_id && session_id) {
-    continueWithSession(user_id, session_id);
-  } else if (retries > 0) {
-    console.log(`Retrying... ${retries} attempts left`);
-    setTimeout(() => retryGetSessionFromLocalStorage(retries - 1), 1000); // Chờ 1 giây rồi thử lại
-  } else {
-    console.error('No valid session after retrying, redirecting to signin...');
-    window.location.href = '/signin';
-  }
-}
 
 // Hàm tiếp tục logic sau khi có user_id và session_id
 function continueWithSession(user_id, session_id) {
