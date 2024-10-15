@@ -45,20 +45,29 @@ window.onload = function () {
           window.location.href = '/signin';
       });
   } else {
-    // Lấy user_id và session_id từ localStorage nếu không có token
-    user_id = localStorage.getItem("user_id");
-    session_id = localStorage.getItem("session_id");
-    
-    console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
-    
-    if (user_id && session_id) {
-      continueWithSession(user_id, session_id);
-    } else {
-      console.error('No valid session, redirecting to signin...');
-      window.location.href = '/signin';
-    }
+    // Gọi hàm retry để kiểm tra token nhiều lần
+    retryGetSessionFromLocalStorage(5); // Thử kiểm tra 5 lần
   }
 };
+
+// Hàm để kiểm tra và nhận session từ localStorage với cơ chế retry
+function retryGetSessionFromLocalStorage(retries) {
+  let user_id = localStorage.getItem("user_id");
+  let session_id = localStorage.getItem("session_id");
+
+  console.log("Checking user_id and session_id...");
+  console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
+
+  if (user_id && session_id) {
+    continueWithSession(user_id, session_id);
+  } else if (retries > 0) {
+    console.log(`Retrying... ${retries} attempts left`);
+    setTimeout(() => retryGetSessionFromLocalStorage(retries - 1), 1000); // Chờ 1 giây rồi thử lại
+  } else {
+    console.error('No valid session after retrying, redirecting to signin...');
+    window.location.href = '/signin';
+  }
+}
 
 // Hàm tiếp tục logic sau khi có user_id và session_id
 function continueWithSession(user_id, session_id) {
