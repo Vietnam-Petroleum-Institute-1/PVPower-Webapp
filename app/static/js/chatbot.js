@@ -46,8 +46,8 @@ window.onload = function () {
       });
   } else {
     // Lấy user_id và session_id từ localStorage nếu không có token
-    user_id = localStorage.getItem("user_id");
-    session_id = localStorage.getItem("session_id");
+    user_id = localStorage.getItem("user_id") || getCookie("user_id");
+    session_id = localStorage.getItem("session_id") || getCookie("session_id");
     
     console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
     
