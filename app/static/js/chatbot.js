@@ -57,7 +57,7 @@ window.onload = function () {
       continueWithSession(user_id, session_id);
     } else {
       console.error('No valid session, redirecting to signin...');
-      window.location.href = '/signin';
+      // window.location.href = '/signin';
     }
   }
 };
