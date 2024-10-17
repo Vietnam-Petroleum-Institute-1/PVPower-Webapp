@@ -37,15 +37,17 @@ window.onload = function () {
               continueWithSession(user_id, session_id);
           } else {
               console.error('Invalid token, redirecting to signin...');
-              window.location.href = '/signin';
+              // window.location.href = '/signin';
           }
       })
       .catch(error => {
           console.error('Error verifying token:', error);
-          window.location.href = '/signin';
+          // window.location.href = '/signin';
       });
   } else {
     // Lấy user_id và session_id từ localStorage nếu không có token
+    console.log("Cookie:", getCookie("user_id"));
+    console.log("Cookie:", getCookie("session_id"));
     user_id = localStorage.getItem("user_id") || getCookie("user_id");
     session_id = localStorage.getItem("session_id") || getCookie("session_id");
     
