@@ -227,7 +227,7 @@ def get_all_conversations(conn, user_id):
         FROM 
             conversation_logs cl
         JOIN 
-            conversations c ON cl.conversation_id = c.id
+            conversations c ON cl.conversation_id = c.conversation_id
         WHERE 
             cl.user_id = (%s)
         ORDER BY 
