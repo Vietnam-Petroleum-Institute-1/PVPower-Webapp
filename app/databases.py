@@ -220,10 +220,18 @@ def get_all_conversations(conn, user_id):
 
     cur = conn.cursor()
     cur.execute("""
-        SELECT conversation_id, conversation_title, created_at 
-        FROM conversations 
-        WHERE user_id = %s
-        ORDER BY created_at DESC
+        SELECT 
+            DISTINCT cl.conversation_id, 
+            c.conversation_title, 
+            cl.created_at
+        FROM 
+            conversation_logs cl
+        JOIN 
+            conversation c ON cl.conversation_id = c.id
+        WHERE 
+            cl.user_id = (%s)
+        ORDER BY 
+            cl.created_at DESC;
         """, (user_id,))
     
     conversations = cur.fetchall()
