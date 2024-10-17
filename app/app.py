@@ -215,7 +215,7 @@ def chatbot_index():
 
     if not session_id:
         logging.debug("No session_id found, redirecting to signin.")
-        return redirect(url_for('signin'))
+        # return redirect(url_for('signin'))
 
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
     return render_template('chatbot_index.html')
