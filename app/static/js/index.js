@@ -271,7 +271,7 @@ function checkCookiesAndRedirect() {
     if (!user_id) {
         console.log("Cookies đã hết hạn, redirecting...");
         // Redirect về trang signin nếu cookies hết hạn
-        // window.location.href = '/signin';
+        window.location.href = '/signin';
     } else {
         console.log("Cookies vẫn hợp lệ");
     }
