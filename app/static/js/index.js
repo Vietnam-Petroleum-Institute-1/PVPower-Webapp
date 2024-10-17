@@ -266,9 +266,9 @@ function searchConversations() {
 // Kiểm tra sự tồn tại của cookies và redirect nếu cookies hết hạn
 function checkCookiesAndRedirect() {
     const user_id = getCookie('user_id');
-    const session_id = getCookie('session_id');
+    // const session_id = getCookie('session_id');
 
-    if (!user_id || !session_id) {
+    if (!user_id) {
         console.log("Cookies đã hết hạn, redirecting...");
         // Redirect về trang signin nếu cookies hết hạn
         // window.location.href = '/signin';
