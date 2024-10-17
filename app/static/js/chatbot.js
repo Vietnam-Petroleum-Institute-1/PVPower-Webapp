@@ -329,8 +329,8 @@ function sendMessage(message = null) {
     return;
   }
 
-  const user_id = localStorage.getItem("user_id");
-  const session_id = localStorage.getItem("session_id");
+  const user_id = localStorage.getItem("user_id") || getCookie("user_id");
+  const session_id = localStorage.getItem("session_id") || getCookie("session_id");
   const conversation_id = sessionStorage.getItem("conversation_id");
 
   if (!conversation_id) {
