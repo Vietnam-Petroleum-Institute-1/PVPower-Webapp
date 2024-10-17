@@ -230,8 +230,10 @@ def get_all_conversations(conn, user_id):
             conversations c ON cl.conversation_id = c.conversation_id
         WHERE 
             cl.user_id = (%s)
+        GROUP BY 
+            cl.conversation_id, c.conversation_title
         ORDER BY 
-            cl.created_at DESC;
+            created_at DESC;
         """, (user_id,))
     
     conversations = cur.fetchall()
