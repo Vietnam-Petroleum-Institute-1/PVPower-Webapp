@@ -221,9 +221,9 @@ def get_all_conversations(conn, user_id):
     cur = conn.cursor()
     cur.execute("""
         SELECT 
-            DISTINCT cl.conversation_id, 
+            cl.conversation_id, 
             c.conversation_title, 
-            cl.created_at
+            MAX(cl.created_at) AS created_at
         FROM 
             conversation_logs cl
         JOIN 
