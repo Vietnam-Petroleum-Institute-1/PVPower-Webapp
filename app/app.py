@@ -192,8 +192,8 @@ def chatbot():
                 # Set cookies cho session_id và user_id
                 expires = datetime.now(timezone.utc) + timedelta(minutes=30)
                 response = make_response(redirect(url_for('chatbot', token=token)))  # Chuyển hướng về /chatbot và giữ lại token
-                response.set_cookie('session_id', session_id, expires=expires, httponly=True, samesite='None', secure=True)
-                response.set_cookie('user_id', user_id, expires=expires, httponly=True, samesite='None', secure=True)
+                response.set_cookie('session_id', session_id, expires=expires, samesite='None', secure=True)
+                response.set_cookie('user_id', user_id, expires=expires, samesite='None', secure=True)
                 return response
             else:
                 logging.debug("Invalid token. Redirecting to signin.")
