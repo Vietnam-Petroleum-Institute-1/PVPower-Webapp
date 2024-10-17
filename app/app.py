@@ -281,7 +281,7 @@ def signin():
             return render_template('signin.html', error=message)
     
     logging.debug("Rendering signin page.")
-    # return render_template('signin.html')
+    return render_template('signin.html')
 
 
 
