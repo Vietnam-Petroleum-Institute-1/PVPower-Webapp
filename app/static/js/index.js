@@ -312,8 +312,8 @@ window.onload = function() {
     }
 };
 
-document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'visible') {
-      location.reload(); // Reload lại trang khi tab được quay lại
-    }
-  });
+// document.addEventListener('visibilitychange', function() {
+//     if (document.visibilityState === 'visible') {
+//       location.reload(); // Reload lại trang khi tab được quay lại
+//     }
+//   });
