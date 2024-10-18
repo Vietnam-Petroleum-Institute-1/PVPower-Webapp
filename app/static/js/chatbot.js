@@ -711,5 +711,5 @@ function hideSuggestions() {
 }
 
 function openInNewTab() {
-  window.open(window.location.href, '_blank');
+  window.open('https://bot.pvpower.vn', '_blank');
 }
