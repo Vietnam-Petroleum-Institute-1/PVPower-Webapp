@@ -713,3 +713,9 @@ function hideSuggestions() {
 function openInNewTab() {
   window.open('https://bot.pvpower.vn', '_blank');
 }
+
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    location.reload(); // Reload lại trang khi tab được quay lại
+  }
+});
