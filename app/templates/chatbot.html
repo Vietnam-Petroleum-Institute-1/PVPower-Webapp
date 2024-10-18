@@ -12,6 +12,12 @@
     <div class="chat-header">
       <img src="{{ url_for('static', filename='images/Logo_Petrovietnam.svg.png') }}" alt="Logo">
       PVPower Assistant
+      <button class="new-tab-button" onclick="openInNewTab()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <path d="M14 3v2h3.59L12 10.59 13.41 12 19 6.41V10h2V3h-7z"/>
+          <path d="M5 5h4V3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-4h-2v4H5V5z"/>
+        </svg>
+      </button>
     </div>
     <div class="chat-messages" id="chatMessages"></div>
     <div id="suggestions-container" class="suggestions-container"></div>

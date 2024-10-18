@@ -709,3 +709,7 @@ function hideSuggestions() {
   suggestionsContainer.innerHTML = ""; // Xóa toàn bộ các nút gợi ý
   suggestionsContainer.style.display = "none"; // Ẩn container
 }
+
+function openInNewTab() {
+  window.open(window.location.href, '_blank');
+}
