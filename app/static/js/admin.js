@@ -43,7 +43,7 @@ function createUserMessagesChart(data) {
             datasets: [{
                 label: 'Tin nhắn',
                 data: Object.values(data),
-                borderColor: 'rgba(75, 192, 192, 1)',
+                borderColor: '#2B3467',
                 borderWidth: 2,
                 fill: true
             }]
@@ -71,7 +71,7 @@ function createHourlyMessagesChart(data) {
             datasets: [{
                 label: 'Tin nhắn theo giờ',
                 data: Object.values(data),
-                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                backgroundColor: '#2B3467',
                 borderWidth: 1
             }]
         },
@@ -100,7 +100,7 @@ function createPieChart(data) {
             labels: ['Like', 'Dislike', 'No Feedback'],
             datasets: [{
                 data: [data.like || 0, data.dislike || 0, data.no_feedback || 0],
-                backgroundColor: ['#28a745', '#dc3545', '#2B3467']
+                backgroundColor: ['#9E9EAC', '#89182c', '#2B3467']
             }]
         },
         options: {
@@ -139,8 +139,8 @@ function createUserAccessChart(data) {
             datasets: [{
                 label: 'Số người dùng',
                 data: Object.values(data),
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: '#2B3467',
+                borderColor: '#2B3467',
                 borderWidth: 1
             }]
         },
@@ -292,3 +292,15 @@ window.onload = function () {
         window.location.href = 'signin';
     }
 };
+
+function reloadPageIfVisible() {
+    if (document.visibilityState === 'visible') {
+        location.reload(); // Reload lại trang nếu tab đang hiển thị
+    }
+}
+
+// Lắng nghe sự kiện thay đổi trạng thái visibility
+document.addEventListener('visibilitychange', reloadPageIfVisible);
+
+// Lắng nghe sự kiện focus của cửa sổ
+window.addEventListener('focus', reloadPageIfVisible);

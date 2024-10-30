@@ -25,7 +25,7 @@
 <body>
     <header class="header-container">
         <button class="toggle-sidebar-btn" onclick="toggleSidebar()">☰</button>
-        <h1 class="dashboard-title">PV POWER - TRUNG TÂM QUẢN TRỊ CHATBOT</h1>
+        <h1 class="dashboard-title">PV POWER - HỆ THỐNG QUẢN TRỊ CHATBOT</h1>
         <div class="user-info">
             <span id="user-name" class="user-name">Xin chào,</span>
             <button class="signout-btn" onclick="signOutAndRedirect()">
@@ -159,7 +159,7 @@
         </main>
     </div>
     <footer class="footer mt-5 p-3 bg-light text-center">
-        <p>&copy; 2024 PV Power - Trung tâm quản trị Chatbot</p>
+        <p>&copy; 2024 PV Power - Hệ thống quản trị Chatbot</p>
     </footer>
     <script>
         function toggleSidebar() {
@@ -174,7 +174,7 @@
         $(document).ready(function () {
             $('#faqTable').DataTable({
                 paging: true,           // Bật phân trang
-                pageLength: 10,         // Số dòng mỗi trang
+                pageLength: 15,         // Số dòng mỗi trang
                 lengthChange: false,    // Tắt thay đổi số dòng mỗi trang
                 searching: false,       // Tắt thanh tìm kiếm
                 info: true,             // Hiển thị thông tin bảng
@@ -206,7 +206,7 @@
                 datasets: [{
                     label: 'Tin nhắn',
                     data: Object.values(userMessagesData),
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderColor: '#2B3467',
                     borderWidth: 2,
                     fill: true
                 }]
@@ -230,7 +230,7 @@
                 datasets: [{
                     label: 'Tin nhắn theo giờ',
                     data: Object.values(hourlyMessagesData),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    backgroundColor: '#2B3467',
                     borderWidth: 1
                 }]
             },
@@ -254,7 +254,7 @@
                 datasets: [{
                     // label: 'Tỷ lệ phản hồi người dùng',
                     data: [feedbackCounts.like || 0, feedbackCounts.dislike || 0, feedbackCounts.no_feedback || 0],
-                    backgroundColor: ['#28a745', '#dc3545', '#2B3467'], // Xanh cho like, đỏ cho dislike
+                    backgroundColor: ['#9E9EAC', '#89182c', '#2B3467'], // Xanh cho like, đỏ cho dislike
                 }]
             },
             options: {
@@ -288,8 +288,8 @@
                     datasets: [{
                         label: 'Số người dùng',
                         data: Object.values(userAccessData),
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: '#2B3467',
+                        borderColor: '#2B3467',
                         borderWidth: 1
                     }]
                 },

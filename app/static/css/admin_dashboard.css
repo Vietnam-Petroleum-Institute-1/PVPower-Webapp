@@ -3,6 +3,16 @@ body {
     font-family: 'Arial', sans-serif;
 }
 
+h2 {
+    color: #2B3467 !important;
+    font-weight: bold !important;
+}
+
+h4, h5 {
+    color: #89182c !important;
+    font-weight: bold !important;
+}
+
 /* Tiêu đề trang */
 /* .dashboard-title {
     background: linear-gradient(90deg, rgba(37,64,109,1) 0%, rgba(137,24,44,1) 100%);
@@ -76,7 +86,7 @@ body {
 .card-text {
     font-size: 40px;
     font-weight: bold;
-    color: #000;
+    color: #2B3467;
 }
 
 /* Bố cục container chính */
@@ -456,7 +466,10 @@ body {
 
 /* Đảm bảo tiêu đề cột vẫn căn giữa */
 #faqTable thead th {
-    text-align: center; /* Căn giữa tiêu đề cột */
+    background-color: #2B3467 !important; /* Đổi màu nền */
+    color: white !important;             /* Đổi màu chữ thành trắng */
+    font-weight: bold;                   /* In đậm */
+    text-align: center;                  /* Căn giữa văn bản */
 }
 
 select#userDropdown {
