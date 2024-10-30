@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
 import requests
 import logging
-from databases import update_conversation_title, get_session_from_conversation, session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_transcripts, add_conversation, get_conversation_id, write_feedback, upload_pending_FAQ, session_valid, error_logs, get_all_conversations
+from databases import fetch_data_from_table, update_conversation_title, get_session_from_conversation, session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_transcripts, add_conversation, get_conversation_id, write_feedback, upload_pending_FAQ, session_valid, error_logs, get_all_conversations
 import json
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -13,6 +13,8 @@ from ldap3 import Server, Connection, ALL, SUBTREE
 import uuid
 import jwt  # For token handling
 from zoneinfo import ZoneInfo
+import pandas as pd
+from decorators import admin_required
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Cho phép tất cả nguồn gốc
@@ -51,35 +53,6 @@ def decode_token(token):
     except jwt.InvalidTokenError:
         # Invalid token
         return None
-
-# @app.route('/api/check_token', methods=['POST'])
-# def api_check_token():
-#     data = request.json  # Thay đổi để lấy toàn bộ dữ liệu JSON
-#     token = data.get('token')
-#     logging.debug(f"Token received: {token}")
-#     user_id = decode_token(token)
-    
-#     if user_id:
-#         conn = connect_db()
-#         session_id = session_continue(conn, user_id)
-#         if not session_id:
-#             session_id = f"{uuid.uuid4()}"
-#         if isinstance(session_id, tuple):
-#             session_id = session_id[0]
-#         logging.debug(f"Redirecting to home with session_id: {session_id}")
-        
-#         # Set cookie for session_id and user_id
-#         expires = datetime.now(timezone.utc) + timedelta(minutes=30)
-        
-#         # Redirect trực tiếp về chatbot và set cookie
-#         response = redirect(url_for('chatbot'))
-#         response.set_cookie('session_id', session_id, expires=expires, path='/', samesite='Lax', secure=False) # Thêm các tùy chọn nếu cần
-#         response.set_cookie('user_id', user_id, expires=expires, path='/', samesite='Lax', secure=False)
-
-#         return response  # Trả về redirect luôn
-#     else:
-#         logging.warning(f"Authentication failed: Token not valid")
-#         return redirect(url_for('signin'))  # Nếu token không hợp lệ, chuyển về trang đăng nhập
 
 @app.route('/api/verify_token', methods=['POST'])
 def api_verify_token():
@@ -340,12 +313,14 @@ def api_message():
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        error_logs(conn, user_id, session_id, conversation_id, user_message, e, "500")
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
+        error_code = e.response.status_code
+        error_logs(conn, user_id, session_id,  conversation_id or '', user_message, 'Send message failed due to ' + str(e), error_code)
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
     except Exception as e:
         app.logger.error(f"Exception: {e}")
-        error_logs(conn, user_id, session_id, conversation_id, user_message, e, "500")
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 500
+        error_code = e.response.status_code
+        error_logs(conn, user_id, session_id, conversation_id or '', user_message, 'Send message failed due to ' + str(e), error_code)
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
 
 
 @app.route('/api/start_conversation', methods=['POST'])
@@ -391,12 +366,14 @@ def start_conversation():
         return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"]})
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        error_logs(conn, user_id, session_id, conversation_id, "", e, "501")
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 501
+        error_code = e.response.status_code
+        error_logs(conn, user_id, session_id, '', '', 'Start conversation failed due to ' + str(e), error_code)
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
     except Exception as e:
         app.logger.error(f"Exception: {e}")
-        error_logs(conn, user_id, session_id, conversation_id, "", e, "501")
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), 501
+        error_code = e.response.status_code
+        error_logs(conn, user_id, session_id, '', '', 'Start conversation failed due to ' + str(e), error_code)
+        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
 
 @app.route('/api/user', methods=['POST'])
 def api_user():
@@ -681,8 +658,310 @@ def update_conversation_title_api():
         conn.close()
         return jsonify({'result': 'Error in transcripts structure'}), 500
 
+@app.route('/admin', methods=['GET'])
+@admin_required
+def admin_dashboard():
+    error_logs_df = fetch_data_from_table("error_logs")
+    # Fetch dữ liệu từ database
+    users_df = fetch_data_from_table('users')
+    conversation_logs_df = fetch_data_from_table('conversation_logs')
+    feedback_df = fetch_data_from_table('feedback')
+    session_df = fetch_data_from_table('sessions')
+
+    # Lấy danh sách user_id
+    user_list = users_df['user_id'].unique().tolist()
+    
+    # Tổng hợp số liệu
+    total_users = users_df['user_id'].nunique()
+    total_messages = conversation_logs_df['message_id'].count()
+    total_sessions = conversation_logs_df['session_id'].nunique()
+
+    # Tính thời lượng chat trung bình
+    conversation_logs_df['timestamp'] = pd.to_datetime(conversation_logs_df['timestamp'])
+    conversation_logs_df['created_at'] = pd.to_datetime(conversation_logs_df['created_at'])
+
+    # Calculate session start and end times based on the first and last message timestamps
+    session_start_times = conversation_logs_df.groupby('session_id')['timestamp'].min().reset_index()
+    session_start_times.columns = ['session_id', 'start_time']
+    session_end_times = conversation_logs_df.groupby('session_id')['timestamp'].max().reset_index()
+    session_end_times.columns = ['session_id', 'end_time']
+    
+    # Merge start and end times into a single DataFrame
+    session_times = pd.merge(session_start_times, session_end_times, on='session_id')
+
+    # Calculate session durations
+    session_times['session_duration'] = (session_times['end_time'] - session_times['start_time']).dt.total_seconds()
+
+    avg_session_duration = round(session_times['session_duration'].mean(), 2)
+
+    # Tính tỷ lệ lỗi chatbot
+    if total_sessions > 0:
+        errored_sessions = conversation_logs_df[conversation_logs_df['outputs'].str.contains('error|fail|not found|unable', case=False)]
+        error_rate = round((errored_sessions['session_id'].nunique() / total_sessions) * 100, 2)
+    else:
+        error_rate = 0.0  # Nếu không có session nào, tỷ lệ lỗi đặt bằng 0
+
+    # Tính thời gian phản hồi trung bình
+    conversation_logs_df['response_speed'] = (abs((conversation_logs_df['timestamp'] - conversation_logs_df['created_at']))).dt.total_seconds()
+    avg_response_time = round(conversation_logs_df['response_speed'].mean(), 2)
+
+    # Chuẩn bị dữ liệu cho biểu đồ
+    user_messages_data = conversation_logs_df.groupby(conversation_logs_df['timestamp'].dt.date).size().to_dict()
+    user_messages_data = {str(key): value for key, value in user_messages_data.items()}  # Chuyển datetime thành chuỗi
+
+    hourly_messages_data = conversation_logs_df.groupby(conversation_logs_df['timestamp'].dt.hour).size().to_dict()
+
+    # Tính tỷ lệ phản hồi người dùng
+    feedback_subset = feedback_df[['message_id', 'feedback_type', 'feedback_text']]
+    logging.info("Feedback Counts: %s", feedback_subset)
+    conversation_logs_df_feedback = pd.merge(conversation_logs_df, feedback_subset, on='message_id', how='left')
+    conversation_logs_df_feedback = conversation_logs_df_feedback.drop_duplicates(subset=['message_id'])
+    # Tính toán số lượng mỗi loại feedback_type
+    # Thay thế NaN bằng "No Feedback"
+    conversation_logs_df_feedback['feedback_type'] = conversation_logs_df_feedback['feedback_type'].fillna('no_feedback')
+
+    feedback_counts = conversation_logs_df_feedback['feedback_type'].value_counts().to_dict()
+
+    # Xử lý dữ liệu người dùng theo ngày
+    session_df['created_at'] = pd.to_datetime(session_df['created_at']).dt.date
+    users_by_date = session_df.groupby('created_at').size().to_dict()
+    users_by_date_str = {str(k): v for k, v in users_by_date.items()}  # Chuyển datetime thành chuỗi
+
+    # Log để kiểm tra dữ liệu JSON
+    logging.info("Feedback Counts: %s", feedback_counts)
+    logging.info("User Messages Data: %s", user_messages_data)
+    logging.info("Hourly Messages Data: %s", hourly_messages_data)
+    logging.info("User Access Data: %s", users_by_date_str)
+
+    non_faqs_df = conversation_logs_df[conversation_logs_df['inputs'] != ""]
+
+    # Creating the Non_FAQs_df
+    non_faqs_df = non_faqs_df[['message_id', 'inputs', 'outputs', 'domain']].copy()
+    non_faqs_df['usage_count'] = non_faqs_df.groupby('inputs')['inputs'].transform('count')
+    non_faqs_df = non_faqs_df[['message_id', 'inputs', 'domain', 'usage_count', 'outputs']]
+    non_faqs_df.columns = ['question_id', 'text_content', 'domain', 'usage_count', 'outputs']
+    non_faqs_df_used = non_faqs_df[['text_content', 'usage_count', 'outputs']]
+
+    # Sort by 'usage_count' in descending order
+    non_faqs_df_used = non_faqs_df_used.sort_values(by='usage_count', ascending=False)
+    non_faqs_df_used = non_faqs_df_used.drop_duplicates(subset='text_content', keep='first')
+    non_faqs_data = non_faqs_df_used.to_dict(orient='records')
+
+    first_date = users_df['created_at'].min().date()
+
+    # Sửa lại cách lấy ngày hôm nay
+    today_date = datetime.now().date()
+    logging.info("today_date: %s", today_date)
+
+    return render_template(
+        'admin_dashboard.html',
+        first_date=first_date,  # Truyền ngày đầu tiên cho giao diện
+        today_date=today_date,
+        user_list=user_list,
+        total_users=total_users,
+        total_messages=total_messages,
+        total_sessions=total_sessions,
+        avg_response_time=avg_response_time,
+        avg_session_duration=avg_session_duration,
+        error_rate=error_rate,
+        feedback_counts=feedback_counts,  # Không cần json.dumps()
+        user_messages_data=user_messages_data,  # Không cần json.dumps()
+        hourly_messages_data=hourly_messages_data,  # Không cần json.dumps()
+        user_access_data=users_by_date_str,  # Không cần json.dumps()
+        non_faqs_data=non_faqs_data
+    )
+
+@app.route('/api/filter_dashboard', methods=['POST'])
+def filter_dashboard():
+    # Nhận dữ liệu từ yêu cầu frontend
+    data = request.get_json()
+    user = data.get('user')
+    start_date = pd.to_datetime(data.get('startDate'))
+    end_date = pd.to_datetime(data.get('endDate'))
+    logging.info("user: %s", user)
+    logging.info("start_filter: %s", start_date)
+    logging.info("end_filter: %s", end_date)
+    # Fetch dữ liệu từ database
+    conversation_logs_df = fetch_data_from_table('conversation_logs')
+    feedback_df = fetch_data_from_table('feedback')
+    session_df = fetch_data_from_table('sessions')
+    users_df = fetch_data_from_table('users')
+
+    # Loại bỏ timezone khỏi cột created_at
+    conversation_logs_df['created_at'] = conversation_logs_df['created_at'].dt.tz_localize(None)
+    session_df['created_at'] = session_df['created_at'].dt.tz_localize(None)
+    feedback_df['created_at'] = feedback_df['created_at'].dt.tz_localize(None)
+    users_df['created_at'] = users_df['created_at'].dt.tz_localize(None)
+    user_list = users_df['user_id'].unique().tolist()
+    # Áp dụng bộ lọc theo user và khoảng ngày
+    if (user):
+        conversation_logs_df = conversation_logs_df[
+            (conversation_logs_df['user_id'] == user) &
+            (conversation_logs_df['created_at'] >= start_date) &
+            (conversation_logs_df['created_at'] <= end_date)
+        ]
+
+        feedback_df = feedback_df[
+            (feedback_df['user_id'] == user) &
+            (feedback_df['created_at'] >= start_date) &
+            (feedback_df['created_at'] <= end_date)
+        ]
+
+        session_df = session_df[
+            (session_df['user_id'] == user) &
+            (session_df['created_at'] >= start_date) &
+            (session_df['created_at'] <= end_date)
+        ]
+
+        users_df = users_df[
+            (users_df['user_id'] == user) &
+            (users_df['created_at'] >= start_date) &
+            (users_df['created_at'] <= end_date)
+        ]
+    else:
+        conversation_logs_df = conversation_logs_df[
+            (conversation_logs_df['created_at'] >= start_date) &
+            (conversation_logs_df['created_at'] <= end_date)
+        ]
+
+        feedback_df = feedback_df[
+            (feedback_df['created_at'] >= start_date) &
+            (feedback_df['created_at'] <= end_date)
+        ]
+
+        session_df = session_df[
+            (session_df['created_at'] >= start_date) &
+            (session_df['created_at'] <= end_date)
+        ]
+
+        users_df = users_df[
+            (users_df['created_at'] >= start_date) &
+            (users_df['created_at'] <= end_date)
+        ]
+    # Tổng hợp số liệu
+    total_users = users_df['user_id'].nunique()
+    total_messages = conversation_logs_df['message_id'].count()
+    total_sessions = conversation_logs_df['session_id'].nunique()
+
+    # Tính thời lượng chat trung bình
+    conversation_logs_df['timestamp'] = pd.to_datetime(conversation_logs_df['timestamp'])
+    conversation_logs_df['created_at'] = pd.to_datetime(conversation_logs_df['created_at'])
+
+    # Calculate session start and end times based on the first and last message timestamps
+    session_start_times = conversation_logs_df.groupby('session_id')['timestamp'].min().reset_index()
+    session_start_times.columns = ['session_id', 'start_time']
+    session_end_times = conversation_logs_df.groupby('session_id')['timestamp'].max().reset_index()
+    session_end_times.columns = ['session_id', 'end_time']
+    
+    # Merge start and end times into a single DataFrame
+    session_times = pd.merge(session_start_times, session_end_times, on='session_id')
+
+    # Calculate session durations
+    session_times['session_duration'] = (session_times['end_time'] - session_times['start_time']).dt.total_seconds()
+
+    avg_session_duration = round(session_times['session_duration'].mean(), 2)
+
+    # Tính tỷ lệ lỗi chatbot
+    # Tính tỷ lệ lỗi chatbot (kiểm tra tránh chia cho 0)
+    if total_sessions > 0:
+        errored_sessions = conversation_logs_df[conversation_logs_df['outputs'].str.contains('error|fail|not found|unable', case=False)]
+        error_rate = round((errored_sessions['session_id'].nunique() / total_sessions) * 100, 2)
+    else:
+        error_rate = 0.0  # Nếu không có session nào, tỷ lệ lỗi đặt bằng 0
+
+    # Tính thời gian phản hồi trung bình
+    conversation_logs_df['response_speed'] = (abs((conversation_logs_df['timestamp'] - conversation_logs_df['created_at']))).dt.total_seconds()
+    avg_response_time = round(conversation_logs_df['response_speed'].mean(), 2)
+
+    # Chuẩn bị dữ liệu cho biểu đồ
+    user_messages_data = conversation_logs_df.groupby(conversation_logs_df['timestamp'].dt.date).size().to_dict()
+    user_messages_data = {str(key): value for key, value in user_messages_data.items()}  # Chuyển datetime thành chuỗi
+
+    hourly_messages_data = conversation_logs_df.groupby(conversation_logs_df['timestamp'].dt.hour).size().to_dict()
+
+    # Tính tỷ lệ phản hồi người dùng
+    feedback_subset = feedback_df[['message_id', 'feedback_type', 'feedback_text']]
+    logging.info("Feedback Counts: %s", feedback_subset)
+    conversation_logs_df_feedback = pd.merge(conversation_logs_df, feedback_subset, on='message_id', how='left')
+    conversation_logs_df_feedback = conversation_logs_df_feedback.drop_duplicates(subset=['message_id'])
+    # Tính toán số lượng mỗi loại feedback_type
+    # Thay thế NaN bằng "No Feedback"
+    conversation_logs_df_feedback['feedback_type'] = conversation_logs_df_feedback['feedback_type'].fillna('no_feedback')
+
+    feedback_counts = conversation_logs_df_feedback['feedback_type'].value_counts().to_dict()
+
+    # Xử lý dữ liệu người dùng theo ngày
+    session_df['created_at'] = pd.to_datetime(session_df['created_at']).dt.date
+    users_by_date = session_df.groupby('created_at').size().to_dict()
+    users_by_date_str = {str(k): v for k, v in users_by_date.items()}  # Chuyển datetime thành chuỗi
+
+    non_faqs_df = conversation_logs_df[conversation_logs_df['inputs'] != ""]
+
+    # Creating the Non_FAQs_df
+    non_faqs_df = non_faqs_df[['message_id', 'inputs', 'outputs', 'domain']].copy()
+    non_faqs_df['usage_count'] = non_faqs_df.groupby('inputs')['inputs'].transform('count')
+    non_faqs_df = non_faqs_df[['message_id', 'inputs', 'domain', 'usage_count', 'outputs']]
+    non_faqs_df.columns = ['question_id', 'text_content', 'domain', 'usage_count', 'outputs']
+    non_faqs_df_used = non_faqs_df[['text_content', 'usage_count', 'outputs']]
+
+    # Sort by 'usage_count' in descending order
+    non_faqs_df_used = non_faqs_df_used.sort_values(by='usage_count', ascending=False)
+    non_faqs_df_used = non_faqs_df_used.drop_duplicates(subset='text_content', keep='first')
+    non_faqs_data = non_faqs_df_used.to_dict(orient='records')
+
+    response_data = {
+        'user_list': user_list,  # Chuyển user_id thành chuỗi
+        'total_users': int(total_users),
+        'total_messages': int(total_messages),
+        'total_sessions': total_sessions,
+        'avg_response_time': avg_response_time,
+        'avg_session_duration': avg_session_duration,  # Giả sử cùng cách tính
+        'error_rate': error_rate,
+        'feedback_counts': feedback_counts,
+        'user_messages_data': user_messages_data,
+        'hourly_messages_data': hourly_messages_data,
+        'user_access_data': users_by_date_str,
+        'non_faqs_data': non_faqs_data
+    }
+
+    # Log để kiểm tra dữ liệu JSON
+    logging.info("user_list: %s", user_list)
+    logging.info("total_users: %s", int(total_users))
+    logging.info("total_messages: %s", total_messages)
+    logging.info("total_sessions: %s", total_sessions)
+    logging.info("avg_response_time: %s", avg_response_time)
+    logging.info("avg_session_duration: %s", avg_session_duration)
+    logging.info("error_rate: %s", error_rate)
+    logging.info("feedback_counts: %s", feedback_counts)
+    logging.info("user_messages_data: %s", user_messages_data)
+    logging.info("hourly_messages_data: %s", hourly_messages_data)
+    logging.info("user_access_data: %s", json.dumps(users_by_date_str))
+    logging.info("non_faqs_data: %s", non_faqs_data)
 
 
+    def log_data_types(data):
+        for key, value in data.items():
+            if isinstance(value, dict):
+                # Log chi tiết kiểu dữ liệu bên trong dictionary
+                logging.info(f"{key} (dict):")
+                for sub_key, sub_value in value.items():
+                    logging.info(f"  {sub_key}: {type(sub_value)}")
+            elif isinstance(value, list) and value and isinstance(value[0], dict):
+                # Log chi tiết kiểu dữ liệu trong danh sách dictionary
+                logging.info(f"{key} (list of dict):")
+                for sub_key in value[0].keys():
+                    logging.info(f"  {sub_key}: {type(value[0][sub_key])}")
+            else:
+                # Log kiểu dữ liệu thông thường
+                logging.info(f"{key}: {type(value)}")
+
+    log_data_types(response_data)
+
+    return jsonify(response_data)
+
+@app.errorhandler(403)
+def forbidden_page(error):
+    return render_template('403.html'), 403  # Trang lỗi 403
 
 if __name__ == '__main__':
     app.run(debug=True)

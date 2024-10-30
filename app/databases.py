@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 import logging
+import pandas as pd
 
 load_dotenv()
 
@@ -79,7 +80,6 @@ def session_continue(conn, user_id):
     session = cur.fetchone()
     cur.close()
     return session
-
 
 def conversation(conn, message_id, session_id, user_id, llm_type, inputs, token_input, outputs, token_output, total_token, timestamp, conversation_id, domain):
     if not session_exists(conn, user_id, session_id):
@@ -163,20 +163,6 @@ def get_conversation_id(conn, user_id, session_id):
     cur.close()
     return conversation_id
 
-def get_bot_id(conn, user_id):
-    cur = conn.cursor()
-    cur.execute("SELECT bot_id FROM users WHERE user_id = %s", (user_id,))
-    bot_id = cur.fetchone()
-    cur.close()
-    return bot_id
-
-def bot_id_exist(conn, bot_id):
-    cur = conn.cursor()
-    cur.execute("SELECT 1 FROM users WHERE bot_id = %s", (bot_id,))
-    exists = cur.fetchone() is not None
-    cur.close()
-    return exists
-
 def write_feedback(conn, user_id, session_id, message_id, feedback_type, feedback_text):
     if not session_exists(conn, user_id, session_id):
         print(f"Session {session_id} does not exist.")
@@ -252,3 +238,23 @@ def update_conversation_title(conn, conversation_id, second_user_message):
     cur.execute("UPDATE conversations SET conversation_title = %s WHERE conversation_id = %s", (second_user_message, conversation_id))
     conn.commit()
     cur.close()
+
+# Hàm lấy dữ liệu từ bảng
+def fetch_data_from_table(table_name):
+    conn = connect_db()
+    cur = conn.cursor()
+    query = sql.SQL("SELECT * FROM {table};").format(table=sql.Identifier(table_name))
+    cur.execute(query)
+    rows = cur.fetchall()
+    colnames = [desc[0] for desc in cur.description]
+    cur.close()
+    conn.close()
+    return pd.DataFrame(rows, columns=colnames)
+
+def admin_verify(conn, user_id):
+    cur = conn.cursor()
+    cur.execute("SELECT 1 FROM admin WHERE user_id = %s", (user_id,))
+    exists = cur.fetchone() is not None     
+    cur.close()
+    logging.debug(f"Check verify admin: {exists}")
+    return exists

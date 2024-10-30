@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- jQuery phải được tải trước -->
+    <script src="{{ url_for('static', filename='js/jquery-3.6.0.min.js') }}"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet">
+
+    <!-- DataTables CSS và JS -->
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/jquery.dataTables.min.css') }}">
+
+</head>
+
+<body>
+    <header class="header-container">
+        <button class="toggle-sidebar-btn" onclick="toggleSidebar()">☰</button>
+        <h1 class="dashboard-title">PV POWER - TRUNG TÂM QUẢN TRỊ CHATBOT</h1>
+        <div class="user-info">
+            <span id="user-name" class="user-name">Xin chào,</span>
+            <button class="signout-btn" onclick="signOutAndRedirect()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 35 35" fill="none">
+                    <path
+                        d="M8.19 29.1667C7.51819 29.1667 6.9577 28.9421 6.50854 28.4929C6.05937 28.0438 5.8343 27.4828 5.83333 26.81V8.19001C5.83333 7.5182 6.0584 6.95772 6.50854 6.50855C6.95868 6.05938 7.51916 5.83432 8.19 5.83334H17.5277V7.29168H8.19C7.96541 7.29168 7.7593 7.38501 7.57166 7.57168C7.38402 7.75834 7.29069 7.96445 7.29166 8.19001V26.8115C7.29166 27.0351 7.38499 27.2407 7.57166 27.4283C7.75833 27.616 7.96395 27.7093 8.18854 27.7083H17.5277V29.1667H8.19ZM24.0071 22.6611L22.9833 21.6111L26.3652 18.2292H13.405V16.7708H26.3652L22.9819 13.3875L24.0056 12.3404L29.1667 17.5L24.0071 22.6611Z"
+                        fill="white" />
+                </svg>
+            </button>
+        </div>
+    </header>
+    <div class="main-layout">
+        <aside class="sidebar" id="sidebar">
+            <ul>
+                <li><a href="/">Trò chuyện với Chatbot</a></li>
+                <li><a href="/admin_management">Quản lý admin</a></li>
+            </ul>
+        </aside>
+        <main class="main-content">
+            <div class="container mt-5">
+                <section class="overview-section">
+                    <h2 class="section-title">Hoạt động và Lưu lượng của Chatbot</h2>
+
+                    <div class="row justify-content-end">
+                        <div class="col-md-6 d-flex justify-content-end align-items-center">
+                            <select id="userDropdown" class="form-select me-3">
+                                <option value="all" selected>Tất cả người dùng</option>
+                                {% for user in user_list %}
+                                    <option value="{{ user }}">{{ user }}</option>
+                                {% endfor %}
+                            </select>
+                    
+                            <input type="date" id="startDate" class="form-control me-2" 
+                                   value="{{ first_date }}" min="{{ first_date }}">
+                            <input type="date" id="endDate" class="form-control" 
+                                   value="{{ today_date }}" max="{{ today_date }}">
+                    
+                            <button id="filterButton" class="btn filter-btn">
+                                <img src="{{ url_for('static', filename='images/Filter.png') }}" alt="Filter Icon" class="filter-icon">
+                            </button>     
+                        </div>
+                    </div>
+
+
+                    <div class="dashboard-container">
+
+                        <!-- Bố cục chính với thông tin và biểu đồ -->
+                        <div class="d-flex">
+                            <!-- Cột thông tin -->
+                            <div class="info-section">
+                                <div class="info-card">
+                                    <p class="card-text" id="totalSessions">{{ total_sessions }}</p>
+                                    <h5 class="card-title">Tổng số phiên chat</h5>
+                                </div>
+                                <div class="info-card">
+                                    <p class="card-text" id="totalMessages">{{ total_messages }}</p>
+                                    <h5 class="card-title">Tổng số tin nhắn</h5>
+                                </div>
+                                <div class="info-card">
+                                    <p class="card-text" id="avgSessionDuration">{{ avg_session_duration }} giây</p>
+                                    <h5 class="card-title">Thời lượng chat trung bình</h5>
+                                </div>
+                                <div class="info-card">
+                                    <p class="card-text" id="errorRate">{{ error_rate }}%</p>
+                                    <h5 class="card-title">Tỷ lệ lỗi chatbot</h5>
+                                </div>
+                                <div class="info-card">
+                                    <p class="card-text" id="avgResponseTime">{{ avg_response_time }} giây</p>
+                                    <h5 class="card-title">Tốc độ phản hồi</h5>
+                                </div>
+                            </div>
+
+                            <!-- Cột biểu đồ -->
+                            <div class="chart-section">
+                                <div class="chart-container">
+                                    <h4 class="chart-title">Số lượng tin nhắn của người dùng</h4>
+                                    <div><canvas id="userMessagesChart"></canvas></div>
+                                </div>
+                                
+                                <div class="chart-container">
+                                    <h4 class="chart-title">Số lượng tin nhắn theo khung giờ</h4>
+                                    <div><canvas id="hourlyMessagesChart"></canvas></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="user-activity-section">
+                        <h2 class="user-activity-title">Hoạt động của người dùng</h2>
+                        <div class="user-activity-container">
+                            <div class="chart-container-wrapper">
+                                <div class="chart-container-user pie-chart-container-wrapper">
+                                    <h4 class="pie-chart-title">Tỷ lệ phản hồi người dùng</h4>
+                                    <div class="pie-chart-container">
+                                        <canvas id="feedbackChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <div class="chart-container-user bar-chart-container-wrapper">
+                                    <h4 class="bar-chart-title">Số lượng người dùng truy cập chatbot</h4>
+                                    <div class="bar-chart-container">
+                                        <canvas id="userAccessChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="container mt-5">
+                        <h2 class="user-activity-title">Những câu hỏi thường gặp</h2>
+                        <table id="faqTable" class="table table-striped table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="text-center">Nội dung câu hỏi</th>
+                                    <th class="text-center">Số lần hỏi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in non_faqs_data %}
+                                <tr>
+                                    <td class="text-start">{{ item.text_content }}</td> <!-- Căn trái -->
+                                    <td class="text-center">{{ item.usage_count }}</td> <!-- Căn giữa -->
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <footer class="footer mt-5 p-3 bg-light text-center">
+        <p>&copy; 2024 PV Power - Trung tâm quản trị Chatbot</p>
+    </footer>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active'); // Thêm hoặc bỏ class 'active'
+        }
+    </script>
+    
+    <script type="module" src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#faqTable').DataTable({
+                paging: true,           // Bật phân trang
+                pageLength: 10,         // Số dòng mỗi trang
+                lengthChange: false,    // Tắt thay đổi số dòng mỗi trang
+                searching: false,       // Tắt thanh tìm kiếm
+                info: true,             // Hiển thị thông tin bảng
+                ordering: true,         // Bật tính năng sắp xếp
+                order: [[1, 'desc']],   // Sắp xếp theo cột thứ hai (Số lần hỏi) giảm dần
+                language: {
+                    paginate: {
+                        previous: "Trước",
+                        next: "Sau"
+                    },
+                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ mục", // Tùy chỉnh nhãn thông tin bảng
+                }
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="text/javascript">
+        const userMessagesData = JSON.parse(`{{ user_messages_data | tojson | safe }}`);
+        const hourlyMessagesData = JSON.parse(`{{ hourly_messages_data | tojson | safe }}`);
+        const feedbackCounts = JSON.parse(`{{ feedback_counts | tojson | safe }}`);
+        const userAccessData = JSON.parse(`{{ user_access_data | tojson | safe }}`);
+
+        const userMessagesCtx = document.getElementById('userMessagesChart').getContext('2d');
+        new Chart(userMessagesCtx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(userMessagesData),
+                datasets: [{
+                    label: 'Tin nhắn',
+                    data: Object.values(userMessagesData),
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: false,
+                plugins: {
+                    title: {
+                        display: false,
+                        text: 'Số lượng tin nhắn của người dùng'
+                    }
+                }
+            }
+        });
+
+        const hourlyMessagesCtx = document.getElementById('hourlyMessagesChart').getContext('2d');
+        new Chart(hourlyMessagesCtx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(hourlyMessagesData),
+                datasets: [{
+                    label: 'Tin nhắn theo giờ',
+                    data: Object.values(hourlyMessagesData),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: false,
+                plugins: {
+                    title: {
+                        display: false,
+                        text: 'Số lượng tin nhắn theo khung giờ'
+                    }
+                }
+            }
+        });
+
+
+        const ctxPie = document.getElementById('feedbackChart').getContext('2d');
+        const feedbackChart = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Like', 'Dislike', 'No Feedback'],
+                datasets: [{
+                    // label: 'Tỷ lệ phản hồi người dùng',
+                    data: [feedbackCounts.like || 0, feedbackCounts.dislike || 0, feedbackCounts.no_feedback || 0],
+                    backgroundColor: ['#28a745', '#dc3545', '#2B3467'], // Xanh cho like, đỏ cho dislike
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Không duy trì tỷ lệ mặc định
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: false,
+                        text: 'Tỷ lệ phản hồi người dùng'
+                    }
+                }
+            }
+        });
+
+
+        
+        console.log("userAccessData:", userAccessData);  // Kiểm tra dữ liệu
+
+        try {
+            // const userAccessData = JSON.parse(userAccessData);  // Parse JSON từ chuỗi dữ liệu
+            console.log("Parsed Data:", userAccessData);
+
+            const ctx = document.getElementById('userAccessChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(userAccessData),
+                    datasets: [{
+                        label: 'Số người dùng',
+                        data: Object.values(userAccessData),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error("JSON Parse Error:", e.message);
+        }
+    </script>
+
+
+    <script>
+        function deleteAllCookies() {
+            const cookies = document.cookie.split("; ");
+            for (let c = 0; c < cookies.length; c++) {
+                const d = window.location.hostname.split(".");
+                while (d.length > 0) {
+                    const cookieBase = encodeURIComponent(cookies[c].split(";")[0].split("=")[0]) +
+                        '=; expires=Thu, 01-Jan-1970 00:00:01 GMT; domain=' + d.join('.') + ' ;path=';
+                    const p = window.location.pathname.split('/');
+                    document.cookie = cookieBase + '/';
+                    while (p.length > 0) {
+                        document.cookie = cookieBase + p.join('/');
+                        p.pop();
+                    };
+                    d.shift();
+                }
+            }
+        }
+
+        function signOutAndRedirect() {
+            deleteAllCookies(); // Xóa tất cả cookies
+            window.location.href = 'signin'; // Chuyển hướng đến trang signin.html
+        }
+    </script>
+
+</body>
+
+</html>
