@@ -303,4 +303,4 @@ function reloadPageIfVisible() {
 document.addEventListener('visibilitychange', reloadPageIfVisible);
 
 // Lắng nghe sự kiện focus của cửa sổ
-window.addEventListener('focus', reloadPageIfVisible);
+// window.addEventListener('focus', reloadPageIfVisible);
