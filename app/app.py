@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response
 import requests
 import logging
-from databases import fetch_data_from_table, update_conversation_title, get_session_from_conversation, session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_transcripts, add_conversation, get_conversation_id, write_feedback, upload_pending_FAQ, session_valid, error_logs, get_all_conversations
+from databases import fetch_data_from_table, admin_verify, update_conversation_title, get_session_from_conversation, session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_transcripts, add_conversation, get_conversation_id, write_feedback, upload_pending_FAQ, session_valid, error_logs, get_all_conversations
 import json
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -86,12 +86,6 @@ def add_security_headers(response):
 
     # Cho phép tất cả các domain nhúng iframe
     response.headers['Content-Security-Policy'] = "frame-ancestors *"
-
-    # # Vô hiệu hóa bộ nhớ cache
-    # response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    # response.headers["Pragma"] = "no-cache"
-    # response.headers["Expires"] = "0"
-
     return response
 
 def authenticate_user(username, password):
@@ -240,7 +234,10 @@ def signin():
             logging.debug(f"Redirecting to home with session_id: {session_id}")
             
             # Set cookie for session_id and user_id
-            response = make_response(redirect(url_for('home')))
+            if admin_verify(conn, username):
+                response = make_response(redirect(url_for('admin_dashboard')))
+            else:
+                response = make_response(redirect(url_for('home')))
             # Đặt thời gian hết hạn cụ thể, ví dụ 10 phút kể từ bây giờ
             expires = datetime.now(timezone.utc) + timedelta(minutes=60)
             

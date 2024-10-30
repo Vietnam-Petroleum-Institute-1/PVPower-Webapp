@@ -293,14 +293,26 @@ window.onload = function () {
     }
 };
 
+let lastInactiveTime = Date.now(); // Thời điểm cuối cùng trang được xem
+
+// Lưu thời gian hiện tại mỗi khi trang bị ẩn (người dùng rời khỏi)
+document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+        lastInactiveTime = Date.now(); // Cập nhật thời gian rời khỏi
+    }
+});
+
+// Khi tab hoặc cửa sổ quay lại, kiểm tra thời gian không hoạt động
 function reloadPageIfVisible() {
-    if (document.visibilityState === 'visible') {
-        location.reload(); // Reload lại trang nếu tab đang hiển thị
+    const currentTime = Date.now();
+    const inactiveDuration = currentTime - lastInactiveTime;
+
+    // Nếu thời gian không hoạt động hơn 1 phút (60000 ms), reload trang
+    if (document.visibilityState === 'visible' && inactiveDuration >= 60000) {
+        location.reload();
     }
 }
 
-// Lắng nghe sự kiện thay đổi trạng thái visibility
+// Lắng nghe sự kiện focus và visibilitychange
 document.addEventListener('visibilitychange', reloadPageIfVisible);
-
-// Lắng nghe sự kiện focus của cửa sổ
-// window.addEventListener('focus', reloadPageIfVisible);
+window.addEventListener('focus', reloadPageIfVisible);
