@@ -39,5 +39,12 @@
   </div>
   <script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+  <script>
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        location.reload(); // Reload lại trang khi tab được quay lại
+      }
+    });
+  </script>
 </body>
 </html>
