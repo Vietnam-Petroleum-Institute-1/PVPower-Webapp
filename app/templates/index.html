@@ -15,6 +15,14 @@
         </div>
         <h1>CHATBOT HỎI ĐÁP PV POWER</h1>
         <div class="user-info">
+            {% if is_admin %}
+            <a href="{{ url_for('admin_dashboard') }}" class="dashboard-link">
+                <button class="btn-gradient">
+                    Admin Dashboard
+                </button>
+            </a>
+            {% endif %}
+
             <span id="user-name" class="user-name">Xin chào, </span>
             <button class="signout-btn" onclick="signOutAndRedirect()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" viewBox="0 0 35 35" fill="none">

@@ -129,8 +129,12 @@ def home():
         logging.debug("No session_id found, redirecting to signin.")
         return redirect(url_for('signin'))
 
-    logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}")
-    return render_template('index.html')
+    # Kiểm tra xem người dùng có phải là admin không
+    conn = connect_db()
+    is_admin = admin_verify(conn, user_id)  # Giả định rằng bạn đã truyền kết nối `conn`
+
+    logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}, is_admin: {is_admin}")
+    return render_template('index.html', is_admin=is_admin)
 
 @app.route('/chatbot')
 def chatbot():
@@ -234,10 +238,7 @@ def signin():
             logging.debug(f"Redirecting to home with session_id: {session_id}")
             
             # Set cookie for session_id and user_id
-            if admin_verify(conn, username):
-                response = make_response(redirect(url_for('admin_dashboard')))
-            else:
-                response = make_response(redirect(url_for('home')))
+            response = make_response(redirect(url_for('home')))
             # Đặt thời gian hết hạn cụ thể, ví dụ 10 phút kể từ bây giờ
             expires = datetime.now(timezone.utc) + timedelta(minutes=60)
             
