@@ -453,7 +453,7 @@ function addMessageToChat(sender, message, messageId) {
   const messageContent = document.createElement("div");
   messageContent.classList.add("message-content");
   
-  messageContent.textContent = marked(message);
+  messageContent.textContent = message;
 
   messageElement.appendChild(messageContent);
 
