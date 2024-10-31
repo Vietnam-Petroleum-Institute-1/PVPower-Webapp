@@ -2,7 +2,7 @@ flask
 requests
 datetime
 flask_cors
-psycopg2-binary
+psycopg2
 python-dotenv
 ldap3
 pyjwt
