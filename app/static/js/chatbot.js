@@ -504,69 +504,65 @@ function parseMarkdown(markdown) {
 
 
 function addMessageToChat(sender, message, messageId) {
-    const chatMessages = document.getElementById("chatMessages");
+  const chatMessages = document.getElementById("chatMessages");
 
-    const messageElement = document.createElement("div");
-    messageElement.classList.add("message", sender);
-    if (messageId) {
-        messageElement.dataset.messageId = messageId; // Lưu trữ message_id
-    }
+  const messageElement = document.createElement("div");
+  messageElement.classList.add("message", sender);
+  if (messageId) {
+      messageElement.dataset.messageId = messageId; // Lưu trữ message_id
+  }
 
-    // Thêm hình ảnh avatar cho bot nếu sender là bot
-    if (sender === "bot") {
-        const botAvatar = document.createElement("img");
-        botAvatar.src = "/static/images/Logo_Petrovietnam.svg.png"; // Đường dẫn đến ảnh avatar của bot
-        botAvatar.classList.add("bot-avatar");
-        messageElement.appendChild(botAvatar);
-    }
+  if (sender === "bot") {
+      const botAvatar = document.createElement("img");
+      botAvatar.src = "/static/images/Logo_Petrovietnam.svg.png";
+      botAvatar.classList.add("bot-avatar");
+      messageElement.appendChild(botAvatar);
+  }
 
-    const messageContent = document.createElement("div");
-    messageContent.classList.add("message-content");
+  const messageContent = document.createElement("div");
+  messageContent.classList.add("message-content");
 
-    // Hiển thị nội dung gốc của tin nhắn để đảm bảo an toàn
-    messageContent.textContent = message;
+  // Kiểm tra nếu là tin nhắn bot, sử dụng parseMarkdown một lần duy nhất
+  if (sender === "bot") {
+      // Xóa nội dung cũ trước khi gán
+      messageContent.innerHTML = '';  
+      messageContent.innerHTML = parseMarkdown(message);  // Dùng parseMarkdown một lần
+  } else {
+      messageContent.textContent = message;
+  }
 
-    // Tạo thêm một phần tử để hiển thị nội dung đã chuyển đổi từ Markdown
-    const markdownContent = document.createElement("div");
-    markdownContent.classList.add("markdown-content");
-    markdownContent.innerHTML = sender === "bot" ? parseMarkdown(message) : '';
+  messageElement.appendChild(messageContent);
 
-    // Thêm phần tử Markdown vào bên trong messageContent
-    messageContent.appendChild(markdownContent);
+  if (sender === "bot" && messageId) {
+      const feedbackButtons = document.createElement("div");
+      feedbackButtons.classList.add("feedback-buttons");
 
-    messageElement.appendChild(messageContent);
+      const likeButton = document.createElement("button");
+      likeButton.classList.add("like-button");
+      likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+      likeButton.onclick = () => sendFeedback("like", messageId, messageElement);
 
-    // Nếu tin nhắn là của bot và có messageId, thêm nút feedback
-    if (sender === "bot" && messageId) {
-        const feedbackButtons = document.createElement("div");
-        feedbackButtons.classList.add("feedback-buttons");
+      const dislikeButton = document.createElement("button");
+      dislikeButton.classList.add("dislike-button");
+      dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
+      dislikeButton.onclick = () => sendFeedback("dislike", messageId, messageElement);
 
-        const likeButton = document.createElement("button");
-        likeButton.classList.add("like-button");
-        likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-        likeButton.onclick = () => sendFeedback("like", messageId, messageElement);
+      const copyButton = document.createElement("button");
+      copyButton.classList.add("copy-button");
+      copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+      copyButton.onclick = () => copyToClipboard(messageContent.textContent);
 
-        const dislikeButton = document.createElement("button");
-        dislikeButton.classList.add("dislike-button");
-        dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-        dislikeButton.onclick = () =>
-            sendFeedback("dislike", messageId, messageElement);
+      feedbackButtons.appendChild(likeButton);
+      feedbackButtons.appendChild(dislikeButton);
+      feedbackButtons.appendChild(copyButton);
 
-        const copyButton = document.createElement("button");
-        copyButton.classList.add("copy-button");
-        copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-        copyButton.onclick = () => copyToClipboard(messageContent.textContent);
+      messageElement.appendChild(feedbackButtons);
+  }
 
-        feedbackButtons.appendChild(likeButton);
-        feedbackButtons.appendChild(dislikeButton);
-        feedbackButtons.appendChild(copyButton);
-
-        messageElement.appendChild(feedbackButtons);
-    }
-
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
 
 
 // Hàm để sao chép nội dung vào clipboard
