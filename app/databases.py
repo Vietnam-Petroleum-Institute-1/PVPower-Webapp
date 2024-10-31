@@ -158,7 +158,7 @@ def get_conversation_id(conn, user_id, session_id):
         print(f"Session {session_id} does not exist.")
         return
     cur = conn.cursor()
-    cur.execute("SELECT conversation_id FROM conversations WHERE session_id = %s and user_id = %s", (session_id, user_id))
+    cur.execute("SELECT conversation_id FROM conversations WHERE user_id = %s ORDER BY created_at DESC LIMIT 1", (user_id,))
     conversation_id = cur.fetchone()
     cur.close()
     return conversation_id

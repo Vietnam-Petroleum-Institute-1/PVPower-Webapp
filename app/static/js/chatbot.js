@@ -563,8 +563,6 @@ function addMessageToChat(sender, message, messageId) {
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-
-
 // Hàm để sao chép nội dung vào clipboard
 function copyToClipboard(text) {
   const textarea = document.createElement("textarea");
