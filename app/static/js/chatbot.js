@@ -452,7 +452,8 @@ function addMessageToChat(sender, message, messageId) {
 
   const messageContent = document.createElement("div");
   messageContent.classList.add("message-content");
-  messageContent.textContent = message;
+
+  messageContent.innerHTML = sender === "bot" ? marked(message) : message;
 
   messageElement.appendChild(messageContent);
 
