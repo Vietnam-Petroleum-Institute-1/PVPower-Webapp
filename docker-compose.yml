@@ -11,6 +11,7 @@ services:
       DATABASE_URL: postgres://phuongpd:vdkvn22.05@db:5432/pvpower
     depends_on:
       - db
+    restart: always
 
   db:
     image: postgres:13
@@ -22,6 +23,7 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    restart: always
 
 volumes:
   pgdata:
