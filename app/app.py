@@ -15,9 +15,17 @@ import jwt  # For token handling
 from zoneinfo import ZoneInfo
 import pandas as pd
 from decorators import admin_required
+from flask import send_from_directory, abort
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Cho phép tất cả nguồn gốc
+
+UPLOAD_FOLDER = '/app/save_files'  # Đường dẫn trong container
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Giới hạn kích thước file upload lên tới 16MB
+ALLOWED_EXTENSIONS = {'docx', 'md', 'pdf'}  # Định nghĩa các định dạng file cho phép
+
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -31,6 +39,49 @@ LDAP_USER = os.getenv('LDAP_USER')
 LDAP_PASSWORD = os.getenv('LDAP_PASSWORD')
 BASE_DN = os.getenv('BASE_DN')
 SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_TOKEN = os.environ.get('SECRET_TOKEN')  # Lấy token từ biến môi trường
+
+# Kiểm tra định dạng file được phép upload
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Tạo tên file mới bao gồm 'NămThángNgày_GiờPhútGiây' và tên gốc của file
+def generate_new_filename(original_filename):
+    current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+    original_name = secure_filename(original_filename.rsplit('.', 1)[0])
+    extension = original_filename.rsplit('.', 1)[1].lower()
+    new_filename = f"{current_time}_{original_name}.{extension}"
+    return new_filename
+
+# Xác thực token
+def verify_secret_token():
+    token = request.headers.get('Authorization')
+    if token != SECRET_TOKEN:
+        abort(401)  # Unauthorized
+
+# Route để upload file
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    verify_secret_token()  # Kiểm tra token trước khi xử lý
+    if 'file' not in request.files:
+        return {'error': 'No file part in request'}, 400
+    file = request.files['file']
+    if file.filename == '':
+        return {'error': 'No selected file'}, 400
+    if file and allowed_file(file.filename):
+        new_filename = generate_new_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], new_filename)
+        file.save(filepath)
+        download_url = url_for('download_file', filename=new_filename, _external=True)
+        return {'message': 'File uploaded successfully', 'download_url': download_url}
+    else:
+        return {'error': 'Unsupported file format'}, 415
+
+# Route để download file (không yêu cầu token)
+@app.route('/download/<filename>', methods=['GET'])
+def download_file(filename):
+    # Không yêu cầu xác thực token ở đây
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 def decode_token(token):
     try:
@@ -860,7 +911,6 @@ def filter_dashboard():
     avg_session_duration = round(session_times['session_duration'].mean(), 2)
 
     # Tính tỷ lệ lỗi chatbot
-    # Tính tỷ lệ lỗi chatbot (kiểm tra tránh chia cho 0)
     if total_sessions > 0:
         errored_sessions = conversation_logs_df[conversation_logs_df['outputs'].str.contains('error|fail|not found|unable', case=False)]
         error_rate = round((errored_sessions['session_id'].nunique() / total_sessions) * 100, 2)

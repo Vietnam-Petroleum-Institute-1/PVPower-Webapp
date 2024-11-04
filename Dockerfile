@@ -29,4 +29,4 @@ ENV FLASK_ENV=production
 EXPOSE 5000
 
 # Chạy ứng dụng với Gunicorn
-CMD ["gunicorn", "-w", "4", "-k", "gthread", "--threads", "2", "-b", "0.0.0.0:5000", "app.app:app"]
+CMD ["gunicorn", "-w", "4", "-k", "gthread", "--threads", "2", "-b", "0.0.0.0:5000", "app.app:app", "&", "nginx", "-g", "'daemon off;'"]

@@ -8,41 +8,41 @@ window.onload = function () {
 
   // Lấy token từ URL
   const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
-  
-  console.log('Token from URL:', token);  
+  const token = params.get("token");
+
+  console.log("Token from URL:", token);
   let user_id;
   let session_id;
 
   if (token) {
-      // Gọi API kiểm tra token
-      fetch('/api/verify_token', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token: token }),
-      })
-      .then(response => response.json())
-      .then(data => {
-          if (data.user_id && data.session_id) {
-              // Lưu user_id và session_id vào localStorage
-              localStorage.setItem('user_id', data.user_id);
-              localStorage.setItem('session_id', data.session_id);
-              user_id = data.user_id;
-              session_id = data.session_id;
-              console.log('Local storage set successfully');
+    // Gọi API kiểm tra token
+    fetch("/api/verify_token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token: token }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.user_id && data.session_id) {
+          // Lưu user_id và session_id vào localStorage
+          localStorage.setItem("user_id", data.user_id);
+          localStorage.setItem("session_id", data.session_id);
+          user_id = data.user_id;
+          session_id = data.session_id;
+          console.log("Local storage set successfully");
 
-              // Tiếp tục logic bình thường sau khi lưu user_id và session_id
-              continueWithSession(user_id, session_id);
-          } else {
-              console.error('Invalid token, redirecting to signin...');
-              // window.location.href = '/signin';
-          }
-      })
-      .catch(error => {
-          console.error('Error verifying token:', error);
+          // Tiếp tục logic bình thường sau khi lưu user_id và session_id
+          continueWithSession(user_id, session_id);
+        } else {
+          console.error("Invalid token, redirecting to signin...");
           // window.location.href = '/signin';
+        }
+      })
+      .catch((error) => {
+        console.error("Error verifying token:", error);
+        // window.location.href = '/signin';
       });
   } else {
     // Lấy user_id và session_id từ localStorage nếu không có token
@@ -50,13 +50,18 @@ window.onload = function () {
     console.log("Cookie:", getCookie("session_id"));
     user_id = localStorage.getItem("user_id") || getCookie("user_id");
     session_id = localStorage.getItem("session_id") || getCookie("session_id");
-    
-    console.log("User ID from localStorage:", user_id, "Session ID from localStorage:", session_id);
-    
+
+    console.log(
+      "User ID from localStorage:",
+      user_id,
+      "Session ID from localStorage:",
+      session_id
+    );
+
     if (user_id && session_id) {
       continueWithSession(user_id, session_id);
     } else {
-      console.error('No valid session, redirecting to signin...');
+      console.error("No valid session, redirecting to signin...");
       // window.location.href = '/signin';
     }
   }
@@ -73,25 +78,25 @@ function continueWithSession(user_id, session_id) {
     },
     body: JSON.stringify({ user_id }),
   })
-  .then((response) => response.json())
-  .then((data) => {
-    console.log("User existence check:", data);
-    if (data.result) {
-      conversationIdPromise = checkOrCreateSession(user_id, session_id);
-      loadTranscripts(user_id, session_id); // Load transcripts nếu có session_id
-    } else {
-      console.log("Chui vào cái continue rồi")
-      document.getElementById("chatMessages").innerHTML =
-        '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
-      const chatInput = document.querySelector(".chat-input");
-      if (chatInput) {
-        chatInput.style.display = "none";
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("User existence check:", data);
+      if (data.result) {
+        conversationIdPromise = checkOrCreateSession(user_id, session_id);
+        loadTranscripts(user_id, session_id); // Load transcripts nếu có session_id
+      } else {
+        console.log("Chui vào cái continue rồi");
+        document.getElementById("chatMessages").innerHTML =
+          '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
+        const chatInput = document.querySelector(".chat-input");
+        if (chatInput) {
+          chatInput.style.display = "none";
+        }
       }
-    }
-  })
-  .catch((error) => {
-    console.error("Error:", error);
-  });
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 }
 
 function loadTranscripts(user_id, session_id) {
@@ -196,7 +201,7 @@ function checkOrCreateSession(user_id, session_id) {
         ).toISOString();
         return createSession(user_id, session_id, start_time, end_time);
       } else {
-        console.log("Chui vào cái check rồi")
+        console.log("Chui vào cái check rồi");
         document.getElementById("chatMessages").innerHTML =
           '<div class="message bot"><div class="message-content">Vui lòng đăng nhập để sử dụng trợ lý ảo</div></div>';
         const chatInput = document.querySelector(".chat-input");
@@ -262,7 +267,11 @@ function startConversation(user_id, session_id) {
       }
 
       isConversationStarted = true;
-      addMessageToChat("bot", "Xin chào, tôi có thể giúp gì bạn?", data.message_id);
+      addMessageToChat(
+        "bot",
+        "Xin chào, tôi có thể giúp gì bạn?",
+        data.message_id
+      );
 
       return conversation_id;
     })
@@ -330,7 +339,8 @@ function sendMessage(message = null) {
   }
 
   const user_id = localStorage.getItem("user_id") || getCookie("user_id");
-  const session_id = localStorage.getItem("session_id") || getCookie("session_id");
+  const session_id =
+    localStorage.getItem("session_id") || getCookie("session_id");
   const conversation_id = sessionStorage.getItem("conversation_id");
 
   if (!conversation_id) {
@@ -433,75 +443,20 @@ function uploadPendingFAQ(answer, question, domain, user_id) {
     });
 }
 
-// function addMessageToChat(sender, message, messageId) {
-//   const chatMessages = document.getElementById("chatMessages");
-
-//   const messageElement = document.createElement("div");
-//   messageElement.classList.add("message", sender);
-//   if (messageId) {
-//     messageElement.dataset.messageId = messageId; // Lưu trữ message_id
-//   }
-
-//   // Thêm hình ảnh avatar cho bot nếu sender là bot
-//   if (sender === "bot") {
-//     const botAvatar = document.createElement("img");
-//     botAvatar.src = "/static/images/Logo_Petrovietnam.svg.png"; // Đường dẫn đến ảnh avatar của bot
-//     botAvatar.classList.add("bot-avatar");
-//     messageElement.appendChild(botAvatar);
-//   }
-
-//   const messageContent = document.createElement("div");
-//   messageContent.classList.add("message-content");
-  
-//   messageContent.textContent = message;
-
-//   messageElement.appendChild(messageContent);
-
-//   // Nếu tin nhắn là của bot và có messageId, thêm nút feedback
-//   if (sender === "bot" && messageId) {
-//     const feedbackButtons = document.createElement("div");
-//     feedbackButtons.classList.add("feedback-buttons");
-
-//     const likeButton = document.createElement("button");
-//     likeButton.classList.add("like-button");
-//     likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-//     likeButton.onclick = () => sendFeedback("like", messageId, messageElement);
-
-//     const dislikeButton = document.createElement("button");
-//     dislikeButton.classList.add("dislike-button");
-//     dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-//     dislikeButton.onclick = () =>
-//       sendFeedback("dislike", messageId, messageElement);
-
-//     const copyButton = document.createElement("button");
-//     copyButton.classList.add("copy-button");
-//     copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-//     copyButton.onclick = () => copyToClipboard(messageContent.textContent);
-
-//     feedbackButtons.appendChild(likeButton);
-//     feedbackButtons.appendChild(dislikeButton);
-//     feedbackButtons.appendChild(copyButton);
-
-//     // Thêm feedback buttons vào messageElement nhưng nằm ngoài messageContent
-//     messageElement.appendChild(feedbackButtons);
-//   }
-
-//   chatMessages.appendChild(messageElement);
-//   chatMessages.scrollTop = chatMessages.scrollHeight;
-// }
-
 // Hàm chuyển đổi Markdown sang HTML
 function parseMarkdown(markdown) {
-  markdown = markdown.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-  markdown = markdown.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-  markdown = markdown.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-  markdown = markdown.replace(/\*\*(.*)\*\*/gim, '<b>$1</b>');
-  markdown = markdown.replace(/\*(.*)\*/gim, '<i>$1</i>');
-  markdown = markdown.replace(/\n/gim, '<br>');
-  markdown = markdown.replace(/\[(.*?)\]\((.*?)\)/gim, "<a href='$2' target='_blank'>$1</a>");
+  markdown = markdown.replace(/^# (.*$)/gim, "<h1>$1</h1>");
+  markdown = markdown.replace(/^## (.*$)/gim, "<h2>$1</h2>");
+  markdown = markdown.replace(/^### (.*$)/gim, "<h3>$1</h3>");
+  markdown = markdown.replace(/\*\*(.*)\*\*/gim, "<b>$1</b>");
+  markdown = markdown.replace(/\*(.*)\*/gim, "<i>$1</i>");
+  markdown = markdown.replace(/\n/gim, "<br>");
+  markdown = markdown.replace(
+    /\[(.*?)\]\((.*?)\)/gim,
+    "<a href='$2' target='_blank'>$1</a>"
+  );
   return markdown.trim();
 }
-
 
 function addMessageToChat(sender, message, messageId) {
   const chatMessages = document.getElementById("chatMessages");
@@ -509,14 +464,14 @@ function addMessageToChat(sender, message, messageId) {
   const messageElement = document.createElement("div");
   messageElement.classList.add("message", sender);
   if (messageId) {
-      messageElement.dataset.messageId = messageId; // Lưu trữ message_id
+    messageElement.dataset.messageId = messageId; // Lưu trữ message_id
   }
 
   if (sender === "bot") {
-      const botAvatar = document.createElement("img");
-      botAvatar.src = "/static/images/Logo_Petrovietnam.svg.png";
-      botAvatar.classList.add("bot-avatar");
-      messageElement.appendChild(botAvatar);
+    const botAvatar = document.createElement("img");
+    botAvatar.src = "/static/images/Logo_Petrovietnam.svg.png";
+    botAvatar.classList.add("bot-avatar");
+    messageElement.appendChild(botAvatar);
   }
 
   const messageContent = document.createElement("div");
@@ -524,39 +479,40 @@ function addMessageToChat(sender, message, messageId) {
 
   // Kiểm tra nếu là tin nhắn bot, sử dụng parseMarkdown một lần duy nhất
   if (sender === "bot") {
-      // Xóa nội dung cũ trước khi gán
-      messageContent.innerHTML = '';  
-      messageContent.innerHTML = parseMarkdown(message);  // Dùng parseMarkdown một lần
+    // Xóa nội dung cũ trước khi gán
+    messageContent.innerHTML = "";
+    messageContent.innerHTML = parseMarkdown(message); // Dùng parseMarkdown một lần
   } else {
-      messageContent.textContent = message;
+    messageContent.textContent = message;
   }
 
   messageElement.appendChild(messageContent);
 
   if (sender === "bot" && messageId) {
-      const feedbackButtons = document.createElement("div");
-      feedbackButtons.classList.add("feedback-buttons");
+    const feedbackButtons = document.createElement("div");
+    feedbackButtons.classList.add("feedback-buttons");
 
-      const likeButton = document.createElement("button");
-      likeButton.classList.add("like-button");
-      likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
-      likeButton.onclick = () => sendFeedback("like", messageId, messageElement);
+    const likeButton = document.createElement("button");
+    likeButton.classList.add("like-button");
+    likeButton.innerHTML = '<i class="fas fa-thumbs-up"></i>';
+    likeButton.onclick = () => sendFeedback("like", messageId, messageElement);
 
-      const dislikeButton = document.createElement("button");
-      dislikeButton.classList.add("dislike-button");
-      dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
-      dislikeButton.onclick = () => sendFeedback("dislike", messageId, messageElement);
+    const dislikeButton = document.createElement("button");
+    dislikeButton.classList.add("dislike-button");
+    dislikeButton.innerHTML = '<i class="fas fa-thumbs-down"></i>';
+    dislikeButton.onclick = () =>
+      sendFeedback("dislike", messageId, messageElement);
 
-      const copyButton = document.createElement("button");
-      copyButton.classList.add("copy-button");
-      copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-      copyButton.onclick = () => copyToClipboard(messageContent.textContent);
+    const copyButton = document.createElement("button");
+    copyButton.classList.add("copy-button");
+    copyButton.innerHTML = '<i class="fas fa-copy"></i>';
+    copyButton.onclick = () => copyToClipboard(messageContent.textContent);
 
-      feedbackButtons.appendChild(likeButton);
-      feedbackButtons.appendChild(dislikeButton);
-      feedbackButtons.appendChild(copyButton);
+    feedbackButtons.appendChild(likeButton);
+    feedbackButtons.appendChild(dislikeButton);
+    feedbackButtons.appendChild(copyButton);
 
-      messageElement.appendChild(feedbackButtons);
+    messageElement.appendChild(feedbackButtons);
   }
 
   chatMessages.appendChild(messageElement);
@@ -785,6 +741,5 @@ function hideSuggestions() {
 }
 
 function openInNewTab() {
-  window.open('https://bot.pvpower.vn', '_blank');
+  window.open("https://bot.pvpower.vn", "_blank");
 }
-

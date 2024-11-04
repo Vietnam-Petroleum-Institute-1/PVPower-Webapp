@@ -8,3 +8,5 @@ ldap3
 pyjwt
 plotly
 pandas
+werkzeug
+gunicorn
