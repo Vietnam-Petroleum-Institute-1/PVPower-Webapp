@@ -5,6 +5,7 @@ services:
     ports:
       - "8080:5000"
     volumes:
+      - ./save_files:/app/save_files
       - .:/app
     environment:
       FLASK_ENV: production

@@ -255,7 +255,7 @@ def signin():
             logging.warning("Username or password missing.")
             return render_template('signin.html', error="Username or password is missing.")
         
-        if CHATBOT_URL == "http://157.66.46.53/v1":
+        if CHATBOT_URL == "http://103.75.180.15/v1":
             success = True
             message = "Thành Công!"
             conn_db = connect_db()
@@ -811,7 +811,7 @@ def admin_dashboard():
         total_messages=total_messages,
         total_sessions=total_sessions,
         avg_response_time=avg_response_time,
-        avg_session_duration=avg_session_duration,
+        avg_session_duration=round(avg_session_duration/60, 2),
         error_rate=error_rate,
         feedback_counts=feedback_counts,  # Không cần json.dumps()
         user_messages_data=user_messages_data,  # Không cần json.dumps()
@@ -963,7 +963,7 @@ def filter_dashboard():
         'total_messages': int(total_messages),
         'total_sessions': total_sessions,
         'avg_response_time': avg_response_time,
-        'avg_session_duration': avg_session_duration,  # Giả sử cùng cách tính
+        'avg_session_duration': round(avg_session_duration/60,2),  # Giả sử cùng cách tính
         'error_rate': error_rate,
         'feedback_counts': feedback_counts,
         'user_messages_data': user_messages_data,

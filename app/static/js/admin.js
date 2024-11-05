@@ -173,7 +173,7 @@ function initializeCharts(userMessagesData, hourlyMessagesData, feedbackCounts, 
 function updateDashboard(data) {
     setTextContentById('totalSessions', data.total_sessions);
     setTextContentById('totalMessages', data.total_messages);
-    setTextContentById('avgSessionDuration', `${data.avg_session_duration} giây`);
+    setTextContentById('avgSessionDuration', `${data.avg_session_duration} phút`);
     setTextContentById('errorRate', `${data.error_rate}%`);
     setTextContentById('avgResponseTime', `${data.avg_response_time} giây`);
 
