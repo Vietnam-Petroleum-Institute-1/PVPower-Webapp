@@ -24,7 +24,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})  # Cho phép tất cả nguồn g
 UPLOAD_FOLDER = '/app/save_files'  # Đường dẫn trong container
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Giới hạn kích thước file upload lên tới 16MB
-ALLOWED_EXTENSIONS = {'docx', 'md', 'pdf'}  # Định nghĩa các định dạng file cho phép
+ALLOWED_EXTENSIONS = {'docx', 'md', 'pdf', 'csv', 'xlsx'}  # Định nghĩa các định dạng file cho phép
 
 
 # Set up logging
