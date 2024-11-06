@@ -255,7 +255,7 @@ def signin():
             logging.warning("Username or password missing.")
             return render_template('signin.html', error="Username or password is missing.")
         
-        if CHATBOT_URL == "http://103.75.180.15/v1":
+        if CHATBOT_URL != "http://192.168.17.50:9081/v1":
             success = True
             message = "Thành Công!"
             conn_db = connect_db()
@@ -411,6 +411,7 @@ def start_conversation():
 
         add_conversation(conn, conversation_id, "New message", session_id, user_id)
         conversation(conn, data["message_id"], session_id, user_id, "gpt", "", input_token, result_answer[:-len(domain)-1], output_token, total_token, timestamp, conversation_id, domain)
+        logging.debug(f"Conversation {conversation_id} inserted successfully.")
         conn.close()
         return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"]})
     except requests.exceptions.RequestException as e:
@@ -573,7 +574,7 @@ def all_conversations():
     conversations = get_all_conversations(conn, user_id)
     conn.close()
 
-    today = datetime.now().date()
+    today = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).date()
     yesterday = today - timedelta(days=1)
     seven_days_ago = today - timedelta(days=7)
 
