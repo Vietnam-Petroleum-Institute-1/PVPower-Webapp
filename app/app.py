@@ -323,10 +323,6 @@ def api_message():
         return jsonify({"result": "No message provided"}), 400
 
     url = f'{CHATBOT_URL}/chat-messages'
-    headers = {
-        'Authorization': f'Bearer {CHATBOT_APIKEY}',
-        'Content-Type': 'application/json'
-    }
 
     body = {
         "inputs": {},
@@ -387,7 +383,7 @@ def api_message():
                                     domain = extract_domain(full_response)
                                     metadata = data.get('metadata', {})
                                     usage = metadata.get('usage', {})
-                                    
+                                    logging.debug(f"Câu trả lời của dify: {full_response}")
                                     conversation(conn, message_id, session_id, user_id, "gpt",
                                                user_message, usage.get('prompt_tokens', 0), 
                                                full_response[:-len(domain)-1],
@@ -466,6 +462,7 @@ def api_message():
                                     
                                     # Lưu vào database
                                     timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
+                                    logging.debug(f"Câu trả lời của openai: {full_response}")
                                     conversation(conn, message_id, session_id, user_id, "gpt",
                                                 user_message, metadata["usage"]["prompt_tokens"], 
                                                 full_response.strip(),
