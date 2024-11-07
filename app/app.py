@@ -384,6 +384,9 @@ def api_message():
                                     metadata = data.get('metadata', {})
                                     usage = metadata.get('usage', {})
                                     logging.debug(f"Câu trả lời của dify: {full_response}")
+                                    # Nếu full_response không chứa "True" ở cuối thì thêm "\nTrue"
+                                    if not full_response.endswith("True"):
+                                        full_response += "\nTrue"
                                     conversation(conn, message_id, session_id, user_id, "gpt",
                                                user_message, usage.get('prompt_tokens', 0), 
                                                full_response[:-len(domain)-1],
