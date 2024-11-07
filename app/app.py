@@ -650,7 +650,7 @@ def api_message():
                             app.logger.error(f"Run failed with status: {run_status}")
                             break
                         
-                        time.sleep(1)  # Polling interval
+                        time.sleep(0.5)  # Polling interval
 
                 conn.close()
 
