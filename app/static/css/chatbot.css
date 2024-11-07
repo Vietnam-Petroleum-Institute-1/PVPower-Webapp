@@ -217,14 +217,13 @@ body, html {
   transform: scale(1.2);
 }
 
-.feedback-buttons button.selected {
+.feedback-buttons .like-button.selected {
   color: green;
 }
 
 .feedback-buttons .dislike-button.selected {
   color: red;
 }
-
 /* Modal improvements */
 .modal {
   display: none;

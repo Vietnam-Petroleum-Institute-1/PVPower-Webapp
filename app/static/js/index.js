@@ -231,7 +231,7 @@ document.querySelector('.new-chat-btn').addEventListener('click', function() {
                     setCookie('session_id', data.session_id, 1);
 
                     // Reload toàn bộ trang
-                    // location.reload();
+                    location.reload();
                 } else {
                     console.error('Error starting new conversation:', conversationData.result);
                 }

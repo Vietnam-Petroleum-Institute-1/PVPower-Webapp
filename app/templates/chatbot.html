@@ -31,10 +31,9 @@
 
   <div id="feedbackModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <p>Bạn không hài lòng vì vấn đề gì?</p>
-      <textarea id="feedbackText" placeholder="Ghi nhận lý do của bạn..."></textarea>
+      <textarea id="feedbackText" placeholder="Vui lòng cho chúng tôi biết lý do bạn không hài lòng"></textarea>
       <button onclick="submitDislikeFeedback()">Gửi</button>
+      <button onclick="closeModal()">Đóng</button>
     </div>
   </div>
   <script src="{{ url_for('static', filename='js/marked.min.js') }}"></script>
