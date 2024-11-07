@@ -655,14 +655,24 @@ function sendFeedback(feedbackType, messageId, messageElement) {
   const likeButton = feedbackButtons.querySelector(".like-button");
   const dislikeButton = feedbackButtons.querySelector(".dislike-button");
 
+  // Kiểm tra xem đã có nút nào được chọn chưa
+  const hasSelectedFeedback = likeButton.classList.contains("selected") || 
+                            dislikeButton.classList.contains("selected");
+  if (hasSelectedFeedback) {
+    return; // Nếu đã có feedback thì không cho phép thay đổi
+  }
+
+  // Disable cả hai nút sau khi đã chọn
   likeButton.disabled = true;
   dislikeButton.disabled = true;
 
   if (feedbackType === "dislike") {
     feedbackMessageId = messageId;
     showModal();
+    dislikeButton.classList.add("selected");
   } else {
     submitFeedback(feedbackType, messageId, "", messageElement);
+    likeButton.classList.add("selected");
   }
 }
 
@@ -754,6 +764,20 @@ style.textContent = `
         background-color: transparent;
         padding: 0;
     }
+
+    .feedback-buttons button.selected {
+        background-color: #e3e3e3;
+        cursor: not-allowed;
+    }
+
+    .feedback-buttons button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .feedback-buttons button:not(.selected):not(:disabled):hover {
+        background-color: #f0f0f0;
+    }
 `;
 document.head.appendChild(style);
 
@@ -793,28 +817,6 @@ function submitFeedback(feedbackType, messageId, feedbackText, messageElement) {
         console.error("Unknown error occurred while sending feedback.");
       }
     });
-}
-
-function sendFeedback(feedbackType, messageId, messageElement) {
-  if (!messageId) {
-    console.error("Error: messageId is null or undefined");
-    return;
-  }
-
-  const feedbackButtons = messageElement.querySelector(".feedback-buttons");
-  const likeButton = feedbackButtons.querySelector(".like-button");
-  const dislikeButton = feedbackButtons.querySelector(".dislike-button");
-
-  // Disable buttons after feedback
-  likeButton.disabled = true;
-  dislikeButton.disabled = true;
-
-  if (feedbackType === "dislike") {
-    feedbackMessageId = messageId;
-    showModal();
-  } else {
-    submitFeedback(feedbackType, messageId, "", messageElement);
-  }
 }
 
 function showModal() {
