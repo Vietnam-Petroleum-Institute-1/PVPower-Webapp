@@ -307,132 +307,6 @@ def signin():
     logging.debug("Rendering signin page.")
     return render_template('signin.html')
 
-
-
-# @app.route('/api/message', methods=['GET'])
-# def api_message():
-#     conn = connect_db()
-#     user_id = request.args.get('user_id')
-#     user_message = request.args.get('text')
-#     session_id = request.args.get('session_id')
-#     conversation_id = request.args.get('conversation_id')
-
-#     app.logger.info(f"New message request - User: {user_id}, Session: {session_id}, Conversation: {conversation_id}")
-#     app.logger.info(f"User message: {user_message}")
-
-#     end_session(conn, user_id, session_id)
-
-#     if not user_message:
-#         error_logs(user_id, session_id, conversation_id, user_message, "No message provided", "400")
-#         return jsonify({"result": "No message provided"}), 400
-
-#     transcripts = get_transcripts(conn, user_id, session_id)
-#     transcripts = json.dumps(transcripts)
-
-#     url = f'{CHATBOT_URL}/chat-messages'
-#     headers = {
-#         'Authorization': f'Bearer {CHATBOT_APIKEY}',
-#         'Content-Type': 'application/json'
-#     }
-
-#     body = {
-#         "inputs": {},
-#         "query": user_message,
-#         "response_mode": "streaming",
-#         "conversation_id": conversation_id if conversation_id else "",
-#         "user": user_id
-#     }
-
-#     app.logger.info(f"Sending request to chatbot API - URL: {url}")
-#     app.logger.debug(f"Request body: {body}")
-
-#     try:
-#         def generate():
-#             response = requests.post(url, headers=headers, json=body, stream=True)
-#             response.raise_for_status()
-            
-#             app.logger.info(f"Connected to chatbot API - Status: {response.status_code}")
-            
-#             full_response = ""
-#             message_id = None
-#             metadata = None
-            
-#             for line in response.iter_lines():
-#                 if line:
-#                     try:
-#                         raw_data = line.decode('utf-8').replace('data: ', '')
-#                         app.logger.debug(f"Raw event data: {raw_data}")
-                        
-#                         data = json.loads(raw_data)
-#                         event = data.get('event')
-#                         app.logger.info(f"Received event: {event}")
-                        
-#                         if event == 'message':
-#                             chunk = data.get('answer', '')
-#                             message_id = data.get('message_id')
-#                             conversation_id = data.get('conversation_id')
-#                             full_response += chunk
-                            
-#                             app.logger.debug(f"Message chunk - ID: {message_id}")
-#                             app.logger.debug(f"Chunk content: {chunk}")
-#                             app.logger.debug(f"Conversation ID: {conversation_id}")
-                            
-#                             yield f"data: {json.dumps({'event': 'message', 'chunk': chunk, 'message_id': message_id, 'conversation_id': conversation_id})}\n\n"
-                        
-#                         elif event == 'message_end':
-#                             metadata = data.get('metadata', {})
-#                             app.logger.info("Message completed")
-#                             app.logger.debug(f"Final metadata: {metadata}")
-                            
-#                             yield f"data: {json.dumps({'event': 'message_end', 'metadata': metadata})}\n\n"
-                            
-#                             if message_id:
-#                                 domain = extract_domain(full_response)
-#                                 usage = metadata.get('usage', {})
-#                                 input_token = usage.get('prompt_tokens', 0)
-#                                 output_token = usage.get('completion_tokens', 0) 
-#                                 total_token = usage.get('total_tokens', 0)
-#                                 timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
-                                
-#                                 app.logger.info(f"Saving to database - Message ID: {message_id}")
-#                                 app.logger.debug(f"Domain: {domain}")
-#                                 app.logger.debug(f"Tokens - Input: {input_token}, Output: {output_token}, Total: {total_token}")
-                                
-#                                 conversation(conn, message_id, session_id, user_id, "gpt",
-#                                            user_message, input_token, full_response[:-len(domain)-1],
-#                                            output_token, total_token, timestamp, conversation_id, domain)
-                        
-#                         elif event in ['workflow_started', 'node_started', 'node_finished', 'workflow_finished']:
-#                             app.logger.info(f"Workflow event: {event}")
-#                             app.logger.debug(f"Workflow data: {data}")
-#                             yield f"data: {json.dumps(data)}\n\n"
-
-#                     except json.JSONDecodeError as e:
-#                         app.logger.error(f"Error decoding JSON: {e}")
-#                         app.logger.error(f"Problematic line: {line}")
-#                         continue
-
-#             app.logger.info("Stream completed, closing connection")
-#             conn.close()
-
-#         return Response(generate(), mimetype='text/event-stream')
-
-#     except requests.exceptions.RequestException as e:
-#         app.logger.error(f"RequestException: {e}")
-#         app.logger.error(f"Request details - URL: {url}, Body: {body}")
-#         error_code = e.response.status_code if hasattr(e, 'response') else 500
-#         error_logs(conn, user_id, session_id, conversation_id or '',
-#                   user_message, 'Send message failed due to ' + str(e), error_code)
-#         return jsonify({"result": "Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
-#     except Exception as e:
-#         app.logger.error(f"Exception: {e}")
-#         app.logger.error(f"Stack trace: ", exc_info=True)
-#         error_code = 500
-#         error_logs(conn, user_id, session_id, conversation_id or '',
-#                   user_message, 'Send message failed due to ' + str(e), error_code)
-#         return jsonify({"result": "Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
-
-import time
 @app.route('/api/message', methods=['GET'])
 def api_message():
     conn = connect_db()
@@ -558,99 +432,65 @@ def api_message():
                     )
                     app.logger.debug(f"Message sent: {message_response.json()}")
 
-                    # Tạo run
+                    # Tạo run với streaming
                     run_response = requests.post(
                         f"https://api.openai.com/v1/threads/{thread_id}/runs",
                         headers=headers,
-                        json={"assistant_id": ASSISTANT_ID}
+                        json={
+                            "assistant_id": ASSISTANT_ID,
+                            "stream": True
+                        },
+                        stream=True
                     )
-                    run_id = run_response.json().get("id")
-                    if not run_id:
-                        raise ValueError("Không thể tạo run.")
-                    
-                    app.logger.info(f"Created run: {run_id}")
 
-                    # Polling để lấy kết quả
+                    if run_response.status_code != 200:
+                        app.logger.error(f"Error creating run: {run_response.text}")
+                        raise ValueError(f"Failed to create run: {run_response.status_code}")
+
                     full_response = ""
-                    message_id = str(uuid.uuid4())  # Tạo message_id giả
-                    
-                    while True:
-                        run_status_response = requests.get(
-                            f"https://api.openai.com/v1/threads/{thread_id}/runs/{run_id}",
-                            headers=headers
-                        )
-                        run_status = run_status_response.json().get("status")
-                        app.logger.debug(f"Run status: {run_status}")
+                    message_id = str(uuid.uuid4())
 
-                        if run_status == "completed":
-                            messages_response = requests.get(
-                                f"https://api.openai.com/v1/threads/{thread_id}/messages",
-                                headers=headers
-                            )
-                            messages = messages_response.json().get("data", [])
-                            
-                            if messages:
-                                latest_message = messages[0]
-                                content = latest_message.get('content', [])
-                                if content and 'text' in content[0]:
-                                    response_text = content[0]['text']['value']
+                    for line in run_response.iter_lines():
+                        app.logger.debug(f"Raw line: {line}")
+                        if line:
+                            try:
+                                line_text = line.decode('utf-8')
+                                if not line_text.startswith("data: "):
+                                    continue
                                     
-                                    # Loại bỏ ký tự đặc biệt
-                                    clean_text = re.sub(r'【.*?】', '', response_text)
+                                data_str = line_text.replace("data: ", "")
+                                if data_str == "[DONE]":
+                                    app.logger.debug(f"Received 'done' response")
+                                    metadata = {"usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}
+                                    yield f"data: {json.dumps({'event': 'message_end', 'metadata': metadata})}\n\n"
                                     
-                                    # Tách theo dòng và xử lý như cũ
-                                    lines = clean_text.split('\n')
-                                    full_response = ""
+                                    # Lưu vào database
+                                    timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
+                                    conversation(conn, message_id, session_id, user_id, "gpt",
+                                                user_message, metadata["usage"]["prompt_tokens"], 
+                                                full_response.strip(),
+                                                metadata["usage"]["completion_tokens"],
+                                                metadata["usage"]["total_tokens"],
+                                                timestamp, conversation_id, "")
+                                    break
                                     
-                                    for line in lines:
-                                        # Kiểm tra xem có phải là heading không
-                                        is_heading = bool(re.match(r'^\d+\.\s+[A-ZĐÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÊỀẾỂỄỆÔỒỐỔỖỘƠỜỚỞỠỢƯỪỨỬỮỰÌÍỈĨỊỲÝỶỸỴ].*:', line) or 
-                                                        re.match(r'^\d+\.\s+\*\*[A-ZĐÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÊỀẾỂỄỆÔỒỐỔỖỘƠỜỚỞỠỢƯỪỨỬỮỰÌÍỈĨỊỲÝỶỸỴ].*\*\*', line))
-                                        
-                                        if is_heading:
-                                            full_response += line
-                                            yield f"data: {json.dumps({'event': 'message', 'chunk': line, 'message_id': message_id, 'conversation_id': conversation_id})}\n\n"
-                                            time.sleep(0.1)
-                                        else:
-                                            words = line.split()
-                                            chunk_size = 3
-                                            
-                                            for i in range(0, len(words), chunk_size):
-                                                chunk = ' '.join(words[i:i + chunk_size])
-                                                if i + chunk_size < len(words):
-                                                    chunk += ' '
-                                                full_response += chunk
-                                                
-                                                yield f"data: {json.dumps({'event': 'message', 'chunk': chunk, 'message_id': message_id, 'conversation_id': conversation_id})}\n\n"
-                                                time.sleep(0.1)
-                                        
-                                        if line != lines[-1]:
-                                            full_response += '\n'
-                                            message_data = json.dumps({
-                                                'event': 'message',
-                                                'chunk': '\\n',
-                                                'message_id': message_id,
-                                                'conversation_id': conversation_id
-                                            })
-                                            yield f"data: {message_data}\n\n"
-                                            time.sleep(0.1)
-                            
-                            # Gửi message_end event
-                            metadata = {"usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}
-                            yield f"data: {json.dumps({'event': 'message_end', 'metadata': metadata})}\n\n"
-                            
-                            # Lưu vào database
-                            timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
-                            conversation(conn, message_id, session_id, user_id, "gpt",
-                                       user_message, 0, full_response.strip(),
-                                       0, 0, timestamp, conversation_id, "")
-                            break
-                        
-                        elif run_status in ["failed", "cancelled", "expired"]:
-                            app.logger.error(f"Run failed with status: {run_status}")
-                            break
-                        
-                        time.sleep(0.5)  # Polling interval
+                                data = json.loads(data_str)
+                                event = data.get("object", "")
+                                
+                                if event == "thread.message.delta":
+                                    delta = data.get("delta", {})
+                                    content = delta.get("content", [])
+                                    if content and content[0]["type"] == "text":
+                                        chunk = content[0]["text"]["value"]
+                                        full_response += chunk
+                                        yield f"data: {json.dumps({'event': 'message', 'chunk': chunk, 'message_id': message_id, 'conversation_id': conversation_id})}\n\n"
+
+                            except json.JSONDecodeError as e:
+                                app.logger.error(f"Error decoding JSON: {e}")
+                                continue
+                            except Exception as e:
+                                app.logger.error(f"Error processing line: {e}")
+                                continue
 
                 conn.close()
 
@@ -1236,7 +1076,7 @@ def filter_dashboard():
 
     feedback_counts = conversation_logs_df_feedback['feedback_type'].value_counts().to_dict()
 
-    # Xử lý dữ liệu ngư���i dùng theo ngày
+    # Xử lý dữ liệu người dùng theo ngày
     session_df['created_at'] = pd.to_datetime(session_df['created_at']).dt.date
     users_by_date = session_df.groupby('created_at').size().to_dict()
     users_by_date_str = {str(k): v for k, v in users_by_date.items()}  # Chuyển datetime thành chuỗi

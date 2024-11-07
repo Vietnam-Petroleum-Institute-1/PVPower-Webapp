@@ -387,24 +387,8 @@ function sendMessage(message = null) {
 
                 if (data.chunk) {
                     let chunk = data.chunk;
-                    
-                    // Nếu chunk chỉ chứa "True", bỏ qua nó
-                    if (chunk.trim() === 'True') {
-                        return;
-                    }
-                    
-                    // Loại bỏ True ở cuối nếu có
-                    chunk = chunk.replace(/\nTrue$/, '').trim();
-                    chunk = chunk.replace(/\\n/g, '\n');
-                    
-                    // Thêm dấu cách giữa các chunk
-                    if (botResponse && !botResponse.endsWith('\n') && 
-                        !chunk.startsWith('\n') && !chunk.startsWith(',') && 
-                        !chunk.startsWith('.') && !chunk.startsWith('?') && 
-                        !chunk.startsWith('!')) {
-                        botResponse += ' ';
-                    }
-                    
+                    console.log("chunk before:", chunk);
+                    chunk = chunk.replace(/【.*?】/g, '')
                     botResponse += chunk;
                     botMessage.updateContent(botResponse);
 
