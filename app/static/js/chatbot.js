@@ -117,6 +117,12 @@ function startConversation(user_id, session_id) {
       });
 }
 
+function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
+}
+
 function getThreadId(user_id, session_id) {
     console.log("Getting thread ID");
     showWaitingBubble();
@@ -129,8 +135,9 @@ function getThreadId(user_id, session_id) {
     })
     .then((response) => response.json())
     .then((data) => {
-        console.log("Thread ID:", data.thread_id);
+        console.log("Thread ID in getThreadId:", data.thread_id);
         // sessionStorage.setItem("thread_id", data.thread_id);
+        setCookie('thread_id', data.thread_id, 1);
         return data.thread_id;
     })
     .catch((error) => {
