@@ -86,6 +86,9 @@ function startConversation(user_id, session_id) {
       .then((data) => {
         const conversation_id = data.conversation_id;
         sessionStorage.setItem("conversation_id", conversation_id);
+
+        const thread_id = data.thread_id;
+        sessionStorage.setItem("thread_id", thread_id);
   
         const userInput = document.getElementById("userInput");
         const sendButton = document.getElementById("sendButton");
@@ -101,7 +104,7 @@ function startConversation(user_id, session_id) {
           data.message_id
         );
   
-        return conversation_id;
+        return { conversation_id, thread_id };
       })
       .catch((error) => {
         console.error("Error in startConversation:", error);
@@ -110,6 +113,31 @@ function startConversation(user_id, session_id) {
       .finally(() => {
         hideWaitingBubble();
       });
+}
+
+function getThreadId(user_id, session_id) {
+    console.log("Getting thread ID");
+    showWaitingBubble();
+    return fetch("/api/get_thread_id", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id, session_id }),
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        console.log("Thread ID:", data.thread_id);
+        sessionStorage.setItem("thread_id", data.thread_id);
+        return data.thread_id;
+    })
+    .catch((error) => {
+        console.error("Error in getThreadId:", error);
+        throw error;
+    })
+    .finally(() => {
+        hideWaitingBubble();
+    });
 }
 
 function getConversation(user_id, session_id) {
@@ -505,6 +533,10 @@ function loadTranscripts(user_id, session_id) {
           }
         });
       }
+      // Đợi một chút để đảm bảo DOM đã được cập nhật
+      setTimeout(() => {
+        loadFeedback(user_id, session_id);
+      }, 100);
     })
     .catch((error) => {
       console.error("Error loading transcripts:", error);
@@ -523,10 +555,19 @@ function sendMessage(message = null) {
 
     const user_id = localStorage.getItem("user_id") || getCookie("user_id");
     const session_id = localStorage.getItem("session_id") || getCookie("session_id");
-    const conversation_id = sessionStorage.getItem("conversation_id") || getCookie("conversation_id");
+    // const conversation_id = sessionStorage.getItem("conversation_id") || getCookie("conversation_id");
+    // const thread_id = sessionStorage.getItem("thread_id") || getCookie("thread_id");
+    const conversation_id = getCookie("conversation_id");
+    const thread_id = getCookie("thread_id");
+    console.log("Thread ID:", thread_id);
 
     if (!conversation_id) {
         console.error("Error: conversation_id is undefined before sending message");
+        return;
+    }
+
+    if (!thread_id) {
+        console.error("Error: thread_id is undefined before sending message");
         return;
     }
 
@@ -550,7 +591,7 @@ function sendMessage(message = null) {
     }, 4000);
 
     // Tạo URL với các tham số
-    const url = `/api/message?text=${encodeURIComponent(messageText)}&user_id=${encodeURIComponent(user_id)}&session_id=${encodeURIComponent(session_id)}&conversation_id=${encodeURIComponent(conversation_id)}`;
+    const url = `/api/message?text=${encodeURIComponent(messageText)}&user_id=${encodeURIComponent(user_id)}&session_id=${encodeURIComponent(session_id)}&conversation_id=${encodeURIComponent(conversation_id)}&thread_id=${encodeURIComponent(thread_id)}`;
 
     // Tạo EventSource để xử lý streaming
     const eventSource = new EventSource(url);
@@ -655,7 +696,7 @@ function sendFeedback(feedbackType, messageId, messageElement) {
   const likeButton = feedbackButtons.querySelector(".like-button");
   const dislikeButton = feedbackButtons.querySelector(".dislike-button");
 
-  // Kiểm tra xem đã có nút nào được chọn chưa
+  // Kiểm tra xem đã có nút nào đợc chọn chưa
   const hasSelectedFeedback = likeButton.classList.contains("selected") || 
                             dislikeButton.classList.contains("selected");
   if (hasSelectedFeedback) {
@@ -764,19 +805,8 @@ style.textContent = `
         background-color: transparent;
         padding: 0;
     }
-
-    .feedback-buttons button.selected {
-        background-color: #e3e3e3;
-        cursor: not-allowed;
-    }
-
-    .feedback-buttons button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .feedback-buttons button:not(.selected):not(:disabled):hover {
-        background-color: #f0f0f0;
+    .feedback-buttons button.disabled {
+        color: rgba(16, 16, 16, 0.3);
     }
 `;
 document.head.appendChild(style);
@@ -853,4 +883,44 @@ function submitDislikeFeedback() {
   );
   submitFeedback("dislike", feedbackMessageId, feedbackText, messageElement);
   closeModal();
+}
+
+// Cập nhật hàm loadFeedback
+function loadFeedback(user_id, session_id) {
+  fetch("/api/get_feedback", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user_id, session_id }),
+  })
+  .then((response) => response.json())
+  .then((feedbackList) => {
+      if (!feedbackList || !Array.isArray(feedbackList) || feedbackList.length === 0) return;
+      
+      const feedbackMap = new Map(
+          feedbackList.map(f => [f.message_id, f.feedback_type])
+      );
+      
+      document.querySelectorAll('.message.bot[data-message-id]').forEach(messageElement => {
+          const messageId = messageElement.dataset.messageId;
+          const feedbackType = feedbackMap.get(messageId);
+          
+          if (feedbackType) {
+              const likeButton = messageElement.querySelector(".like-button");
+              const dislikeButton = messageElement.querySelector(".dislike-button");
+              
+              if (feedbackType === "dislike") {
+                  dislikeButton.classList.add("selected");
+                  likeButton.classList.add("disabled");
+              } else {
+                  likeButton.classList.add("selected");
+                  dislikeButton.classList.add("disabled");
+              }
+          }
+      });
+  })
+  .catch((error) => {
+      console.error("Error loading feedback:", error);
+  });
 }

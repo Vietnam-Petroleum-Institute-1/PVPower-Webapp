@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, make_response, Response
 import requests
 import logging
-from databases import fetch_data_from_table, admin_verify, update_conversation_title, get_session_from_conversation, session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_transcripts, add_conversation, get_conversation_id, write_feedback, upload_pending_FAQ, session_valid, error_logs, get_all_conversations
+from databases import fetch_data_from_table, admin_verify, update_conversation_title, get_session_from_conversation, session_continue, connect_db, user_exists, end_session, session, session_exists, conversation, insert_user, get_transcripts, add_conversation, get_conversation_id, write_feedback, upload_pending_FAQ, session_valid, error_logs, get_all_conversations, get_feedback, update_thread_id, get_thread_id
 import json
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -314,6 +314,7 @@ def api_message():
     user_message = request.args.get('text')
     session_id = request.args.get('session_id')
     conversation_id = request.args.get('conversation_id')
+    thread_id = request.args.get('thread_id')  # Lấy thread_id từ request
 
     app.logger.info(f"New message request - User: {user_id}, Session: {session_id}, Conversation: {conversation_id}")
     app.logger.info(f"User message: {user_message}")
@@ -411,18 +412,6 @@ def api_message():
                         "OpenAI-Beta": "assistants=v2"
                     }
 
-                    # Tạo thread mới
-                    thread_response = requests.post(
-                        "https://api.openai.com/v1/threads",
-                        headers=headers,
-                        json={"messages": []}
-                    )
-                    thread_id = thread_response.json().get("id")
-                    if not thread_id:
-                        raise ValueError("Không thể tạo thread.")
-                    
-                    app.logger.info(f"Created thread: {thread_id}")
-
                     # Gửi câu hỏi
                     message_response = requests.post(
                         f"https://api.openai.com/v1/threads/{thread_id}/messages",
@@ -515,29 +504,47 @@ def start_conversation():
     user_id = request.json['user_id']
     session_id = request.json['session_id']
 
-    url = f'{CHATBOT_URL}/chat-messages'
+    # Tạo thread mới
     headers = {
-        'Authorization': f'Bearer {CHATBOT_APIKEY}',
-        'Content-Type': 'application/json'
+        'Authorization': f'Bearer {OPENAI_API_KEY}',
+        'Content-Type': 'application/json',
+        'OpenAI-Beta': 'assistants=v1'
     }
-    body = {
-        "inputs": {},
-        "query": "Xin chào",
-        "response_mode": "blocking",
-        "conversation_id": "",
-        "user": user_id
-    }
-    app.logger.info(f"Headers: {headers}")
+    
     try:
+        # Tạo thread mới
+        thread_response = requests.post(
+            "https://api.openai.com/v1/threads",
+            headers=headers,
+            json={"messages": []}
+        )
+        thread_id = thread_response.json().get("id")
+        if not thread_id:
+            raise ValueError("Không thể tạo thread.")
+        
+        app.logger.info(f"Created thread: {thread_id}")
+
+        # Tiếp tục với phần code hiện tại
+        url = f'{CHATBOT_URL}/chat-messages'
+        headers = {
+            'Authorization': f'Bearer {CHATBOT_APIKEY}',
+            'Content-Type': 'application/json'
+        }
+        body = {
+            "inputs": {},
+            "query": "Xin chào",
+            "response_mode": "blocking",
+            "conversation_id": "",
+            "user": user_id
+        }
+
         response = requests.post(url, headers=headers, json=body)
         response.raise_for_status()
 
         data = response.json()
         conversation_id = data['conversation_id']
-
         result = response.json()
 
-        print("Result:", result)
         result_answer = decode_unicode_escapes(result["answer"])
         domain = extract_domain(result_answer)
         input_token = 0
@@ -546,19 +553,22 @@ def start_conversation():
         timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
         timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S %z')
 
-        add_conversation(conn, conversation_id, "New message", session_id, user_id)
+        # Thêm thread_id vào lúc tạo conversation
+        add_conversation(conn, conversation_id, "New message", session_id, user_id, thread_id)
         conversation(conn, data["message_id"], session_id, user_id, "gpt", "", input_token, result_answer[:-len(domain)-1], output_token, total_token, timestamp, conversation_id, domain)
-        logging.debug(f"Conversation {conversation_id} inserted successfully.")
+        
+        logging.debug(f"Conversation {conversation_id} inserted successfully with thread {thread_id}")
         conn.close()
-        return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"]})
+        return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"], "thread_id": thread_id})
+
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
-        error_code = e.response.status_code
+        error_code = e.response.status_code if hasattr(e.response, 'status_code') else 500
         error_logs(conn, user_id, session_id, '', '', 'Start conversation failed due to ' + str(e), error_code)
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
     except Exception as e:
         app.logger.error(f"Exception: {e}")
-        error_code = e.response.status_code
+        error_code = getattr(e, 'status_code', 500)
         error_logs(conn, user_id, session_id, '', '', 'Start conversation failed due to ' + str(e), error_code)
         return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
 
@@ -715,35 +725,35 @@ def all_conversations():
     yesterday = today - timedelta(days=1)
     seven_days_ago = today - timedelta(days=7)
 
-    # Nhóm các cuộc hội thoại
     grouped_conversations = {
         "today": [],
         "yesterday": [],
         "last_7_days": []
     }
 
-
     app.logger.debug(f"conversations: {conversations}")
     for conversation in conversations:
-        
         conversation_title = conversation[1] if conversation[1] else "New conversation"
         created_at = conversation[2].date()
+        thread_id = conversation[3]  # Thêm thread_id vào response
 
-        # Kiểm tra và chỉ đưa cuộc hội thoại vào 1 nhóm duy nhất
         if created_at == today:
             grouped_conversations["today"].append({
                 'conversation_id': conversation[0],
-                'conversation_title': conversation_title
+                'conversation_title': conversation_title,
+                'thread_id': thread_id
             })
         elif created_at == yesterday:
             grouped_conversations["yesterday"].append({
                 'conversation_id': conversation[0],
-                'conversation_title': conversation_title
+                'conversation_title': conversation_title,
+                'thread_id': thread_id
             })
         elif created_at >= seven_days_ago and created_at < yesterday:
             grouped_conversations["last_7_days"].append({
                 'conversation_id': conversation[0],
-                'conversation_title': conversation_title
+                'conversation_title': conversation_title,
+                'thread_id': thread_id
             })
 
     return jsonify(grouped_conversations)
@@ -1148,6 +1158,106 @@ def filter_dashboard():
 @app.errorhandler(403)
 def forbidden_page(error):
     return render_template('403.html'), 403  # Trang lỗi 403
+
+@app.route('/api/get_feedback', methods=['POST'])
+def api_get_feedback():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        session_id = data.get('session_id')
+        
+        if not user_id or not session_id:
+            return jsonify({"error": "Missing user_id or session_id"}), 400
+            
+        conn = connect_db()
+        feedback = get_feedback(conn, user_id, session_id)
+        conn.close()
+        
+        # Chuyển đổi kết quả thành list of dicts để dễ xử lý ở frontend
+        feedback_list = [
+            {
+                "message_id": f[0],
+                "feedback_type": f[1],
+                "feedback_text": f[2]
+            } for f in feedback
+        ]
+        
+        return jsonify(feedback_list)
+        
+    except Exception as e:
+        app.logger.error(f"Error getting feedback: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/update_thread', methods=['POST'])
+def update_conversation_thread():
+    try:
+        data = request.get_json()
+        conversation_id = data.get('conversation_id')
+        
+        if not conversation_id:
+            return jsonify({"error": "Missing conversation_id"}), 400
+            
+        # Tạo thread mới
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+            "OpenAI-Beta": "assistants=v2"
+        }
+        
+        thread_response = requests.post(
+            "https://api.openai.com/v1/threads",
+            headers=headers,
+            json={"messages": []}
+        )
+        
+        if thread_response.status_code != 200:
+            app.logger.error(f"Error creating thread: {thread_response.text}")
+            return jsonify({"error": "Failed to create thread"}), 500
+            
+        thread_id = thread_response.json().get("id")
+        if not thread_id:
+            return jsonify({"error": "No thread_id in response"}), 500
+            
+        # Update thread_id trong database
+        conn = connect_db()
+        try:
+            success = update_thread_id(conn, conversation_id, thread_id)
+            
+            if success:
+                app.logger.info(f"Updated thread_id {thread_id} for conversation {conversation_id}")
+                return jsonify({
+                    "success": True,
+                    "conversation_id": conversation_id,
+                    "thread_id": thread_id
+                })
+            else:
+                return jsonify({
+                    "success": False,
+                    "message": "Conversation not found or already has thread_id"
+                }), 404
+                
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        app.logger.error(f"Error updating thread: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+
+@app.route('/api/get_thread_id', methods=['POST'])
+def api_get_thread_id():
+    conn = connect_db()
+    data = request.get_json()
+    conversation_id = data.get('conversation_id')
+
+    thread_id = get_thread_id(conn, conversation_id)
+    if thread_id:
+        return jsonify({"thread_id": thread_id})
+    else:
+        # send request to update_thread
+        requests.post('/api/update_thread', json={'conversation_id': conversation_id})
+        thread_id = get_thread_id(conn, conversation_id)
+        return jsonify({"thread_id": thread_id})
 
 if __name__ == '__main__':
     app.run(debug=True)

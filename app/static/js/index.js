@@ -121,6 +121,23 @@ function openConversation(conversation_id, isReload = false) {
         console.log('Added active class to:', chatItem);
     }
 
+    // Gọi API để lấy thread_id từ conversation_id
+    fetch('/api/get_thread_id', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conversation_id })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Thread ID:", data.thread_id);
+        setCookie('thread_id', data.thread_id, 1);
+    })
+    .catch(error => {
+        console.error('Error fetching thread_id:', error);
+    });
+
     // Gọi API để lấy session_id từ conversation_id
     fetch('/api/get_session_id', {
         method: 'POST',
@@ -212,7 +229,7 @@ document.querySelector('.new-chat-btn').addEventListener('click', function() {
         if (data.session_id) {
             console.log('New session created:', data.session_id);
             // Lưu session_id vào cookie với thời gian hiệu lực 30 phút
-            document.cookie = `session_id=${data.session_id}; path=/; max-age=1800`; // 1800 giây = 30 phút
+            document.cookie = `session_id=${data.session_id}; path=/; max-age=3600`; // 1800 giây = 30 phút
 
             // Sau đó gọi API bắt đầu cuộc trò chuyện
             fetch('/api/start_conversation', {
@@ -229,6 +246,8 @@ document.querySelector('.new-chat-btn').addEventListener('click', function() {
                     // Lưu conversation_id và session_id vào cookie
                     setCookie('conversation_id', conversationData.conversation_id, 1);
                     setCookie('session_id', data.session_id, 1);
+                    setCookie('thread_id', conversationData.thread_id, 1);
+                    document.cookie = `thread_id=${conversationData.thread_id}; path=/; max-age=3600`; // 1800 giây = 30 phút
 
                     // Reload toàn bộ trang
                     location.reload();

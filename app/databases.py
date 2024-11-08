@@ -139,16 +139,16 @@ def get_transcripts(conn, user_id, session_id):
     cur.close()
     return transcripts
 
-def add_conversation(conn, conversation_id, conversation_title, session_id, user_id):
+def add_conversation(conn, conversation_id, conversation_title, session_id, user_id, thread_id):
     if not session_exists(conn, user_id, session_id):
         print(f"Session {session_id} does not exist.")
         return
     cur = conn.cursor()
     insert_conversation_query = """
-    INSERT INTO conversations (conversation_id, session_id, user_id, conversation_title)
-    VALUES (%s, %s, %s, %s)
+    INSERT INTO conversations (conversation_id, session_id, user_id, conversation_title, thread_id)
+    VALUES (%s, %s, %s, %s, %s)
     """
-    cur.execute(insert_conversation_query, (conversation_id, session_id, user_id, conversation_title))
+    cur.execute(insert_conversation_query, (conversation_id, session_id, user_id, conversation_title, thread_id))
     conn.commit()
     cur.close()
     print(f"Conversation {conversation_id} inserted successfully.")
@@ -209,7 +209,8 @@ def get_all_conversations(conn, user_id):
         SELECT 
             cl.conversation_id, 
             c.conversation_title, 
-            MAX(cl.created_at) AS created_at
+            MAX(cl.created_at) AS created_at,
+            c.thread_id
         FROM 
             conversation_logs cl
         JOIN 
@@ -217,7 +218,7 @@ def get_all_conversations(conn, user_id):
         WHERE 
             cl.user_id = (%s)
         GROUP BY 
-            cl.conversation_id, c.conversation_title
+            cl.conversation_id, c.conversation_title, c.thread_id
         ORDER BY 
             created_at DESC;
         """, (user_id,))
@@ -258,3 +259,43 @@ def admin_verify(conn, user_id):
     cur.close()
     logging.debug(f"Check verify admin: {exists}")
     return exists
+
+def get_feedback(conn, user_id, session_id):
+    cur = conn.cursor()
+    cur.execute("SELECT message_id, feedback_type, feedback_text FROM feedback WHERE user_id = %s AND session_id = %s", (user_id, session_id))
+    feedback = cur.fetchall()
+    cur.close()
+    return feedback
+
+def update_thread_id(conn, conversation_id, thread_id):
+    """Update thread_id for a conversation if it doesn't have one"""
+    cur = conn.cursor()
+    try:
+        update_query = """
+        UPDATE conversations 
+        SET thread_id = %s 
+        WHERE conversation_id = %s AND (thread_id IS NULL OR thread_id = '')
+        RETURNING conversation_id;
+        """
+        
+        cur.execute(update_query, (thread_id, conversation_id))
+        updated = cur.fetchone()
+        conn.commit()
+        return updated is not None
+        
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"Error updating thread_id: {e}")
+        raise e
+    finally:
+        cur.close()
+
+def get_thread_id(conn, conversation_id):
+    """Get thread_id for a conversation"""
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT thread_id FROM conversations WHERE conversation_id = %s", (conversation_id,))
+        result = cur.fetchone()
+        return result[0] if result else None
+    finally:
+        cur.close()
