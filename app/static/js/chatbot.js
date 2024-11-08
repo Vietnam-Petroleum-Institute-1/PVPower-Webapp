@@ -130,7 +130,7 @@ function getThreadId(user_id, session_id) {
     .then((response) => response.json())
     .then((data) => {
         console.log("Thread ID:", data.thread_id);
-        sessionStorage.setItem("thread_id", data.thread_id);
+        // sessionStorage.setItem("thread_id", data.thread_id);
         return data.thread_id;
     })
     .catch((error) => {
@@ -558,7 +558,7 @@ function sendMessage(message = null) {
     const user_id = getCookie("user_id") || localStorage.getItem("user_id");
     const session_id = getCookie("session_id") || localStorage.getItem("session_id");
     const conversation_id = getCookie("conversation_id") || sessionStorage.getItem("conversation_id");
-    const thread_id = getCookie("thread_id") || sessionStorage.getItem("thread_id");
+    const thread_id = getCookie("thread_id");
     // const conversation_id = getCookie("conversation_id");
     // const thread_id = getCookie("thread_id");
     console.log("Thread ID:", thread_id);
