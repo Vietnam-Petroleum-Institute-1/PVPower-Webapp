@@ -1246,21 +1246,46 @@ def update_conversation_thread():
 
 @app.route('/api/get_thread_id', methods=['POST'])
 def api_get_thread_id():
-    conn = connect_db()
-    data = request.get_json()
-    conversation_id = data.get('conversation_id')
+    try:
+        conn = connect_db()
+        data = request.get_json()
+        conversation_id = data.get('conversation_id')
 
-    thread_id = get_thread_id(conn, conversation_id)
-    if thread_id:
-        return jsonify({"thread_id": thread_id})
-    else:
-        # send request to update_thread
-        if CHATBOT_URL == 'http://103.186.101.178:8088/v1':
-            requests.post('/api/update_thread', json={'conversation_id': conversation_id})
-        else:
-            requests.post('https://bot.pvpower.vn/api/update_thread', json={'conversation_id': conversation_id})
+        if not conversation_id:
+            return jsonify({"error": "Missing conversation_id"}), 400
+
         thread_id = get_thread_id(conn, conversation_id)
-        return jsonify({"thread_id": thread_id})
+        if thread_id:
+            return jsonify({"thread_id": thread_id})
+        else:
+            # send request to update_thread
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            
+            if CHATBOT_URL == 'http://103.186.101.178:8088/v1':
+                update_url = 'http://localhost:8080/api/update_thread'  # hoặc URL thực tế của môi trường dev
+            else:
+                update_url = 'https://bot.pvpower.vn/api/update_thread'
+                
+            response = requests.post(
+                update_url, 
+                json={'conversation_id': conversation_id},
+                headers=headers
+            )
+            
+            if response.status_code != 200:
+                app.logger.error(f"Error updating thread: {response.text}")
+                return jsonify({"error": "Failed to update thread"}), 500
+                
+            # Lấy lại thread_id sau khi update
+            thread_id = get_thread_id(conn, conversation_id)
+            return jsonify({"thread_id": thread_id})
+    except Exception as e:
+        app.logger.error(f"Error in get_thread_id: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True)
