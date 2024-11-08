@@ -286,8 +286,8 @@ window.onload = function () {
     // Lấy user_id và session_id từ localStorage nếu không có token
     console.log("Cookie:", getCookie("user_id"));
     console.log("Cookie:", getCookie("session_id"));
-    user_id = localStorage.getItem("user_id") || getCookie("user_id");
-    session_id = localStorage.getItem("session_id") || getCookie("session_id");
+    user_id = getCookie("user_id") || localStorage.getItem("user_id");
+    session_id = getCookie("session_id") || localStorage.getItem("session_id");
 
     console.log(
       "User ID from localStorage:",
@@ -555,10 +555,10 @@ function sendMessage(message = null) {
     const messageText = message || userInput.value.trim();
     if (messageText === "") return;
 
-    const user_id = localStorage.getItem("user_id") || getCookie("user_id");
-    const session_id = localStorage.getItem("session_id") || getCookie("session_id");
-    const conversation_id = sessionStorage.getItem("conversation_id") || getCookie("conversation_id");
-    const thread_id = sessionStorage.getItem("thread_id") || getCookie("thread_id");
+    const user_id = getCookie("user_id") || localStorage.getItem("user_id");
+    const session_id = getCookie("session_id") || localStorage.getItem("session_id");
+    const conversation_id = getCookie("conversation_id") || sessionStorage.getItem("conversation_id");
+    const thread_id = getCookie("thread_id") || sessionStorage.getItem("thread_id");
     // const conversation_id = getCookie("conversation_id");
     // const thread_id = getCookie("thread_id");
     console.log("Thread ID:", thread_id);
