@@ -128,30 +128,49 @@ body, html {
 .message-content {
   background-color: #f1f1f1;
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px 15px;
   max-width: 70%;
   display: inline-block;
   position: relative;
-  white-space: pre-line;
+  font-family: 'Barlow', sans-serif;
 }
 
-.message-content p {
-  margin: 8px 0;
-  white-space: pre-line;
-  line-height: 1.5;
+.message-content h3.heading {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  margin: 15px 0 8px 0;
+  line-height: 1.4;
+}
+
+.message-content h3.heading:first-of-type {
+  margin-top: 15px;
 }
 
 .message-content ul {
-  margin: 8px 0;
-  padding-left: 20px;
+  margin: 5px 0;
+  padding-left: 15px;
   list-style-type: disc;
 }
 
 .message-content li {
-  margin: 4px 0;
-  line-height: 1.5;
-  padding-left: 5px;
+  margin: 5px 0;
+  padding-left: 0;
+  line-height: 1.4;
+  text-align: left;
+  font-family: 'Barlow', sans-serif;
+}
+
+.message-content p {
+  margin: 8px 0;
+  line-height: 1.4;
+  text-align: left;
+  font-family: 'Barlow', sans-serif;
+}
+
+/* Xử lý text wrap */
+.message-content * {
   white-space: pre-line;
+  word-wrap: break-word;
 }
 
 .message.user .message-content {
@@ -424,7 +443,7 @@ body, html {
   background: none; /* Loại bỏ màu nền */
   padding: 10px;
   border-radius: 5px; /* Bo góc */
-  resize: none; /* Tắt chức năng thay đổi kích thước */
+  resize: none; /* Tắt chức năng thay đổi kích thưc */
   overflow-y: auto; /* Hiển thị thanh cuộn dọc nếu nội dung quá dài */
   font-size: 16px;
   color: #333; /* Màu chữ */

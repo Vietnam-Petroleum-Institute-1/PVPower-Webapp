@@ -108,12 +108,45 @@ body, html {
 
 .message-content {
   max-width: 60%;
-  padding: 10px;
+  padding: 12px 15px;
   border-radius: 20px;
   word-wrap: break-word;
   white-space: pre-wrap;
   position: relative;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-family: 'Barlow', sans-serif;
+}
+
+.message-content h3.heading:first-of-type {
+  margin-top: 15px;
+}
+
+.message-content h3.heading {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 600;
+  margin: 15px 0 8px 0;
+  line-height: 1.4;
+}
+
+.message-content ul {
+  margin: 5px 0;
+  padding-left: 15px;
+  list-style-type: disc;
+}
+
+.message-content li {
+  margin: 5px 0;
+  padding-left: 0;
+  line-height: 1.4;
+  text-align: left;
+  font-family: 'Barlow', sans-serif;
+}
+
+.message-content p {
+  margin: 8px 0;
+  line-height: 1.4;
+  text-align: left;
+  font-family: 'Barlow', sans-serif;
 }
 
 .message.user .message-content {
@@ -374,3 +407,6 @@ body, html {
   width: 44px;
   height: 44px;
 }
+
+/* Import font Barlow từ Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&display=swap');
