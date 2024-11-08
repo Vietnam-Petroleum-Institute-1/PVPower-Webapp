@@ -455,9 +455,10 @@ def api_message():
                                     # Lưu vào database
                                     timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
                                     logging.debug(f"Câu trả lời của openai: {full_response}")
+                                    full_response = re.sub(r'【.*?】', '', full_response.strip())
                                     conversation(conn, message_id, session_id, user_id, "gpt",
                                                 user_message, metadata["usage"]["prompt_tokens"], 
-                                                full_response.strip(),
+                                                full_response,
                                                 metadata["usage"]["completion_tokens"],
                                                 metadata["usage"]["total_tokens"],
                                                 timestamp, conversation_id, "")

@@ -317,6 +317,9 @@ window.onload = function () {
 function parseMarkdown(text) {
   if (!text) return "";
   
+  // Loại bỏ 【8:8†source】
+  text = text.replace(/【.*?】/g, '');
+  
   // Xử lý headings với dấu **
   text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
   
@@ -576,7 +579,7 @@ function sendMessage(message = null) {
         }
     }, 4000);
 
-    // Tạo URL với c��c tham số
+    // Tạo URL với cc tham số
     const url = `/api/message?text=${encodeURIComponent(messageText)}&user_id=${encodeURIComponent(user_id)}&session_id=${encodeURIComponent(session_id)}&conversation_id=${encodeURIComponent(conversation_id)}&thread_id=${encodeURIComponent(thread_id)}`;
 
     // Tạo EventSource để xử lý streaming
