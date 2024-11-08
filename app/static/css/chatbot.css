@@ -432,3 +432,21 @@ body, html {
   height: 80%;
   padding-top: 5px;
 }
+
+/* Thêm style cho bullet points trong chat messages */
+.chat-messages ul {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.chat-messages li {
+  margin-bottom: 8px;
+  padding-left: 5px;
+  line-height: 1.4;
+}
+
+/* Đảm bảo text wrap đúng cách */
+.chat-message {
+  white-space: pre-wrap;  /* Giữ nguyên xuống dòng và khoảng trắng */
+  word-wrap: break-word;  /* Cho phép từ dài tự động xuống dòng */
+}
