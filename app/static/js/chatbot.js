@@ -320,13 +320,14 @@ function parseMarkdown(text) {
   // Xử lý headings
   text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<h3 class="heading">$1. $2</h3>');
   
-  // Xử lý bullet points với cách xử lý xuống dòng tốt hơn
-  text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, function(match, content) {
-    return `<li>${content.trim()}</li>`;
-  });
+  // Xử lý bullet points
+  text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
   
   // Gom nhóm bullet points
   text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
+  
+  // Xử lý paragraphs
+  text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
   
   return text;
 }

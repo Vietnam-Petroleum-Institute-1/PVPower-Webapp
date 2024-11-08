@@ -126,13 +126,18 @@ body, html {
 }
 
 .message-content {
-  background-color: #f1f1f1;
-  border-radius: 10px;
+  max-width: 60%;
   padding: 12px 15px;
-  max-width: 70%;
-  display: inline-block;
+  border-radius: 20px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
   position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   font-family: 'Barlow', sans-serif;
+}
+
+.message-content h3.heading:first-of-type {
+  margin-top: 15px;
 }
 
 .message-content h3.heading {
@@ -140,10 +145,6 @@ body, html {
   font-weight: 600;
   margin: 15px 0 8px 0;
   line-height: 1.4;
-}
-
-.message-content h3.heading:first-of-type {
-  margin-top: 15px;
 }
 
 .message-content ul {
@@ -421,7 +422,7 @@ body, html {
   width: 38px; /* Chiều rộng là 44px */
   height: 38px; /* Chiều cao là 44px */
   flex-shrink: 0; /* Không co lại */
-  background-color: transparent; /* Nền trong suốt */
+  background-color: transparent; /* Nền trong su��t */
   border: none; /* Không có viền */
   cursor: pointer;
   display: flex;
