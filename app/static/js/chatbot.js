@@ -320,12 +320,15 @@ function parseMarkdown(text) {
   // Xử lý headings (thêm vào đầu tiên)
   text = text.replace(/^(\d+)\.\s+(.+)$/gm, '<h3 class="heading">$1. $2</h3>');
 
-  // Xử lý bullet points với dấu gạch ngang
-  text = text.replace(/^[-]\s+(.+)$/gm, "<li>$1</li>");
-  text = text.replace(/^[○o]\s+(.+)$/gm, "<li>$1</li>");
+  // Xử lý bullet points với dấu gạch ngang, giữ nguyên xuống dòng
+  text = text.replace(/^[-]\s+(.+?)(?=\n[-]|\n\n|$)/gms, "<li>$1</li>");
 
   // Gom nhóm các bullet points liên tiếp vào ul
-  text = text.replace(/((?:<li>.*<\/li>\n?)+)/g, "<ul>$1</ul>");
+  text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
+
+  // Xử lý paragraphs và giữ nguyên khoảng cách
+  text = text.replace(/\n\n/g, "</p><p>");
+  text = text.replace(/^(.+?)(?=<|$)/gm, "<p>$1</p>");
 
   // Xử lý code blocks
   text = text.replace(
@@ -349,9 +352,6 @@ function parseMarkdown(text) {
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" target="_blank">$1</a>'
   );
-
-  // Xử lý paragraphs (giữ nguyên khoảng cách cho heading)
-  text = text.replace(/\n\n/g, "<br><br>");
 
   return text;
 }
