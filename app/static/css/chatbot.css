@@ -137,16 +137,21 @@ body, html {
 
 .message-content p {
   margin: 8px 0;
+  white-space: pre-line;
+  line-height: 1.5;
 }
 
 .message-content ul {
   margin: 8px 0;
   padding-left: 20px;
+  list-style-type: disc;
 }
 
 .message-content li {
   margin: 4px 0;
-  line-height: 1.4;
+  line-height: 1.5;
+  padding-left: 5px;
+  white-space: pre-line;
 }
 
 .message.user .message-content {
@@ -462,6 +467,6 @@ body, html {
 
 /* Đảm bảo text wrap đúng cách */
 .chat-message {
-  white-space: pre-wrap;  /* Giữ nguyên xuống dòng và khoảng trắng */
-  word-wrap: break-word;  /* Cho phép từ dài tự động xuống dòng */
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
