@@ -18,8 +18,10 @@ function checkOrCreateSession(user_id, session_id) {
       console.log("Session existence check:", data);
       if (data.result === 1) {
         document.getElementById("chatContainer").style.display = "flex";
-        getThreadId(user_id, session_id);
-        getConversation(user_id, session_id);
+        getConversation(user_id, session_id)
+          .then(conversation_id => {
+            getThreadId(conversation_id);
+          });
         return;
       } else if (data.result === 0) {
         const currentDate = new Date();
@@ -123,7 +125,7 @@ function setCookie(name, value, days) {
     document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
 }
 
-function getThreadId(user_id, session_id) {
+function getThreadId(conversation_id) {
     console.log("Getting thread ID");
     showWaitingBubble();
     return fetch("/api/get_thread_id", {
@@ -131,12 +133,11 @@ function getThreadId(user_id, session_id) {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ user_id, session_id }),
+        body: JSON.stringify({ conversation_id }),
     })
     .then((response) => response.json())
     .then((data) => {
         console.log("Thread ID in getThreadId:", data.thread_id);
-        // sessionStorage.setItem("thread_id", data.thread_id);
         setCookie('thread_id', data.thread_id, 1);
         return data.thread_id;
     })
