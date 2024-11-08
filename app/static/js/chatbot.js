@@ -18,7 +18,9 @@ function checkOrCreateSession(user_id, session_id) {
       console.log("Session existence check:", data);
       if (data.result === 1) {
         document.getElementById("chatContainer").style.display = "flex";
-        return getConversation(user_id, session_id);
+        getThreadId(user_id, session_id);
+        getConversation(user_id, session_id);
+        return;
       } else if (data.result === 0) {
         const currentDate = new Date();
         const start_time = new Date(
