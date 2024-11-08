@@ -1255,7 +1255,10 @@ def api_get_thread_id():
         return jsonify({"thread_id": thread_id})
     else:
         # send request to update_thread
-        requests.post('/api/update_thread', json={'conversation_id': conversation_id})
+        if CHATBOT_URL == 'http://103.186.101.178:8088/v1':
+            requests.post('/api/update_thread', json={'conversation_id': conversation_id})
+        else:
+            requests.post('https://bot.pvpower.vn/api/update_thread', json={'conversation_id': conversation_id})
         thread_id = get_thread_id(conn, conversation_id)
         return jsonify({"thread_id": thread_id})
 
