@@ -331,8 +331,22 @@ window.onload = function() {
     }
 };
 
-document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'visible') {
-      location.reload(); // Reload lại trang khi tab được quay lại
+// document.addEventListener('visibilitychange', function() {
+//     if (document.visibilityState === 'visible') {
+//       location.reload(); // Reload lại trang khi tab được quay lại
+//     }
+//   });
+
+function reloadPageIfVisible() {
+    const currentTime = Date.now();
+    const inactiveDuration = currentTime - lastInactiveTime;
+
+    // Nếu thời gian không hoạt động hơn 1 phút (60000 ms), reload trang
+    if (document.visibilityState === 'visible' && inactiveDuration >= 60000) {
+        location.reload();
     }
-  });
+}
+
+// Lắng nghe sự kiện focus và visibilitychange
+document.addEventListener('visibilitychange', reloadPageIfVisible);
+window.addEventListener('focus', reloadPageIfVisible);
