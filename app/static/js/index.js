@@ -337,6 +337,15 @@ window.onload = function() {
 //     }
 //   });
 
+let lastInactiveTime = Date.now(); // Thời điểm cuối cùng trang được xem
+
+// Lưu thời gian hiện tại mỗi khi trang bị ẩn (người dùng rời khỏi)
+document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') {
+        lastInactiveTime = Date.now(); // Cập nhật thời gian rời khỏi
+    }
+});
+
 function reloadPageIfVisible() {
     const currentTime = Date.now();
     const inactiveDuration = currentTime - lastInactiveTime;
