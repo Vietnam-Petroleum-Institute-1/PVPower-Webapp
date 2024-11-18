@@ -470,9 +470,24 @@ function addStreamingMessage(sender, messageId = null) {
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
       fullText += text;
-      messageContent.innerHTML = fullText;
       
-      // Render MathJax sau mỗi lần cập nhật
+      // Chỉ thay thế các bullet points và giữ nguyên phần còn lại
+      let formattedText = fullText
+        .split('\n')
+        .map(line => {
+          if (line.trim().startsWith('•')) {
+            return `<li>${line.substring(1).trim()}</li>`;
+          }
+          return line;
+        })
+        .join('\n');
+      
+      // Wrap bullet points trong ul
+      formattedText = formattedText.replace(/((?:<li>.*?<\/li>\n*)+)/g, '<ul>$1</ul>');
+      
+      messageContent.innerHTML = formattedText;
+      
+      // Render MathJax
       if (window.MathJax) {
         MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
       }
