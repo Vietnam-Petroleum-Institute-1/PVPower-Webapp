@@ -317,45 +317,37 @@ window.onload = function () {
 function parseMarkdown(text) {
   if (!text) return "";
   
-  // Bước 1: Chuẩn hóa khoảng trắng và xuống dòng
-  text = text.replace(/\s+/g, ' ');  // Chuẩn hóa khoảng trắng
-  text = text.replace(/\\n/g, '\n');  // Xử lý xuống dòng
+  // Loại bỏ 【8:8†source】
+  text = text.replace(/【.*?】/g, '');
   
-  // Bước 2: Tách và xử lý từng dòng
-  const lines = text.split('\n').map(line => {
-    // Xử lý công thức toán học
-    if (line.includes('=')) {
-      // Thêm khoảng trắng xung quanh các toán tử
-      line = line.replace(/([=\+\-\*\/])/g, ' $1 ');
-      // Xử lý các ký tự đặc biệt trong công thức
-      line = line.replace(/\\times/g, ' × ');
-      line = line.replace(/\\sum/g, '∑');
-      // Bọc công thức trong \\[ \\]
-      return `\\[${line.trim()}\\]`;
-    }
-    return line;
+  // Xử lý các công thức toán học
+  text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
+    return `\\[${formula}\\]`;
   });
   
-  // Bước 3: Xử lý các phần giải thích
-  text = lines.join('\n');
-  text = text.replace(/Trong đó:/g, '\nTrong đó:\n');
-  text = text.replace(/hoặc/g, '\nhoặc\n');
-  
-  // Bước 4: Xử lý các định nghĩa biến
-  text = text.replace(/([A-Z]+)i?:/g, '\n- $1: ');
-  
-  // Bước 5: Format lại văn bản
-  const paragraphs = text.split('\n\n').map(p => {
-    if (p.trim().startsWith('\\[')) {
-      return p.trim();  // Giữ nguyên công thức
-    }
-    if (p.trim().startsWith('-')) {
-      return `<ul>${p.split('\n').map(item => `<li>${item.substring(2)}</li>`).join('')}</ul>`;
-    }
-    return `<p>${p}</p>`;
+  text = text.replace(/\\\((.*?)\\\)/g, (match, formula) => {
+    return `\\(${formula}\\)`;
   });
   
-  return paragraphs.join('\n');
+  // Xử lý các ký tự đặc biệt trong công thức
+  text = text.replace(/\\left\((.*?)\\right\)/g, '\\left($1\\right)');
+  text = text.replace(/\\frac{(.*?)}{(.*?)}/g, '\\frac{$1}{$2}');
+  text = text.replace(/\\times/g, '\\times');
+  text = text.replace(/\\sum/g, '\\sum');
+  
+  // Xử lý headings với dấu **
+  text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
+  
+  // Xử lý bullet points
+  text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
+  
+  // Gom nhóm bullet points
+  text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
+  
+  // Xử lý paragraphs
+  text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
+
+  return text;
 }
 
 function getCookie(name) {
@@ -472,19 +464,12 @@ function addStreamingMessage(sender, messageId = null) {
       text = text.replace(/\\n/g, "\n");
       fullText += text;
       
-      // Trong quá trình streaming, giữ nguyên format toán học
+      // Trong quá trình streaming, giữ nguyên text
       messageContent.textContent = fullText;
     },
     finalizeContent: () => {
-      // Khi kết thúc streaming, thực hiện một số format cơ bản
-      let formattedText = fullText;
-      
-      // Thêm khoảng trắng cho dễ đọc
-      formattedText = formattedText.replace(/\n-/g, '\n\n-');
-      formattedText = formattedText.replace(/\nTrong đó:/g, '\n\nTrong đó:');
-      formattedText = formattedText.replace(/\nhoặc/g, '\n\nhoặc');
-      
-      // Đảm bảo các công thức toán học được giữ nguyên
+      // Khi kết thúc streaming, sử dụng parseMarkdown để format
+      const formattedText = parseMarkdown(fullText);
       messageContent.innerHTML = formattedText;
       
       // Render MathJax
