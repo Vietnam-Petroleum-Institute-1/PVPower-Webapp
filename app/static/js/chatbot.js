@@ -428,7 +428,6 @@ function createFeedbackButtons(messageId, messageElement) {
 }
 
 function addMessageToChat(sender, message, messageId) {
-  const chatMessages = document.getElementById("chatMessages");
   const messageElement = document.createElement("div");
   messageElement.classList.add("message", sender);
   if (messageId) {
@@ -444,17 +443,11 @@ function addMessageToChat(sender, message, messageId) {
 
   const messageContent = document.createElement("div");
   messageContent.classList.add("message-content");
-
-  if (sender === "bot") {
-    messageContent.innerHTML = parseMarkdown(message);
-  } else {
-    messageContent.textContent = message;
-  }
+  messageContent.innerHTML = message; // Giữ nguyên nội dung gốc
 
   messageElement.appendChild(messageContent);
-  chatMessages.appendChild(messageElement);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-
+  document.getElementById("chatMessages").appendChild(messageElement);
+  
   return messageElement;
 }
 
@@ -526,29 +519,12 @@ function loadTranscripts(user_id, session_id) {
         transcripts = transcripts[0];
       }
 
+      const chatMessages = document.getElementById("chatMessages");
+      chatMessages.innerHTML = ''; // Clear existing messages
+
       if (Array.isArray(transcripts)) {
         transcripts.forEach((transcript) => {
-          if (Array.isArray(transcript)) {
-            transcript.forEach((innerTranscript) => {
-              if (innerTranscript && innerTranscript.role) {
-                const role = innerTranscript.role.toLowerCase();
-                if (innerTranscript.text != "") {
-                  const messageElement = addMessageToChat(
-                    role,
-                    innerTranscript.text,
-                    innerTranscript.messageId || null
-                  );
-                  if (role === "bot" && innerTranscript.messageId) {
-                    const feedbackButtons = createFeedbackButtons(
-                      innerTranscript.messageId,
-                      messageElement
-                    );
-                    messageElement.appendChild(feedbackButtons);
-                  }
-                }
-              }
-            });
-          } else if (transcript && transcript.role) {
+          if (transcript && transcript.role) {
             const role = transcript.role.toLowerCase();
             if (transcript.text != "") {
               const messageElement = addMessageToChat(
@@ -567,7 +543,13 @@ function loadTranscripts(user_id, session_id) {
           }
         });
       }
-      // Đợi một chút để đảm bảo DOM đã được cập nhật
+
+      // Render MathJax sau khi load xong tất cả transcripts
+      if (window.MathJax) {
+        MathJax.typesetPromise && MathJax.typesetPromise();
+      }
+
+      // Load feedback sau khi đã render xong
       setTimeout(() => {
         loadFeedback(user_id, session_id);
       }, 100);
