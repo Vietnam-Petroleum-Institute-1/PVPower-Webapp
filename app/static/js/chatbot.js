@@ -460,45 +460,19 @@ function addMessageToChat(sender, message, messageId) {
 function addStreamingMessage(sender, messageId = null) {
   const messageElement = addMessageToChat(sender, "", messageId);
   const messageContent = messageElement.querySelector(".message-content");
-  let fullText = "";
-  let bufferTimeout;
 
   return {
     element: messageElement,
     content: messageContent,
     updateContent: (text) => {
-      text = text.replace(/\nTrue$/, "")
-                .replace(/\\n/g, "\n")
-                .trim();
-      
-      if (text === fullText) return;
-      fullText = text;
-
-      // Kiểm tra xem có cặp công thức hoàn chỉnh không
-      const hasCompleteMath = /\\\[.*?\\\]/.test(fullText) || /\\\(.*?\\\)/.test(fullText);
-      
-      if (hasCompleteMath) {
-        // Nếu có công thức hoàn chỉnh, render MathJax
-        messageContent.innerHTML = parseMarkdown(fullText);
-        if (window.MathJax) {
-          MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
-        }
-      } else {
-        // Nếu không, render markdown bình thường
-        messageContent.innerHTML = parseMarkdown(fullText);
-      }
-    },
-    finalizeContent: () => {
-      // Đảm bảo render lần cuối
-      messageContent.innerHTML = parseMarkdown(fullText);
-      if (window.MathJax) {
-        MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
-      }
+      text = text.replace(/\nTrue$/, "").trim();
+      text = text.replace(/\\n/g, "\n");
+      messageContent.innerHTML = parseMarkdown(text);
     },
     addFeedback: (messageId) => {
       const feedbackButtons = createFeedbackButtons(messageId, messageElement);
       messageElement.appendChild(feedbackButtons);
-    }
+    },
   };
 }
 
@@ -662,9 +636,6 @@ function sendMessage(message = null) {
                 }
             } else if (data.event === 'message_end' || data.event === 'tts_message_end') {
                 console.log("Message completed");
-                if (botMessage) {
-                    botMessage.finalizeContent();
-                }
                 isWaitingForBot = false;
                 userInput.disabled = false;
                 userInput.focus();
