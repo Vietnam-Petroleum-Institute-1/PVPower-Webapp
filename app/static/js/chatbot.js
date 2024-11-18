@@ -461,47 +461,38 @@ function addStreamingMessage(sender, messageId = null) {
   const messageElement = addMessageToChat(sender, "", messageId);
   const messageContent = messageElement.querySelector(".message-content");
   let fullText = "";
-  let hasMath = false;
   let bufferTimeout;
 
   return {
     element: messageElement,
     content: messageContent,
     updateContent: (text) => {
-      // Xóa các ký tự không mong muốn
       text = text.replace(/\nTrue$/, "")
                 .replace(/\\n/g, "\n")
                 .trim();
       
-      // Nếu text mới giống text cũ, bỏ qua
       if (text === fullText) return;
-      
-      // Cập nhật text mới
       fullText = text;
-      
-      // Kiểm tra công thức toán
-      if (!hasMath) {
-        hasMath = text.includes('\\[') || text.includes('\\(');
-      }
 
-      // Clear timeout cũ nếu có
-      if (bufferTimeout) clearTimeout(bufferTimeout);
+      // Kiểm tra xem có cặp công thức hoàn chỉnh không
+      const hasCompleteMath = /\\\[.*?\\\]/.test(fullText) || /\\\(.*?\\\)/.test(fullText);
       
-      // Đặt timeout mới để buffer việc render
-      bufferTimeout = setTimeout(() => {
-        if (hasMath) {
-          messageContent.textContent = fullText;
-        } else {
-          messageContent.innerHTML = parseMarkdown(fullText);
-        }
-      }, 50); // Buffer 50ms
-    },
-    finalizeContent: () => {
-      if (hasMath) {
+      if (hasCompleteMath) {
+        // Nếu có công thức hoàn chỉnh, render MathJax
         messageContent.innerHTML = parseMarkdown(fullText);
         if (window.MathJax) {
           MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
         }
+      } else {
+        // Nếu không, render markdown bình thường
+        messageContent.innerHTML = parseMarkdown(fullText);
+      }
+    },
+    finalizeContent: () => {
+      // Đảm bảo render lần cuối
+      messageContent.innerHTML = parseMarkdown(fullText);
+      if (window.MathJax) {
+        MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
       }
     },
     addFeedback: (messageId) => {
