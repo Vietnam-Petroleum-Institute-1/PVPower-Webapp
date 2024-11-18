@@ -320,42 +320,41 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
-  // Xử lý các dòng riêng lẻ
-  const lines = text.split('\n').map(line => {
-    line = line.trim();
-    
-    // Xử lý headings với dấu **
-    if (line.match(/^\d+\.\s+\*\*(.+?)\*\*:?$/)) {
-      return line.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?$/, '<h3 class="heading">$1. $2</h3>');
-    }
-    
-    // Xử lý bullet points
-    if (line.startsWith('•') || line.startsWith('-')) {
-      return `<li>${line.substring(1).trim()}</li>`;
-    }
-    
-    // Xử lý công thức toán học
-    if (line.includes('\\[') || line.includes('\\]')) {
-      return line;
-    }
-    
-    // Xử lý các dòng bình thường
-    return line;
+  // Xử lý các công thức toán học
+  text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
+    return `\\[${formula}\\]`;
   });
   
-  // Gom nhóm bullet points
-  let html = lines.join('\n');
-  html = html.replace(/((?:<li>.*?<\/li>\n*)+)/g, '<ul>$1</ul>');
+  text = text.replace(/\\\((.*?)\\\)/g, (match, formula) => {
+    return `\\(${formula}\\)`;
+  });
   
-  // Xử lý paragraphs (trừ các dòng công thức)
-  html = html.split(/\n\n+/).map(p => {
-    if (p.includes('\\[') || p.includes('\\]') || p.startsWith('<')) {
-      return p;
-    }
-    return `<p>${p}</p>`;
-  }).join('\n');
+  // Xử lý các ký tự đặc biệt trong công thức
+  text = text.replace(/\\left\((.*?)\\right\)/g, '\\left($1\\right)');
+  text = text.replace(/\\frac{(.*?)}{(.*?)}/g, '\\frac{$1}{$2}');
+  text = text.replace(/\\times/g, '\\times');
+  text = text.replace(/\\sum/g, '\\sum');
+  
+  // Xử lý headings với dấu **
+  text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
+  
+  // Xử lý bullet points
+  text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
+  
+  // Gom nhóm bullet points
+  text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
+  
+  // Xử lý paragraphs
+  text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
 
-  return html;
+  // Render công thức toán học
+  setTimeout(() => {
+    if (window.MathJax) {
+      MathJax.typesetPromise && MathJax.typesetPromise();
+    }
+  }, 100);
+  
+  return text;
 }
 
 function getCookie(name) {
@@ -428,6 +427,7 @@ function createFeedbackButtons(messageId, messageElement) {
 }
 
 function addMessageToChat(sender, message, messageId) {
+  const chatMessages = document.getElementById("chatMessages");
   const messageElement = document.createElement("div");
   messageElement.classList.add("message", sender);
   if (messageId) {
@@ -443,18 +443,23 @@ function addMessageToChat(sender, message, messageId) {
 
   const messageContent = document.createElement("div");
   messageContent.classList.add("message-content");
-  messageContent.innerHTML = message; // Giữ nguyên nội dung gốc
+
+  if (sender === "bot") {
+    messageContent.innerHTML = parseMarkdown(message);
+  } else {
+    messageContent.textContent = message;
+  }
 
   messageElement.appendChild(messageContent);
-  document.getElementById("chatMessages").appendChild(messageElement);
-  
+  chatMessages.appendChild(messageElement);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
   return messageElement;
 }
 
 function addStreamingMessage(sender, messageId = null) {
   const messageElement = addMessageToChat(sender, "", messageId);
   const messageContent = messageElement.querySelector(".message-content");
-  let fullText = "";
 
   return {
     element: messageElement,
@@ -462,28 +467,7 @@ function addStreamingMessage(sender, messageId = null) {
     updateContent: (text) => {
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
-      fullText += text;
-      
-      // Chỉ thay thế các bullet points và giữ nguyên phần còn lại
-      let formattedText = fullText
-        .split('\n')
-        .map(line => {
-          if (line.trim().startsWith('•')) {
-            return `<li>${line.substring(1).trim()}</li>`;
-          }
-          return line;
-        })
-        .join('\n');
-      
-      // Wrap bullet points trong ul
-      formattedText = formattedText.replace(/((?:<li>.*?<\/li>\n*)+)/g, '<ul>$1</ul>');
-      
-      messageContent.innerHTML = formattedText;
-      
-      // Render MathJax
-      if (window.MathJax) {
-        MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
-      }
+      messageContent.innerHTML = parseMarkdown(text);
     },
     addFeedback: (messageId) => {
       const feedbackButtons = createFeedbackButtons(messageId, messageElement);
@@ -519,12 +503,29 @@ function loadTranscripts(user_id, session_id) {
         transcripts = transcripts[0];
       }
 
-      const chatMessages = document.getElementById("chatMessages");
-      chatMessages.innerHTML = ''; // Clear existing messages
-
       if (Array.isArray(transcripts)) {
         transcripts.forEach((transcript) => {
-          if (transcript && transcript.role) {
+          if (Array.isArray(transcript)) {
+            transcript.forEach((innerTranscript) => {
+              if (innerTranscript && innerTranscript.role) {
+                const role = innerTranscript.role.toLowerCase();
+                if (innerTranscript.text != "") {
+                  const messageElement = addMessageToChat(
+                    role,
+                    innerTranscript.text,
+                    innerTranscript.messageId || null
+                  );
+                  if (role === "bot" && innerTranscript.messageId) {
+                    const feedbackButtons = createFeedbackButtons(
+                      innerTranscript.messageId,
+                      messageElement
+                    );
+                    messageElement.appendChild(feedbackButtons);
+                  }
+                }
+              }
+            });
+          } else if (transcript && transcript.role) {
             const role = transcript.role.toLowerCase();
             if (transcript.text != "") {
               const messageElement = addMessageToChat(
@@ -543,13 +544,7 @@ function loadTranscripts(user_id, session_id) {
           }
         });
       }
-
-      // Render MathJax sau khi load xong tất cả transcripts
-      if (window.MathJax) {
-        MathJax.typesetPromise && MathJax.typesetPromise();
-      }
-
-      // Load feedback sau khi đã render xong
+      // Đợi một chút để đảm bảo DOM đã được cập nhật
       setTimeout(() => {
         loadFeedback(user_id, session_id);
       }, 100);
@@ -620,6 +615,7 @@ function sendMessage(message = null) {
             if (data.event === 'message') {
                 clearTimeout(delayMessageTimeout);
 
+                // Tạo botMessage chỉ khi nhận được chunk đầu tiên
                 if (!botMessage) {
                     removeWaitingBubble();
                     botMessage = addStreamingMessage("bot");
@@ -634,12 +630,12 @@ function sendMessage(message = null) {
                     let chunk = data.chunk;
                     botResponse += chunk;
                     botMessage.updateContent(botResponse);
+
+                    const chatMessages = document.getElementById("chatMessages");
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
             } else if (data.event === 'message_end' || data.event === 'tts_message_end') {
                 console.log("Message completed");
-                if (botMessage) {
-                    botMessage.finalizeContent(); // Format lại nội dung khi kết thúc
-                }
                 isWaitingForBot = false;
                 userInput.disabled = false;
                 userInput.focus();
@@ -651,7 +647,6 @@ function sendMessage(message = null) {
                     botMessage = addStreamingMessage("bot");
                 }
                 botMessage.updateContent("Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.");
-                botMessage.finalizeContent();
                 isWaitingForBot = false;
                 userInput.disabled = false;
             }
