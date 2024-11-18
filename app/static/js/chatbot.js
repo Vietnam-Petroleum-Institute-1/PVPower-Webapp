@@ -320,71 +320,42 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
-  // Tách văn bản thành các dòng
-  let lines = text.split('\n');
-  let result = [];
-  let inMathBlock = false;
-  
-  for (let i = 0; i < lines.length; i++) {
-    let line = lines[i].trim();
+  // Xử lý các dòng riêng lẻ
+  const lines = text.split('\n').map(line => {
+    line = line.trim();
     
-    // Xử lý các dòng bắt đầu với \[
-    if (line === '\\[' || line === '\\') {
-      inMathBlock = true;
-      let mathContent = [];
-      i++;
-      
-      // Thu thập nội dung công thức cho đến khi gặp \]
-      while (i < lines.length && lines[i].trim() !== '\\]' && lines[i].trim() !== '\\') {
-        mathContent.push(lines[i].trim());
-        i++;
-      }
-      
-      // Tạo khối công thức toán học
-      if (mathContent.length > 0) {
-        result.push(`\\[${mathContent.join(' ')}\\]`);
-      }
-      inMathBlock = false;
-      continue;
-    }
-    
-    // Xử lý các dòng có công thức inline
-    if (line.includes('=') || 
-        line.includes('\\times') || 
-        line.includes('\\sum') || 
-        line.includes('\\frac') ||
-        line.includes('\\left')) {
-      if (!line.startsWith('\\[')) {
-        line = `\\[${line}\\]`;
-      }
+    // Xử lý headings với dấu **
+    if (line.match(/^\d+\.\s+\*\*(.+?)\*\*:?$/)) {
+      return line.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?$/, '<h3 class="heading">$1. $2</h3>');
     }
     
     // Xử lý bullet points
-    if (line.startsWith('-')) {
-      line = `<li>${line.substring(1).trim()}</li>`;
+    if (line.startsWith('•') || line.startsWith('-')) {
+      return `<li>${line.substring(1).trim()}</li>`;
     }
     
-    // Xử lý headings
-    if (/^\d+\.\s+\*\*.*\*\*$/.test(line)) {
-      line = line.replace(/^(\d+)\.\s+\*\*(.*?)\*\*$/, '<h3 class="heading">$1. $2</h3>');
+    // Xử lý công thức toán học
+    if (line.includes('\\[') || line.includes('\\]')) {
+      return line;
     }
     
-    result.push(line);
-  }
+    // Xử lý các dòng bình thường
+    return line;
+  });
   
   // Gom nhóm bullet points
-  text = result.join('\n');
-  text = text.replace(/((?:<li>.*?<\/li>[\n\r]*)+)/g, "<ul>$1</ul>");
+  let html = lines.join('\n');
+  html = html.replace(/((?:<li>.*?<\/li>\n*)+)/g, '<ul>$1</ul>');
   
   // Xử lý paragraphs (trừ các dòng công thức)
-  text = text.split(/\n\n+/).map(p => {
-    if (p.trim().startsWith('\\[') || p.trim().startsWith('<')) {
+  html = html.split(/\n\n+/).map(p => {
+    if (p.includes('\\[') || p.includes('\\]') || p.startsWith('<')) {
       return p;
     }
     return `<p>${p}</p>`;
   }).join('\n');
 
-  return text;
+  return html;
 }
 
 function getCookie(name) {
