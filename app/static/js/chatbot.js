@@ -499,22 +499,12 @@ function addStreamingMessage(sender, messageId = null) {
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
       fullText += text;
-      // Trong quá trình streaming, chỉ hiển thị text thô
-      messageContent.textContent = fullText;
-    },
-    finalizeContent: () => {
-      // Khi kết thúc streaming, format lại toàn bộ
       messageContent.innerHTML = parseMarkdown(fullText);
-      
-      // Render MathJax
-      if (window.MathJax) {
-        MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
-      }
     },
     addFeedback: (messageId) => {
       const feedbackButtons = createFeedbackButtons(messageId, messageElement);
       messageElement.appendChild(feedbackButtons);
-    }
+    },
   };
 }
 
