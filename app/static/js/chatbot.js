@@ -467,14 +467,24 @@ function addStreamingMessage(sender, messageId = null) {
     element: messageElement,
     content: messageContent,
     updateContent: (text) => {
+      // Chỉ xử lý các ký tự xuống dòng và khoảng trắng cơ bản
       text = text.replace(/\nTrue$/, "").trim();
+      text = text.replace(/\\n/g, "\n");
       fullText += text;
-      // Hiển thị text thô trong quá trình streaming
+      
+      // Trong quá trình streaming, giữ nguyên format toán học
       messageContent.textContent = fullText;
     },
     finalizeContent: () => {
-      // Format lại toàn bộ nội dung khi kết thúc
-      const formattedText = parseMarkdown(fullText);
+      // Khi kết thúc streaming, thực hiện một số format cơ bản
+      let formattedText = fullText;
+      
+      // Thêm khoảng trắng cho dễ đọc
+      formattedText = formattedText.replace(/\n-/g, '\n\n-');
+      formattedText = formattedText.replace(/\nTrong đó:/g, '\n\nTrong đó:');
+      formattedText = formattedText.replace(/\nhoặc/g, '\n\nhoặc');
+      
+      // Đảm bảo các công thức toán học được giữ nguyên
       messageContent.innerHTML = formattedText;
       
       // Render MathJax

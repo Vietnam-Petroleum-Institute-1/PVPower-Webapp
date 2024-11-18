@@ -37,15 +37,21 @@
         inlineMath: [['\\(', '\\)']],
         displayMath: [['\\[', '\\]']],
         processEscapes: true,
-        packages: ['base', 'ams', 'noerrors', 'noundefined']
+        packages: ['base', 'ams', 'noerrors', 'noundefined'],
+        macros: {
+          'sum': '\\sum',
+          'times': '\\times',
+          'frac': '\\frac',
+          'left': '\\left',
+          'right': '\\right'
+        }
       },
       svg: {
         fontCache: 'global'
       },
       options: {
-        renderActions: {
-          addMenu: [0, '', '']
-        }
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        processHtmlClass: 'tex2jax_process'
       }
     };
     </script>
