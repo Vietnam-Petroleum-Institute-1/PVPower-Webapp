@@ -320,14 +320,33 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
-  // Xử lý các công thức toán học
-  text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
-    return `\\[${formula}\\]`;
+  // Xử lý các dòng riêng lẻ
+  const lines = text.split('\n').map(line => {
+    line = line.trim();
+    
+    // Nếu dòng bắt đầu bằng \[ hoặc kết thúc bằng \]
+    if (line.startsWith('\\[') || line.endsWith('\\]')) {
+      return line;
+    }
+    
+    // Nếu dòng chỉ chứa ký tự \
+    if (line === '\\') {
+      return '\\[\\]';
+    }
+    
+    // Nếu dòng chứa công thức toán học (có dấu =, \times, \sum, \frac, etc.)
+    if (line.includes('=') || 
+        line.includes('\\times') || 
+        line.includes('\\sum') || 
+        line.includes('\\frac') ||
+        line.includes('\\left')) {
+      return `\\[${line}\\]`;
+    }
+    
+    return line;
   });
   
-  text = text.replace(/\\\((.*?)\\\)/g, (match, formula) => {
-    return `\\(${formula}\\)`;
-  });
+  text = lines.join('\n');
   
   // Xử lý các ký tự đặc biệt trong công thức
   text = text.replace(/\\left\((.*?)\\right\)/g, '\\left($1\\right)');
@@ -336,16 +355,21 @@ function parseMarkdown(text) {
   text = text.replace(/\\sum/g, '\\sum');
   
   // Xử lý headings với dấu **
-  text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
+  text = text.replace(/^(\d+)\.\s+(.+?)$/gm, '<h3 class="heading">$1. $2</h3>');
   
   // Xử lý bullet points
-  text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
+  text = text.replace(/^[-]\s+(.*?)$/gm, "<li>$1</li>");
   
   // Gom nhóm bullet points
-  text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
+  text = text.replace(/((?:<li>.*?<\/li>)+)/g, "<ul>$1</ul>");
   
-  // Xử lý paragraphs
-  text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
+  // Xử lý paragraphs (trừ các dòng công thức)
+  text = text.split('\n\n+').map(p => {
+    if (p.trim().startsWith('\\[') || p.trim().startsWith('<')) {
+      return p;
+    }
+    return `<p>${p}</p>`;
+  }).join('\n');
 
   return text;
 }
@@ -459,16 +483,14 @@ function addStreamingMessage(sender, messageId = null) {
     element: messageElement,
     content: messageContent,
     updateContent: (text) => {
-      // Chỉ xử lý các ký tự xuống dòng và khoảng trắng cơ bản
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
       fullText += text;
-      
-      // Trong quá trình streaming, giữ nguyên text
+      // Trong quá trình streaming, chỉ hiển thị text thô
       messageContent.textContent = fullText;
     },
     finalizeContent: () => {
-      // Khi kết thúc streaming, sử dụng parseMarkdown để format
+      // Khi kết thúc streaming, format lại toàn bộ
       const formattedText = parseMarkdown(fullText);
       messageContent.innerHTML = formattedText;
       
