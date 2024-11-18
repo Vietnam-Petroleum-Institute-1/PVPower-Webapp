@@ -461,6 +461,7 @@ function addStreamingMessage(sender, messageId = null) {
   const messageElement = addMessageToChat(sender, "", messageId);
   const messageContent = messageElement.querySelector(".message-content");
   let fullText = "";
+  let hasMath = false;
 
   return {
     element: messageElement,
@@ -470,20 +471,22 @@ function addStreamingMessage(sender, messageId = null) {
       text = text.replace(/\\n/g, "\n");
       fullText += text;
       
-      // Kiểm tra xem có công thức toán học không
-      const hasMath = fullText.includes('\\[') || fullText.includes('\\(');
+      // Chỉ kiểm tra một lần khi phát hiện công thức toán
+      if (!hasMath) {
+        hasMath = fullText.includes('\\[') || fullText.includes('\\(');
+      }
       
       if (hasMath) {
-        // Nếu có công thức, đợi đến khi streaming kết thúc
+        // Nếu có công thức, chỉ hiển thị text thô
         messageContent.textContent = fullText;
       } else {
-        // Nếu không có công thức, format như bình thường
+        // Nếu không có công thức, format bình thường
         messageContent.innerHTML = parseMarkdown(fullText);
       }
     },
     finalizeContent: () => {
-      // Format lại toàn bộ khi kết thúc streaming nếu có công thức toán
-      if (fullText.includes('\\[') || fullText.includes('\\(')) {
+      // Chỉ format và render MathJax một lần khi kết thúc nếu có công thức
+      if (hasMath) {
         messageContent.innerHTML = parseMarkdown(fullText);
         if (window.MathJax) {
           MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
