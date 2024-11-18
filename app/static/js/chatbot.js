@@ -320,36 +320,31 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
-  // Xử lý các ký tự đặc biệt \[ và \] trong công thức
-  text = text.replace(/\\\[/g, '[');
-  text = text.replace(/\\\]/g, ']');
+  // Xử lý các công thức toán học
+  text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
+    return `\\[${formula}\\]`;
+  });
   
-  // Xử lý công thức toán học đặc biệt
+  text = text.replace(/\\\((.*?)\\\)/g, (match, formula) => {
+    return `\\(${formula}\\)`;
+  });
+  
+  // Xử lý các ký tự đặc biệt trong công thức
   text = text.replace(/\\left\((.*?)\\right\)/g, '\\left($1\\right)');
   text = text.replace(/\\frac{(.*?)}{(.*?)}/g, '\\frac{$1}{$2}');
   text = text.replace(/\\times/g, '\\times');
-  
-  // Xử lý các ký tự đặc biệt
   text = text.replace(/\\sum/g, '\\sum');
   
-  // Xử lý các dòng công thức riêng lẻ
-  const lines = text.split('\n');
-  const processedLines = lines.map(line => {
-    if (line.trim().startsWith('[') || line.trim().startsWith('(')) {
-      return line;
-    }
-    // Nếu dòng chỉ chứa công thức đơn lẻ (không có [ hoặc ()
-    if (line.includes('=') && !line.includes('[') && !line.includes('(')) {
-      return `[${line}]`;
-    }
-    return line;
-  });
-  text = processedLines.join('\n');
-  
-  // Xử lý các phần còn lại như cũ
+  // Xử lý headings với dấu **
   text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
+  
+  // Xử lý bullet points
   text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
+  
+  // Gom nhóm bullet points
   text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
+  
+  // Xử lý paragraphs
   text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
 
   // Render công thức toán học
