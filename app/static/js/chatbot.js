@@ -462,30 +462,39 @@ function addStreamingMessage(sender, messageId = null) {
   const messageContent = messageElement.querySelector(".message-content");
   let fullText = "";
   let hasMath = false;
-  let lastChunk = "";
+  let bufferTimeout;
 
   return {
     element: messageElement,
     content: messageContent,
     updateContent: (text) => {
-      text = text.replace(/\nTrue$/, "").trim();
-      text = text.replace(/\\n/g, "\n");
+      // Xóa các ký tự không mong muốn
+      text = text.replace(/\nTrue$/, "")
+                .replace(/\\n/g, "\n")
+                .trim();
       
-      // Chỉ lấy phần text mới được thêm vào
-      const newChunk = text.substring(lastChunk.length);
-      lastChunk = text;
-      fullText += newChunk;
+      // Nếu text mới giống text cũ, bỏ qua
+      if (text === fullText) return;
       
-      // Kiểm tra công thức toán một lần
+      // Cập nhật text mới
+      fullText = text;
+      
+      // Kiểm tra công thức toán
       if (!hasMath) {
-        hasMath = fullText.includes('\\[') || fullText.includes('\\(');
+        hasMath = text.includes('\\[') || text.includes('\\(');
       }
+
+      // Clear timeout cũ nếu có
+      if (bufferTimeout) clearTimeout(bufferTimeout);
       
-      if (hasMath) {
-        messageContent.textContent = fullText;
-      } else {
-        messageContent.innerHTML = parseMarkdown(fullText);
-      }
+      // Đặt timeout mới để buffer việc render
+      bufferTimeout = setTimeout(() => {
+        if (hasMath) {
+          messageContent.textContent = fullText;
+        } else {
+          messageContent.innerHTML = parseMarkdown(fullText);
+        }
+      }, 50); // Buffer 50ms
     },
     finalizeContent: () => {
       if (hasMath) {
