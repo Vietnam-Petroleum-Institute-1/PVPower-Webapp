@@ -503,28 +503,17 @@ function addStreamingMessage(sender, messageId = null) {
       messageContent.textContent = fullText;
     },
     finalizeContent: () => {
-      // Khi kết thúc streaming, chỉ thêm các thẻ HTML cơ bản
-      let formattedText = fullText;
-      
-      // Xử lý bullet points
-      formattedText = formattedText.replace(/^[-•]\s+(.+)$/gm, "<li>$1</li>");
-      formattedText = formattedText.replace(/((?:<li>.*?<\/li>\n*)+)/g, "<ul>$1</ul>");
-      
-      // Xử lý headings
-      formattedText = formattedText.replace(/^(\d+)\.\s+\*\*(.+?)\*\*$/gm, '<h3 class="heading">$1. $2</h3>');
-      
-      // Xử lý paragraphs
-      formattedText = formattedText.split(/\n\n+/).map(p => {
-        if (p.trim().startsWith('<')) return p;
-        return `<p>${p}</p>`;
-      }).join('\n');
-      
-      messageContent.innerHTML = formattedText;
+      // Khi kết thúc streaming, format lại toàn bộ
+      messageContent.innerHTML = parseMarkdown(fullText);
       
       // Render MathJax
       if (window.MathJax) {
         MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
       }
+    },
+    addFeedback: (messageId) => {
+      const feedbackButtons = createFeedbackButtons(messageId, messageElement);
+      messageElement.appendChild(feedbackButtons);
     }
   };
 }
@@ -680,7 +669,8 @@ function sendMessage(message = null) {
 
                 if (data.chunk) {
                     let chunk = data.chunk;
-                    botMessage.updateContent(chunk);
+                    botResponse += chunk;
+                    botMessage.updateContent(botResponse);
                 }
             } else if (data.event === 'message_end' || data.event === 'tts_message_end') {
                 console.log("Message completed");
