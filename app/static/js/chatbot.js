@@ -320,6 +320,10 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
+  // Xử lý các ký tự đặc biệt \[ và \] trong công thức
+  text = text.replace(/\\\[/g, '[');
+  text = text.replace(/\\\]/g, ']');
+  
   // Xử lý công thức toán học đặc biệt
   text = text.replace(/\\left\((.*?)\\right\)/g, '\\left($1\\right)');
   text = text.replace(/\\frac{(.*?)}{(.*?)}/g, '\\frac{$1}{$2}');
@@ -331,12 +335,12 @@ function parseMarkdown(text) {
   // Xử lý các dòng công thức riêng lẻ
   const lines = text.split('\n');
   const processedLines = lines.map(line => {
-    if (line.trim().startsWith('\\[') || line.trim().startsWith('\\(')) {
+    if (line.trim().startsWith('[') || line.trim().startsWith('(')) {
       return line;
     }
-    // Nếu dòng chỉ chứa công thức đơn lẻ (không có \\[ hoặc \\()
-    if (line.includes('=') && !line.includes('\\[') && !line.includes('\\(')) {
-      return `\\[${line}\\]`;
+    // Nếu dòng chỉ chứa công thức đơn lẻ (không có [ hoặc ()
+    if (line.includes('=') && !line.includes('[') && !line.includes('(')) {
+      return `[${line}]`;
     }
     return line;
   });

@@ -61,24 +61,24 @@
     document.addEventListener('visibilitychange', reloadPageIfVisible);
     window.addEventListener('focus', reloadPageIfVisible);
   </script>
-  <script>
-    MathJax = {
-      tex: {
-        inlineMath: [['\\(', '\\)']],
-        displayMath: [['\\[', '\\]']],
-        processEscapes: true,
-        packages: ['base', 'ams', 'noerrors', 'noundefined']
-      },
-      svg: {
-        fontCache: 'global'
-      },
-      options: {
-        renderActions: {
-          addMenu: [0, '', '']
-        }
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['(', ')']],
+      displayMath: [['[', ']']],
+      processEscapes: false,
+      packages: ['base', 'ams', 'noerrors', 'noundefined']
+    },
+    svg: {
+      fontCache: 'global'
+    },
+    options: {
+      renderActions: {
+        addMenu: [0, '', '']
       }
-    };
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    }
+  };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </body>
 </html>
