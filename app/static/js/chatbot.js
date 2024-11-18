@@ -460,6 +460,7 @@ function addMessageToChat(sender, message, messageId) {
 function addStreamingMessage(sender, messageId = null) {
   const messageElement = addMessageToChat(sender, "", messageId);
   const messageContent = messageElement.querySelector(".message-content");
+  let fullText = "";
 
   return {
     element: messageElement,
@@ -467,7 +468,17 @@ function addStreamingMessage(sender, messageId = null) {
     updateContent: (text) => {
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
-      messageContent.innerHTML = parseMarkdown(text);
+      fullText += text;
+      // Trong quá trình streaming, chỉ hiển thị text thô
+      messageContent.textContent = fullText;
+    },
+    finalizeContent: () => {
+      // Khi streaming kết thúc, format lại toàn bộ nội dung
+      messageContent.innerHTML = parseMarkdown(fullText);
+      // Render lại MathJax
+      if (window.MathJax) {
+        MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
+      }
     },
     addFeedback: (messageId) => {
       const feedbackButtons = createFeedbackButtons(messageId, messageElement);
@@ -615,7 +626,6 @@ function sendMessage(message = null) {
             if (data.event === 'message') {
                 clearTimeout(delayMessageTimeout);
 
-                // Tạo botMessage chỉ khi nhận được chunk đầu tiên
                 if (!botMessage) {
                     removeWaitingBubble();
                     botMessage = addStreamingMessage("bot");
@@ -628,14 +638,13 @@ function sendMessage(message = null) {
 
                 if (data.chunk) {
                     let chunk = data.chunk;
-                    botResponse += chunk;
-                    botMessage.updateContent(botResponse);
-
-                    const chatMessages = document.getElementById("chatMessages");
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    botMessage.updateContent(chunk);
                 }
             } else if (data.event === 'message_end' || data.event === 'tts_message_end') {
                 console.log("Message completed");
+                if (botMessage) {
+                    botMessage.finalizeContent(); // Format lại nội dung khi kết thúc
+                }
                 isWaitingForBot = false;
                 userInput.disabled = false;
                 userInput.focus();
@@ -647,6 +656,7 @@ function sendMessage(message = null) {
                     botMessage = addStreamingMessage("bot");
                 }
                 botMessage.updateContent("Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.");
+                botMessage.finalizeContent();
                 isWaitingForBot = false;
                 userInput.disabled = false;
             }
