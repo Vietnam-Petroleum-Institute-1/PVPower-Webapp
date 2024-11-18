@@ -460,6 +460,7 @@ function addMessageToChat(sender, message, messageId) {
 function addStreamingMessage(sender, messageId = null) {
   const messageElement = addMessageToChat(sender, "", messageId);
   const messageContent = messageElement.querySelector(".message-content");
+  let fullText = "";
 
   return {
     element: messageElement,
@@ -467,12 +468,32 @@ function addStreamingMessage(sender, messageId = null) {
     updateContent: (text) => {
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
-      messageContent.innerHTML = parseMarkdown(text);
+      fullText += text;
+      
+      // Kiểm tra xem có công thức toán học không
+      const hasMath = fullText.includes('\\[') || fullText.includes('\\(');
+      
+      if (hasMath) {
+        // Nếu có công thức, đợi đến khi streaming kết thúc
+        messageContent.textContent = fullText;
+      } else {
+        // Nếu không có công thức, format như bình thường
+        messageContent.innerHTML = parseMarkdown(fullText);
+      }
+    },
+    finalizeContent: () => {
+      // Format lại toàn bộ khi kết thúc streaming nếu có công thức toán
+      if (fullText.includes('\\[') || fullText.includes('\\(')) {
+        messageContent.innerHTML = parseMarkdown(fullText);
+        if (window.MathJax) {
+          MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
+        }
+      }
     },
     addFeedback: (messageId) => {
       const feedbackButtons = createFeedbackButtons(messageId, messageElement);
       messageElement.appendChild(feedbackButtons);
-    },
+    }
   };
 }
 
@@ -636,6 +657,9 @@ function sendMessage(message = null) {
                 }
             } else if (data.event === 'message_end' || data.event === 'tts_message_end') {
                 console.log("Message completed");
+                if (botMessage) {
+                    botMessage.finalizeContent();
+                }
                 isWaitingForBot = false;
                 userInput.disabled = false;
                 userInput.focus();
