@@ -470,7 +470,12 @@ function addStreamingMessage(sender, messageId = null) {
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
       fullText += text;
-      messageContent.innerHTML = parseMarkdown(fullText);
+      messageContent.innerHTML = fullText;
+      
+      // Render MathJax sau mỗi lần cập nhật
+      if (window.MathJax) {
+        MathJax.typesetPromise && MathJax.typesetPromise([messageContent]);
+      }
     },
     addFeedback: (messageId) => {
       const feedbackButtons = createFeedbackButtons(messageId, messageElement);
