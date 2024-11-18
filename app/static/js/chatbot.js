@@ -462,6 +462,7 @@ function addStreamingMessage(sender, messageId = null) {
   const messageContent = messageElement.querySelector(".message-content");
   let fullText = "";
   let hasMath = false;
+  let lastChunk = "";
 
   return {
     element: messageElement,
@@ -469,23 +470,24 @@ function addStreamingMessage(sender, messageId = null) {
     updateContent: (text) => {
       text = text.replace(/\nTrue$/, "").trim();
       text = text.replace(/\\n/g, "\n");
-      fullText += text;
       
-      // Chỉ kiểm tra một lần khi phát hiện công thức toán
+      // Chỉ lấy phần text mới được thêm vào
+      const newChunk = text.substring(lastChunk.length);
+      lastChunk = text;
+      fullText += newChunk;
+      
+      // Kiểm tra công thức toán một lần
       if (!hasMath) {
         hasMath = fullText.includes('\\[') || fullText.includes('\\(');
       }
       
       if (hasMath) {
-        // Nếu có công thức, chỉ hiển thị text thô
         messageContent.textContent = fullText;
       } else {
-        // Nếu không có công thức, format bình thường
         messageContent.innerHTML = parseMarkdown(fullText);
       }
     },
     finalizeContent: () => {
-      // Chỉ format và render MathJax một lần khi kết thúc nếu có công thức
       if (hasMath) {
         messageContent.innerHTML = parseMarkdown(fullText);
         if (window.MathJax) {
