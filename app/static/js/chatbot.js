@@ -317,8 +317,17 @@ window.onload = function () {
 function parseMarkdown(text) {
   if (!text) return "";
   
-  // Loại bỏ 【8:8†source】
+  // Loại bỏ ���8:8†source】
   text = text.replace(/【.*?】/g, '');
+  
+  // Xử lý công thức toán học
+  text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
+    return `<div class="math-block">\\[${formula}\\]</div>`;
+  });
+  
+  text = text.replace(/\\\((.*?)\\\)/g, (match, formula) => {
+    return `<span class="math-inline">\\(${formula}\\)</span>`;
+  });
   
   // Xử lý headings với dấu **
   text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
@@ -331,6 +340,13 @@ function parseMarkdown(text) {
   
   // Xử lý paragraphs
   text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
+
+  // Render công thức toán học
+  setTimeout(() => {
+    if (window.MathJax) {
+      MathJax.typesetPromise();
+    }
+  }, 100);
   
   return text;
 }
@@ -796,6 +812,16 @@ style.textContent = `
     }
     .feedback-buttons button.disabled {
         color: rgba(16, 16, 16, 0.3);
+    }
+
+    .math-block {
+        overflow-x: auto;
+        margin: 1em 0;
+        padding: 0.5em 0;
+    }
+    
+    .math-inline {
+        padding: 0 0.2em;
     }
 `;
 document.head.appendChild(style);
