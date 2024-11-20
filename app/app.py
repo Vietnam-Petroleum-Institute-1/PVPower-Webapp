@@ -317,7 +317,7 @@ def api_message():
     thread_id = request.args.get('thread_id')  # Lấy thread_id từ request
 
     # lấy transcript từ conversation_id
-    transcript = get_transcripts(conn, conversation_id)
+    transcript = get_transcripts(conn, user_id, session_id)
 
     messages = json.loads(transcript)
 
