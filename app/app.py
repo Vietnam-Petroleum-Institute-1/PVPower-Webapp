@@ -319,29 +319,30 @@ def api_message():
     # lấy transcript từ conversation_id
     transcript = get_transcripts(conn, user_id, session_id)
 
-    # Kiểm tra và xử lý transcript
-    if isinstance(transcript, list) and len(transcript) > 0:
-        # Nếu transcript là list của list, lấy list đầu tiên
-        if isinstance(transcript[0], list):
-            messages = transcript[0]
-        else:
-            messages = transcript
-    else:
-        messages = []
+    # Xử lý cấu trúc dữ liệu phức tạp
+    messages = []
+    if transcript and isinstance(transcript, list) and len(transcript) > 0:
+        # Lấy phần tử đầu tiên của transcript (là tuple)
+        first_item = transcript[0]
+        
+        # Lấy phần tử đầu tiên của tuple (là list chứa messages)
+        if isinstance(first_item, tuple) and len(first_item) > 0:
+            messages = first_item[0]
 
     # Số lượng tin nhắn muốn lấy
     num_messages_to_fetch = 3
 
-    # Lấy tin nhắn gần đây nhất (tối đa num_messages_to_fetch tin)
+    # Lấy tin nhắn gần đây nhất
     recent_messages = messages[-num_messages_to_fetch:] if len(messages) > 0 else []
 
     # Chuyển đổi sang cấu trúc mong muốn
     context = []
     for msg in recent_messages:
-        if msg["role"] == "user":
-            context.append({"role": "user", "content": msg["text"]})
-        elif msg["role"] == "bot":
-            context.append({"role": "assistant", "text": msg["text"]})
+        if isinstance(msg, dict):  # Kiểm tra msg có phải là dict không
+            if msg.get("role") == "user":
+                context.append({"role": "user", "content": msg.get("text", "")})
+            elif msg.get("role") == "bot":
+                context.append({"role": "assistant", "text": msg.get("text", "")})
 
     app.logger.info(f"New message request - User: {user_id}, Session: {session_id}, Conversation: {conversation_id}")
     app.logger.info(f"User message: {user_message}")
