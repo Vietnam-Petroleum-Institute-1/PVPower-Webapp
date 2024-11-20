@@ -319,7 +319,15 @@ def api_message():
     # lấy transcript từ conversation_id
     transcript = get_transcripts(conn, user_id, session_id)
 
-    messages = json.loads(transcript)
+    # Kiểm tra và xử lý transcript
+    if isinstance(transcript, list) and len(transcript) > 0:
+        # Nếu transcript là list của list, lấy list đầu tiên
+        if isinstance(transcript[0], list):
+            messages = transcript[0]
+        else:
+            messages = transcript
+    else:
+        messages = []
 
     # Số lượng tin nhắn muốn lấy
     num_messages_to_fetch = 3
