@@ -329,20 +329,25 @@ def api_message():
         if isinstance(first_item, tuple) and len(first_item) > 0:
             messages = first_item[0]
 
-    # Số lượng tin nhắn muốn lấy
-    num_messages_to_fetch = 3
+    # Tìm các cặp user-bot
+    pairs = []
+    i = 0
+    while i < len(messages) - 1:
+        if (isinstance(messages[i], dict) and isinstance(messages[i + 1], dict) and 
+            messages[i].get("role") == "user" and messages[i + 1].get("role") == "bot"):
+            pairs.append((messages[i], messages[i + 1]))
+            i += 2  # Nhảy qua cặp user-bot
+        else:
+            i += 1  # Tiếp tục duyệt nếu không khớp cặp
 
-    # Lấy tin nhắn gần đây nhất
-    recent_messages = messages[-num_messages_to_fetch:] if len(messages) > 0 else []
+    # Lấy 3 cặp gần nhất
+    recent_pairs = pairs[-3:]
 
     # Chuyển đổi sang cấu trúc mong muốn
     context = []
-    for msg in recent_messages:
-        if isinstance(msg, dict):  # Kiểm tra msg có phải là dict không
-            if msg.get("role") == "user":
-                context.append({"role": "user", "content": msg.get("text", "")})
-            elif msg.get("role") == "bot":
-                context.append({"role": "assistant", "text": msg.get("text", "")})
+    for user_msg, bot_msg in recent_pairs:
+        context.append({"role": "user", "content": user_msg.get("text", "")})
+        context.append({"role": "assistant", "text": bot_msg.get("text", "")})
 
     app.logger.info(f"New message request - User: {user_id}, Session: {session_id}, Conversation: {conversation_id}")
     app.logger.info(f"User message: {user_message}")
