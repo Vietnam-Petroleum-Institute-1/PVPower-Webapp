@@ -316,6 +316,25 @@ def api_message():
     conversation_id = request.args.get('conversation_id')
     thread_id = request.args.get('thread_id')  # Lấy thread_id từ request
 
+    # lấy transcript từ conversation_id
+    transcript = get_transcripts(conn, conversation_id)
+
+    messages = json.loads(transcript)
+
+    # Số lượng tin nhắn muốn lấy
+    num_messages_to_fetch = 3
+
+    # Lấy tin nhắn gần đây nhất (tối đa num_messages_to_fetch tin)
+    recent_messages = messages[-num_messages_to_fetch:] if len(messages) > 0 else []
+
+    # Chuyển đổi sang cấu trúc mong muốn
+    context = []
+    for msg in recent_messages:
+        if msg["role"] == "user":
+            context.append({"role": "user", "content": msg["text"]})
+        elif msg["role"] == "bot":
+            context.append({"role": "assistant", "text": msg["text"]})
+
     app.logger.info(f"New message request - User: {user_id}, Session: {session_id}, Conversation: {conversation_id}")
     app.logger.info(f"User message: {user_message}")
 
@@ -388,7 +407,7 @@ def api_message():
                                     # Nếu full_response không chứa "True" ở cuối thì thêm "\nTrue"
                                     if not full_response.endswith("True"):
                                         full_response += "\nTrue"
-                                    conversation(conn, message_id, session_id, user_id, "gpt",
+                                    conversation(conn, message_id, session_id, user_id, "faq",
                                                user_message, usage.get('prompt_tokens', 0), 
                                                full_response[:-len(domain)-1],
                                                usage.get('completion_tokens', 0), 
@@ -416,7 +435,14 @@ def api_message():
                     message_response = requests.post(
                         f"https://api.openai.com/v1/threads/{thread_id}/messages",
                         headers=headers,
-                        json={"role": "user", "content": user_message}
+                        json={"role": "user", 
+                              "content": f"""
+Đây là lịch sử trò chuyện:
+{context}
+
+Câu hỏi của người dùng:
+{user_message}
+"""}
                     )
                     app.logger.debug(f"Message sent: {message_response.json()}")
 
