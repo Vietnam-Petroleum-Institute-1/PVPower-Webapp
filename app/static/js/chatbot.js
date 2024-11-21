@@ -620,12 +620,12 @@ function sendMessage(message = null) {
     let botMessage = null;
  
     const delayMessageTimeout = setTimeout(() => {
-        if (!botMessage) {
-            removeWaitingBubble();
-            botMessage = addStreamingMessage("bot");
-            botMessage.updateContent("Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
-        }
-    }, 4000);
+        // if (!botMessage) {
+        //     removeWaitingBubble();
+        //     botMessage = addStreamingMessage("bot");
+        //     botMessage.updateContent("Chờ chút nhé, tôi đang tổng hợp lại câu trả lời cho bạn đây.");
+        // }
+    }, 5000);
  
     // Tạo URL với cc tham số
     const url = `/api/message?text=${encodeURIComponent(messageText)}&user_id=${encodeURIComponent(user_id)}&session_id=${encodeURIComponent(session_id)}&conversation_id=${encodeURIComponent(conversation_id)}&thread_id=${encodeURIComponent(thread_id)}`;
