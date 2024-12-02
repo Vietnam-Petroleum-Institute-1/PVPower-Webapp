@@ -341,7 +341,7 @@ def api_message():
             i += 1  # Tiếp tục duyệt nếu không khớp cặp
 
     # Lấy 3 cặp gần nhất
-    recent_pairs = pairs[-3:]
+    recent_pairs = pairs[-1:]
 
     # Chuyển đổi sang cấu trúc mong muốn
     context = []
