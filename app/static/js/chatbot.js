@@ -352,6 +352,15 @@ function parseMarkdown(text) {
   // Gom nhóm bullet points
   text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
   
+  // Xử lý subscript với dấu _
+  text = text.replace(/([A-Z]+)_\{([^}]+)\}/g, '<span class="math-inline">$1<sub>$2</sub></span>');
+  text = text.replace(/([A-Z]+)_([a-zA-Z0-9]+)/g, '<span class="math-inline">$1<sub>$2</sub></span>');
+  
+  // Xử lý các ký hiệu toán học đặc biệt
+  text = text.replace(/≤/g, '&le;');
+  text = text.replace(/≥/g, '&ge;');
+  text = text.replace(/±/g, '&plusmn;');
+  
   // Xử lý paragraphs
   text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
  
