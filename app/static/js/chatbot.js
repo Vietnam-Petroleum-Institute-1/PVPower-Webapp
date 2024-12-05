@@ -335,6 +335,11 @@ function parseMarkdown(text) {
   text = text.replace(/\\times/g, '\\times');
   text = text.replace(/\\sum/g, '\\sum');
   
+  // Xử lý markdown headings (###)
+  text = text.replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>');
+  text = text.replace(/^#{2}\s+(.+)$/gm, '<h2>$1</h2>');
+  text = text.replace(/^#{1}\s+(.+)$/gm, '<h1>$1</h1>');
+  
   // Xử lý headings với dấu **
   text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
   
