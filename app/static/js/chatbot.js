@@ -320,6 +320,9 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
+  // Xử lý các ký hiệu toán học với subscript
+  text = text.replace(/([A-Z]+)_{([^}]+)}/g, '\\($1_{$2}\\)');
+  
   // Xử lý các công thức toán học
   text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
     return `\\[${formula}\\]`;
@@ -346,8 +349,8 @@ function parseMarkdown(text) {
   // Xử lý bôi đậm với dấu ** (không phải ở đầu dòng)
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   
-  // // Xử lý bullet points
-  // text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
+  // Xử lý bullet points
+  text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
   
   // Gom nhóm bullet points
   text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
