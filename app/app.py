@@ -297,6 +297,13 @@ def signin():
             
             # Đặt cookie với thời gian hết hạn cụ thể
             response.set_cookie('session_id', session_id, expires=expires)
+
+            # Nếu username chứa domain (vd: pv-power\ldap_admin), tách ra
+        if '\\' in username:
+            username, domain = username.split('\\', 1)
+        
+            if '@' in username:
+                username, domain = username.split('@', 1)
             response.set_cookie('user_id', username, expires=expires)
 
             return response

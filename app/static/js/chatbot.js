@@ -338,6 +338,9 @@ function parseMarkdown(text) {
   // Xử lý headings với dấu **
   text = text.replace(/^(\d+)\.\s+\*\*(.+?)\*\*:?/gm, '<h3 class="heading">$1. $2</h3>');
   
+  // Xử lý bôi đậm với dấu ** (không phải ở đầu dòng)
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  
   // Xử lý bullet points
   text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
   
