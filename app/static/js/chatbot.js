@@ -320,9 +320,6 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
-  // Xử lý các ký hiệu toán học với subscript
-  text = text.replace(/([A-Z]+)_{([^}]+)}/g, '\\($1_{$2}\\)');
-  
   // Xử lý các công thức toán học
   text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
     return `\\[${formula}\\]`;
