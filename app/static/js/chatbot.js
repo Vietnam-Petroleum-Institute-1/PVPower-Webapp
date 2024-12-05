@@ -320,18 +320,10 @@ function parseMarkdown(text) {
   // Loại bỏ 【8:8†source】
   text = text.replace(/【.*?】/g, '');
   
-  // Xử lý các công thức toán học
-  text = text.replace(/\\\[(.*?)\\\]/g, (match, formula) => {
-    return `\\[${formula}\\]`;
-  });
-  
-  text = text.replace(/\\\((.*?)\\\)/g, (match, formula) => {
-    return `\\(${formula}\\)`;
-  });
-  
-  // Xử lý các ký tự đặc biệt trong công thức
-  text = text.replace(/\\left\((.*?)\\right\)/g, '\\left($1\\right)');
-  text = text.replace(/\\frac{(.*?)}{(.*?)}/g, '\\frac{$1}{$2}');
+  // Xử lý các công thức toán học phức tạp
+  text = text.replace(/\\left/g, '\\left');
+  text = text.replace(/\\right/g, '\\right');
+  text = text.replace(/\\frac/g, '\\frac');
   text = text.replace(/\\times/g, '\\times');
   text = text.replace(/\\sum/g, '\\sum');
   
@@ -346,20 +338,26 @@ function parseMarkdown(text) {
   // Xử lý bôi đậm với dấu ** (không phải ở đầu dòng)
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   
-  // // Xử lý bullet points
-  // text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
+  // Xử lý bullet points
+  text = text.replace(/^[-]\s+([\s\S]+?)(?=\n[-]|\n\n|$)/gm, "<li>$1</li>");
   
   // Gom nhóm bullet points
   text = text.replace(/((?:<li>[\s\S]*?<\/li>)+)/g, "<ul>$1</ul>");
   
-  // Xử lý subscript với dấu _
-  text = text.replace(/([A-Z]+)_\{([^}]+)\}/g, '<span class="math-inline">$1<sub>$2</sub></span>');
-  text = text.replace(/([A-Z]+)_([a-zA-Z0-9]+)/g, '<span class="math-inline">$1<sub>$2</sub></span>');
+  // Xử lý subscript cho các biến toán học
+  text = text.replace(/([A-Z]+)_([a-zA-Z]+)i\b/g, '$1<sub>$2i</sub>');
+  text = text.replace(/([A-Z]+)_{([^}]+)}/g, '$1<sub>$2</sub>');
   
-  // Xử lý các ký hiệu toán học đặc biệt
-  text = text.replace(/≤/g, '&le;');
-  text = text.replace(/≥/g, '&ge;');
-  text = text.replace(/±/g, '&plusmn;');
+  // Xử lý các công thức toán học đầy đủ
+  const mathRegex = /\\\[([\s\S]*?)\\\]|\\\(([\s\S]*?)\\\)/g;
+  text = text.replace(mathRegex, (match, display, inline) => {
+    const formula = display || inline;
+    if (display) {
+      return `\\[${formula}\\]`;
+    } else {
+      return `\\(${formula}\\)`;
+    }
+  });
   
   // Xử lý paragraphs
   text = text.split(/\n\n+/).map(p => `<p>${p}</p>`).join('');
@@ -692,7 +690,7 @@ function sendMessage(message = null) {
                     removeWaitingBubble();
                     botMessage = addStreamingMessage("bot");
                 }
-                botMessage.updateContent("Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.");
+                botMessage.updateContent("Xin l���i, đã có lỗi xảy ra. Vui lòng thử lại.");
                 isWaitingForBot = false;
                 userInput.disabled = false;
             }
