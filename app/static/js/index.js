@@ -351,7 +351,7 @@ function reloadPageIfVisible() {
     const inactiveDuration = currentTime - lastInactiveTime;
 
     // Nếu thời gian không hoạt động hơn 1 phút (60000 ms), reload trang
-    if (document.visibilityState === 'visible' && inactiveDuration >= 30000) {
+    if (document.visibilityState === 'visible' && inactiveDuration >= 60000) {
         location.reload();
     }
 }
