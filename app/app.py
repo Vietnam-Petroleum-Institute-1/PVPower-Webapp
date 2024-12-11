@@ -43,6 +43,11 @@ SECRET_TOKEN = os.environ.get('SECRET_TOKEN')  # Lấy token từ biến môi tr
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
 
+BASE_URL_PENDING = os.environ.get("BASE_URL_PENDING")
+DATASET_ID = os.environ.get("DATASET_ID")
+DOCUMENT_ID = os.environ.get("DOCUMENT_ID")
+API_KEY_PENDING = os.environ.get("API_KEY_PENDING")
+
 # Kiểm tra định dạng file được phép upload
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -509,6 +514,25 @@ Câu hỏi của người dùng:
                                                 metadata["usage"]["completion_tokens"],
                                                 metadata["usage"]["total_tokens"],
                                                 timestamp, conversation_id, "")
+                                    
+                                    # lưu vào pending faq bằng call api
+                                    url = f"{BASE_URL_PENDING}/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
+                                    headers = {
+                                        'Authorization': f'Bearer {API_KEY_PENDING}',
+                                        'Content-Type': 'application/json'
+                                    }
+                                    body = {
+                                        "segments": [
+                                            {
+                                                "content": user_message,
+                                                "answer": full_response,
+                                                "keywords": []
+                                            }
+                                        ]
+                                    }
+                                    response = requests.post(url, headers=headers, json=body)
+                                    #print response
+                                    app.logger.debug(f"Response: {response.json()}")
                                     break
                                     
                                 data = json.loads(data_str)
