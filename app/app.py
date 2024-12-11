@@ -516,12 +516,12 @@ Câu hỏi của người dùng:
                                                 timestamp, conversation_id, "")
                                     
                                     # lưu vào pending faq bằng call api
-                                    url = f"{BASE_URL_PENDING}/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
-                                    headers = {
+                                    pending_url = f"{BASE_URL_PENDING}/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
+                                    pending_headers = {
                                         'Authorization': f'Bearer {API_KEY_PENDING}',
                                         'Content-Type': 'application/json'
                                     }
-                                    body = {
+                                    pending_body = {
                                         "segments": [
                                             {
                                                 "content": user_message,
@@ -530,9 +530,9 @@ Câu hỏi của người dùng:
                                             }
                                         ]
                                     }
-                                    response = requests.post(url, headers=headers, json=body)
+                                    pending_response = requests.post(pending_url, headers=pending_headers, json=pending_body)
                                     #print response
-                                    app.logger.debug(f"Response: {response.json()}")
+                                    app.logger.debug(f"Response: {pending_response.json()}")
                                     break
                                     
                                 data = json.loads(data_str)
