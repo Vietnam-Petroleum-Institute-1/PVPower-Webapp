@@ -1105,6 +1105,8 @@ def filter_dashboard():
     user = data.get('user')
     start_date = pd.to_datetime(data.get('startDate'))
     end_date = pd.to_datetime(data.get('endDate'))
+    # format lại end_date giờ thành 23:59:59
+    end_date = end_date.replace(hour=23, minute=59, second=59)
     logging.info("user: %s", user)
     logging.info("start_filter: %s", start_date)
     logging.info("end_filter: %s", end_date)
