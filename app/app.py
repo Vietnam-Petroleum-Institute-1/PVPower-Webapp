@@ -17,6 +17,8 @@ import pandas as pd
 from decorators import admin_required
 from flask import send_from_directory, abort
 from werkzeug.utils import secure_filename
+from typing import List
+import random
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Cho phép tất cả nguồn gốc
@@ -41,12 +43,97 @@ BASE_DN = os.getenv('BASE_DN')
 SECRET_KEY = os.getenv('SECRET_KEY')
 SECRET_TOKEN = os.environ.get('SECRET_TOKEN')  # Lấy token từ biến môi trường
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-ASSISTANT_ID = os.environ.get("ASSISTANT_ID")
+ASSISTANT_IDS = os.environ.get("ASSISTANT_ID", "").split(",")
+
 
 BASE_URL_PENDING = os.environ.get("BASE_URL_PENDING")
 DATASET_ID = os.environ.get("DATASET_ID")
 DOCUMENT_ID = os.environ.get("DOCUMENT_ID")
 API_KEY_PENDING = os.environ.get("API_KEY_PENDING")
+
+# Thêm vào đầu file, sau phần imports
+class AssistantManager:
+    def __init__(self, assistant_ids: List[str]):
+        self.assistant_ids = assistant_ids
+        self.current_id_index = 0
+        self.failed_ids = set()
+
+    def get_current_id(self) -> str:
+        return self.assistant_ids[self.current_id_index]
+
+    def rotate_id(self) -> str:
+        # Đánh dấu ID hiện tại là đã thất bại
+        self.failed_ids.add(self.current_id_index)
+        
+        # Nếu tất cả các ID đều đã thất bại
+        if len(self.failed_ids) == len(self.assistant_ids):
+            # Reset lại danh sách ID thất bại
+            self.failed_ids.clear()
+            
+        # Tìm ID tiếp theo chưa thất bại
+        available_indices = [i for i in range(len(self.assistant_ids)) if i not in self.failed_ids]
+        if available_indices:
+            self.current_id_index = random.choice(available_indices)
+        else:
+            # Nếu không còn ID nào khả dụng, quay lại ID đầu tiên
+            self.current_id_index = 0
+            
+        return self.get_current_id()
+
+assistant_manager = AssistantManager(ASSISTANT_IDS)
+
+# Trong hàm api_message, thay đổi phần xử lý OpenAI Assistant
+def try_assistant_call(thread_id, user_message, context):
+    max_retries = len(ASSISTANT_IDS)
+    current_retry = 0
+    
+    while current_retry < max_retries:
+        try:
+            headers = {
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json",
+                "OpenAI-Beta": "assistants=v2"
+            }
+
+            # Gửi câu hỏi
+            message_response = requests.post(
+                f"https://api.openai.com/v1/threads/{thread_id}/messages",
+                headers=headers,
+                json={"role": "user", 
+                      "content": f"""
+Đây là lịch sử trò chuyện:
+{context}
+
+Câu hỏi của người dùng:
+{user_message}
+"""}
+            )
+            message_response.raise_for_status()
+
+            # Tạo run với streaming
+            run_response = requests.post(
+                f"https://api.openai.com/v1/threads/{thread_id}/runs",
+                headers=headers,
+                json={
+                    "assistant_id": assistant_manager.get_current_id(),
+                    "stream": True
+                },
+                stream=True
+            )
+            run_response.raise_for_status()
+            
+            return run_response
+
+        except (requests.exceptions.RequestException, ValueError) as e:
+            app.logger.error(f"Error with Assistant ID {assistant_manager.get_current_id()}: {str(e)}")
+            assistant_manager.rotate_id()
+            current_retry += 1
+            
+            if current_retry == max_retries:
+                raise Exception("Tất cả Assistant ID đều thất bại")
+
+    return None
+
 
 # Kiểm tra định dạng file được phép upload
 def allowed_file(filename):
@@ -450,108 +537,79 @@ def api_message():
                 # Nếu cần chuyển sang Assistant
                 if switch_to_assistant:
                     app.logger.debug("Starting Assistant API call")
-
-                    headers = {
-                        "Authorization": f"Bearer {OPENAI_API_KEY}",
-                        "Content-Type": "application/json",
-                        "OpenAI-Beta": "assistants=v2"
-                    }
-
-                    # Gửi câu hỏi
-                    message_response = requests.post(
-                        f"https://api.openai.com/v1/threads/{thread_id}/messages",
-                        headers=headers,
-                        json={"role": "user", 
-                              "content": f"""
-Đây là lịch sử trò chuyện:
-{context}
-
-Câu hỏi của người dùng:
-{user_message}
-"""}
-                    )
-                    app.logger.debug(f"Message sent: {message_response.json()}")
-
-                    # Tạo run với streaming
-                    run_response = requests.post(
-                        f"https://api.openai.com/v1/threads/{thread_id}/runs",
-                        headers=headers,
-                        json={
-                            "assistant_id": ASSISTANT_ID,
-                            "stream": True
-                        },
-                        stream=True
-                    )
-
-                    if run_response.status_code != 200:
-                        app.logger.error(f"Error creating run: {run_response.text}")
-                        raise ValueError(f"Failed to create run: {run_response.status_code}")
-
-                    full_response = ""
-                    message_id = str(uuid.uuid4())
-
-                    for line in run_response.iter_lines():
-                        app.logger.debug(f"Raw line: {line}")
-                        if line:
-                            try:
-                                line_text = line.decode('utf-8')
-                                if not line_text.startswith("data: "):
-                                    continue
-                                    
-                                data_str = line_text.replace("data: ", "")
-                                if data_str == "[DONE]":
-                                    app.logger.debug(f"Received 'done' response")
-                                    metadata = {"usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}
-                                    yield f"data: {json.dumps({'event': 'message_end', 'metadata': metadata})}\n\n"
-                                    
-                                    # Lưu vào database
-                                    timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
-                                    logging.debug(f"Câu trả lời của openai: {full_response}")
-                                    full_response = re.sub(r'【.*?】', '', full_response.strip())
-                                    conversation(conn, message_id, session_id, user_id, "gpt",
+                    try:
+                        run_response = try_assistant_call(thread_id, user_message, context)
+                        if run_response:
+                            # Tiếp tục xử lý response như code hiện tại
+                            full_response = ""
+                            message_id = str(uuid.uuid4())
+                            
+                            for line in run_response.iter_lines():
+                                app.logger.debug(f"Raw line: {line}")
+                                if line:
+                                    try:
+                                        line_text = line.decode('utf-8')
+                                        if not line_text.startswith("data: "):
+                                            continue
+                                        
+                                        data_str = line_text.replace("data: ", "")
+                                        if data_str == "[DONE]":
+                                            app.logger.debug(f"Received 'done' response")
+                                            metadata = {"usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}}
+                                            yield f"data: {json.dumps({'event': 'message_end', 'metadata': metadata})}\n\n"
+                                            
+                                            # Lưu vào database
+                                            timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
+                                            logging.debug(f"Câu trả lời của openai: {full_response}")
+                                            full_response = re.sub(r'【.*?】', '', full_response.strip())
+                                            conversation(conn, message_id, session_id, user_id, "gpt",
                                                 user_message, metadata["usage"]["prompt_tokens"], 
                                                 full_response,
                                                 metadata["usage"]["completion_tokens"],
                                                 metadata["usage"]["total_tokens"],
                                                 timestamp, conversation_id, "")
-                                    
-                                    # lưu vào pending faq bằng call api
-                                    pending_url = f"{BASE_URL_PENDING}/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
-                                    pending_headers = {
-                                        'Authorization': f'Bearer {API_KEY_PENDING}',
-                                        'Content-Type': 'application/json'
-                                    }
-                                    pending_body = {
-                                        "segments": [
-                                            {
-                                                "content": user_message,
-                                                "answer": full_response,
-                                                "keywords": []
+                                            
+                                            # lưu vào pending faq bằng call api
+                                            pending_url = f"{BASE_URL_PENDING}/datasets/{DATASET_ID}/documents/{DOCUMENT_ID}/segments"
+                                            pending_headers = {
+                                                'Authorization': f'Bearer {API_KEY_PENDING}',
+                                                'Content-Type': 'application/json'
                                             }
-                                        ]
-                                    }
-                                    pending_response = requests.post(pending_url, headers=pending_headers, json=pending_body)
-                                    #print response
-                                    app.logger.debug(f"Response: {pending_response.json()}")
-                                    break
-                                    
-                                data = json.loads(data_str)
-                                event = data.get("object", "")
-                                
-                                if event == "thread.message.delta":
-                                    delta = data.get("delta", {})
-                                    content = delta.get("content", [])
-                                    if content and content[0]["type"] == "text":
-                                        chunk = content[0]["text"]["value"]
-                                        full_response += chunk
-                                        yield f"data: {json.dumps({'event': 'message', 'chunk': chunk, 'message_id': message_id, 'conversation_id': conversation_id})}\n\n"
+                                            pending_body = {
+                                                "segments": [
+                                                    {
+                                                        "content": user_message,
+                                                        "answer": full_response,
+                                                        "keywords": []
+                                                    }
+                                                ]
+                                            }
+                                            pending_response = requests.post(pending_url, headers=pending_headers, json=pending_body)
+                                            #print response
+                                            app.logger.debug(f"Response: {pending_response.json()}")
+                                            break
+                                        
+                                        data = json.loads(data_str)
+                                        event = data.get("object", "")
+                                        
+                                        if event == "thread.message.delta":
+                                            delta = data.get("delta", {})
+                                            content = delta.get("content", [])
+                                            if content and content[0]["type"] == "text":
+                                                chunk = content[0]["text"]["value"]
+                                                full_response += chunk
+                                                yield f"data: {json.dumps({'event': 'message', 'chunk': chunk, 'message_id': message_id, 'conversation_id': conversation_id})}\n\n"
 
-                            except json.JSONDecodeError as e:
-                                app.logger.error(f"Error decoding JSON: {e}")
-                                continue
-                            except Exception as e:
-                                app.logger.error(f"Error processing line: {e}")
-                                continue
+                                    except json.JSONDecodeError as e:
+                                        app.logger.error(f"Error decoding JSON: {e}")
+                                        continue
+                                    except Exception as e:
+                                        app.logger.error(f"Error processing line: {e}")
+                                        continue
+
+                    except Exception as e:
+                        app.logger.error(f"All Assistant IDs failed: {str(e)}")
+                        yield f"data: {json.dumps({'event': 'error', 'message': 'Không thể kết nối với OpenAI Assistant'})}\n\n"
 
                 conn.close()
 
