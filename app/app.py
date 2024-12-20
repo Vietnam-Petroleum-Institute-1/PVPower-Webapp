@@ -276,7 +276,7 @@ def home():
 
     # Kiểm tra xem người dùng có phải là admin không
     conn = connect_db()
-    is_admin = admin_verify(conn, user_id)  # Giả định rằng bạn đ�� truyền kết nối `conn`
+    is_admin = admin_verify(conn, user_id)  # Giả định rằng bạn đã truyền kết nối `conn`
 
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}, is_admin: {is_admin}")
     return render_template('index.html', is_admin=is_admin)
@@ -634,34 +634,64 @@ def start_conversation():
     user_id = request.json['user_id']
     session_id = request.json['session_id']
 
-    # Tạo thread mới
-    headers = {
-        'Authorization': f'Bearer {OPENAI_API_KEY}',
-        'Content-Type': 'application/json',
-        'OpenAI-Beta': 'assistants=v1'
-    }
-    
     try:
         # Tạo thread mới
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json",
+            "OpenAI-Beta": "assistants=v2"
+        }
+        
         thread_response = requests.post(
             "https://api.openai.com/v1/threads",
             headers=headers,
             json={"messages": []}
         )
+        thread_response.raise_for_status()
         thread_id = thread_response.json().get("id")
+        
         if not thread_id:
             raise ValueError("Không thể tạo thread.")
         
         app.logger.info(f"Created thread: {thread_id}")
 
-        # Sử dụng try_assistant_call
-        run_response = try_assistant_call(thread_id, "Xin chào", "")
-        if not run_response:
-            raise Exception("Không thể kết nối với Assistant")
+        # Thử gọi assistant với cơ chế xoay vòng
+        max_retries = len(ASSISTANT_IDS)
+        current_retry = 0
+        
+        while current_retry < max_retries:
+            try:
+                # Gửi tin nhắn chào
+                message_response = requests.post(
+                    f"https://api.openai.com/v1/threads/{thread_id}/messages",
+                    headers=headers,
+                    json={"role": "user", "content": "Xin chào"}
+                )
+                message_response.raise_for_status()
+
+                # Tạo run với assistant hiện tại
+                run_response = requests.post(
+                    f"https://api.openai.com/v1/threads/{thread_id}/runs",
+                    headers=headers,
+                    json={
+                        "assistant_id": assistant_manager.get_current_id(),
+                        "stream": True
+                    }
+                )
+                run_response.raise_for_status()
+                break
+                
+            except requests.exceptions.RequestException as e:
+                app.logger.error(f"Error with Assistant ID {assistant_manager.get_current_id()}: {str(e)}")
+                assistant_manager.rotate_id()
+                current_retry += 1
+                
+                if current_retry == max_retries:
+                    raise Exception("Tất cả Assistant ID đều thất bại")
 
         # Tạo conversation mới
-        conversation_id = str(uuid.uuid4())  # Tạo conversation_id mới
-        message_id = str(uuid.uuid4())  # Tạo message_id mới
+        conversation_id = str(uuid.uuid4())
+        message_id = str(uuid.uuid4())
         timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
 
         # Thêm conversation và message vào database
@@ -677,16 +707,9 @@ def start_conversation():
             "thread_id": thread_id
         })
 
-    except requests.exceptions.RequestException as e:
-        app.logger.error(f"RequestException: {e}")
-        error_code = e.response.status_code if hasattr(e.response, 'status_code') else 500
-        error_logs(conn, user_id, session_id, '', '', 'Start conversation failed due to ' + str(e), error_code)
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
     except Exception as e:
-        app.logger.error(f"Exception: {e}")
-        error_code = getattr(e, 'status_code', 500)
-        error_logs(conn, user_id, session_id, '', '', 'Start conversation failed due to ' + str(e), error_code)
-        return jsonify({"result": f"Xin lỗi, tôi không đủ thông tin để trả lời câu hỏi này"}), error_code
+        app.logger.error(f"Error in start_conversation: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/user', methods=['POST'])
 def api_user():
@@ -1039,12 +1062,6 @@ def admin_dashboard():
     session_df['created_at'] = pd.to_datetime(session_df['created_at']).dt.date
     users_by_date = session_df.groupby('created_at').size().to_dict()
     users_by_date_str = {str(k): v for k, v in users_by_date.items()}  # Chuyển datetime thành chuỗi
-
-    # Log để kiểm tra dữ liệu JSON
-    logging.info("Feedback Counts: %s", feedback_counts)
-    logging.info("User Messages Data: %s", user_messages_data)
-    logging.info("Hourly Messages Data: %s", hourly_messages_data)
-    logging.info("User Access Data: %s", users_by_date_str)
 
     non_faqs_df = conversation_logs_df[conversation_logs_df['inputs'] != ""]
 
