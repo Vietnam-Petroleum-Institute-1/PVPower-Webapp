@@ -276,7 +276,7 @@ def home():
 
     # Kiểm tra xem người dùng có phải là admin không
     conn = connect_db()
-    is_admin = admin_verify(conn, user_id)  # Giả định rằng bạn đã truyền kết nối `conn`
+    is_admin = admin_verify(conn, user_id)  # Giả định rằng bạn đ�� truyền kết nối `conn`
 
     logging.debug(f"Rendering home page for user_id: {user_id}, session_id: {session_id}, is_admin: {is_admin}")
     return render_template('index.html', is_admin=is_admin)
@@ -654,42 +654,28 @@ def start_conversation():
         
         app.logger.info(f"Created thread: {thread_id}")
 
-        # Tiếp tục với phần code hiện tại
-        url = f'{CHATBOT_URL}/chat-messages'
-        headers = {
-            'Authorization': f'Bearer {CHATBOT_APIKEY}',
-            'Content-Type': 'application/json'
-        }
-        body = {
-            "inputs": {},
-            "query": "Xin chào",
-            "response_mode": "blocking",
-            "conversation_id": "",
-            "user": user_id
-        }
+        # Sử dụng try_assistant_call
+        run_response = try_assistant_call(thread_id, "Xin chào", "")
+        if not run_response:
+            raise Exception("Không thể kết nối với Assistant")
 
-        response = requests.post(url, headers=headers, json=body)
-        response.raise_for_status()
+        # Tạo conversation mới
+        conversation_id = str(uuid.uuid4())  # Tạo conversation_id mới
+        message_id = str(uuid.uuid4())  # Tạo message_id mới
+        timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).strftime('%Y-%m-%d %H:%M:%S %z')
 
-        data = response.json()
-        conversation_id = data['conversation_id']
-        result = response.json()
-
-        result_answer = decode_unicode_escapes(result["answer"])
-        domain = extract_domain(result_answer)
-        input_token = 0
-        output_token = len(result)//4 + 1
-        total_token = input_token + output_token
-        timestamp = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh'))
-        timestamp = timestamp.strftime('%Y-%m-%d %H:%M:%S %z')
-
-        # Thêm thread_id vào lúc tạo conversation
+        # Thêm conversation và message vào database
         add_conversation(conn, conversation_id, "New message", session_id, user_id, thread_id)
-        conversation(conn, data["message_id"], session_id, user_id, "gpt", "", input_token, result_answer[:-len(domain)-1], output_token, total_token, timestamp, conversation_id, domain)
+        conversation(conn, message_id, session_id, user_id, "gpt", "Xin chào", 0, 
+                    "Xin chào! Tôi có thể giúp gì cho bạn?", 0, 0, timestamp, conversation_id, "")
         
         logging.debug(f"Conversation {conversation_id} inserted successfully with thread {thread_id}")
         conn.close()
-        return jsonify({"conversation_id": conversation_id, "message_id": result["message_id"], "thread_id": thread_id})
+        return jsonify({
+            "conversation_id": conversation_id, 
+            "message_id": message_id, 
+            "thread_id": thread_id
+        })
 
     except requests.exceptions.RequestException as e:
         app.logger.error(f"RequestException: {e}")
