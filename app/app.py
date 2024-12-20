@@ -696,7 +696,7 @@ def start_conversation():
 
         # Thêm conversation và message vào database
         add_conversation(conn, conversation_id, "New message", session_id, user_id, thread_id)
-        conversation(conn, message_id, session_id, user_id, "gpt", "Xin chào", 0, 
+        conversation(conn, message_id, session_id, user_id, "gpt", "", 0, 
                     "Xin chào! Tôi có thể giúp gì cho bạn?", 0, 0, timestamp, conversation_id, "")
         
         logging.debug(f"Conversation {conversation_id} inserted successfully with thread {thread_id}")
